@@ -49,6 +49,7 @@ stud/
 ├── packages/
 │   ├── db             Prisma schema + migrations + seed
 │   ├── pedigree       PURE: ancestry graph, COI, relatedness. No I/O.
+│   ├── breeding       PURE: heat prediction, gestation, growth, schedules.
 │   ├── verify         Source adapters + verification state machine
 │   ├── contracts      Contract templates, e-sign orchestration
 │   ├── payments       Escrow, deposits, payouts, refund logic
@@ -236,7 +237,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **0** ✅ | Foundations | `pnpm dev` boots web + studio + api against a seeded Postgres |
 | **1** ✅ | Dog record & pedigree graph | Import a 5-generation pedigree, render it, compute Wright's COI against a hand-checked case |
 | **2** ✅ | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
-| **3** | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
+| **3** ✅ | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
 | **4** | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
 | **5** | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
 | **6** | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
@@ -285,3 +286,29 @@ See [`docs/`](docs/) for the payments diligence note and architecture decisions.
 ## License
 
 Proprietary. All rights reserved.
+
+
+---
+
+## The breeding engine
+
+[`packages/breeding`](packages/breeding) is pure, like `@stud/pedigree`. No
+clock — every function that needs "now" takes it as an argument, so every
+prediction is reproducible and every test deterministic.
+
+**Every prediction carries its basis and its confidence.** Gestation is 63 ± 1
+days from a confirmed ovulation and 58–68 days from a breeding date; those are
+the same feature with a tenfold difference in accuracy. `forecastWhelp` returns
+which one it used, and the UI never renders the date without it.
+
+| | |
+|---|---|
+| **Heat prediction** | Uses the bitch's own intervals once two cycles are logged. The window is two standard deviations wide, floored at a week — no bitch is regular enough to deserve a three-day promise. One cycle gets a 90-day window and says so. |
+| **Progesterone** | Identifies the LH surge and ovulation, then gives a breeding window per semen type. Frozen gets the tightest and latest, because semen that survives hours does not forgive a day. |
+| **Growth** | Assessed against the litter's own median birth weight and against its littermates — same dam, same milk, same day, which beats any generic curve. Flags fire on trajectory, not on size. |
+| **Care schedule** | The standard protocol, dated from the whelp date, generated automatically and fully editable. Reference protocols, not veterinary instruction. |
+
+One decision worth knowing about: when a progesterone series crosses a
+threshold between two tests, the crossing is estimated **log-linearly and
+rounded up**. Progesterone rises exponentially, so linear interpolation lands
+early — and of the two ways to be wrong, early is the expensive one.

@@ -10,6 +10,9 @@ import { HttpError } from './lib/errors.js';
 import authPlugin from './plugins/auth.js';
 import prismaPlugin from './plugins/prisma.js';
 import authRoutes from './routes/auth.js';
+import breedingRoutes from './routes/breeding.js';
+import dashboardRoutes from './routes/dashboard.js';
+import litterRoutes from './routes/litters.js';
 import dogRoutes from './routes/dogs.js';
 import kennelRoutes from './routes/kennels.js';
 import pedigreeRoutes from './routes/pedigree.js';
@@ -73,6 +76,9 @@ export async function buildServer() {
       await api.register(dogRoutes);
       await api.register(pedigreeRoutes);
       await api.register(verificationRoutes);
+      await api.register(breedingRoutes);
+      await api.register(litterRoutes);
+      await api.register(dashboardRoutes);
     },
     { prefix: '/v1' },
   );

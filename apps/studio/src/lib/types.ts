@@ -236,3 +236,201 @@ export interface VerificationResponse {
     identifier: string;
   }[];
 }
+
+// ── Phase 3: breeder workspace ──────────────────────────────────────────────
+
+export type PredictionConfidence = 'NONE' | 'LOW' | 'MODERATE' | 'HIGH';
+
+export interface HeatPredictionDto {
+  predictedStart: string | null;
+  windowStart: string | null;
+  windowEnd: string | null;
+  averageIntervalDays: number | null;
+  intervalStdDevDays: number | null;
+  cyclesObserved: number;
+  confidence: PredictionConfidence;
+  note: string;
+  daysAway: number | null;
+}
+
+export interface WhelpForecastDto {
+  dueOn: string | null;
+  earliest: string | null;
+  latest: string | null;
+  basis: 'OVULATION' | 'LH_SURGE' | 'BREEDING_DATE' | 'NONE';
+  daysAway: number | null;
+  gestationDay: number | null;
+  confidence: PredictionConfidence;
+  note: string;
+}
+
+export interface ProgesteroneInterpretationDto {
+  phase: string;
+  latest: { takenOn: string; ngMl: number } | null;
+  estimatedLhDate: string | null;
+  estimatedOvulationDate: string | null;
+  ovulationBasis: 'MEASURED' | 'DERIVED_FROM_LH' | 'NONE';
+  breedingWindows: Record<string, { from: string; to: string } | null>;
+  retestOn: string | null;
+  note: string;
+}
+
+export interface DogRef {
+  id: string;
+  slug?: string;
+  callName: string;
+  registeredName?: string | null;
+  breed?: string;
+}
+
+export interface HeatCycleDto {
+  id: string;
+  startedOn: string;
+  endedOn: string | null;
+  notes: string | null;
+  progesteroneTests: {
+    id: string;
+    takenOn: string;
+    value: number;
+    unit: 'NG_ML' | 'NMOL_L';
+    lab: string | null;
+  }[];
+  observations: { id: string; observedOn: string; phase: string | null; temperatureC: number | null; notes: string | null }[];
+  breedings: { id: string; status: string; method: string }[];
+}
+
+export interface BreedingDto {
+  id: string;
+  sireId: string;
+  damId: string;
+  method: string;
+  status: string;
+  ovulationDate: string | null;
+  lhSurgeDate: string | null;
+  ultrasoundOn: string | null;
+  xrayOn: string | null;
+  xrayPuppyCount: number | null;
+  notes: string | null;
+  sire: DogRef;
+  dam: DogRef;
+  events: { id: string; occurredOn: string; method: string; tieMinutes: number | null; notes: string | null }[];
+  litter?: { id: string; status: string; whelpedOn: string | null; liveBorn: number | null } | null;
+  forecast: WhelpForecastDto;
+}
+
+export interface PuppyDto {
+  id: string;
+  birthOrder: number | null;
+  name: string | null;
+  collarColor: string | null;
+  sex: 'MALE' | 'FEMALE';
+  status: string;
+  birthWeightGrams: number | null;
+  colorPattern: string | null;
+  markings: string | null;
+  microchip: string | null;
+  bornAt: string | null;
+  notes: string | null;
+  weights: { id: string; recordedOn: string; grams: number }[];
+}
+
+export interface LitterMilestonesDto {
+  ageDays: number;
+  ageWeeks: number;
+  eyesOpenOn: string;
+  weaningStartsOn: string;
+  socialisationOpensOn: string;
+  firstVaccinationOn: string;
+  goHomeFrom: string;
+  inCriticalWindow: boolean;
+}
+
+export interface GrowthAssessmentDto {
+  latestGrams: number | null;
+  ageDays: number | null;
+  multipleOfBirthWeight: number | null;
+  expectedGrams: number | null;
+  ratioToExpected: number | null;
+  recentDailyGainGrams: number | null;
+  flags: { kind: string; severity: 'WATCH' | 'URGENT'; message: string; observedOn: string }[];
+  summary: string;
+}
+
+export interface CareTaskDto {
+  id: string;
+  kind: string;
+  title: string;
+  detail: string | null;
+  dueOn: string;
+  status: 'PENDING' | 'DONE' | 'SKIPPED';
+  completedOn: string | null;
+  required: boolean;
+  productUsed: string | null;
+  litter?: { id: string; name: string | null; letter: string | null; dam: { callName: string } } | null;
+  dog?: { id: string; slug: string; callName: string } | null;
+}
+
+export interface LitterDetailResponse {
+  litter: {
+    id: string;
+    name: string | null;
+    letter: string | null;
+    status: string;
+    expectedWhelpOn: string | null;
+    whelpedOn: string | null;
+    totalBorn: number | null;
+    liveBorn: number | null;
+    stillborn: number | null;
+    neonatalDeaths: number;
+    whelpingNotes: string | null;
+    sire: DogRef;
+    dam: DogRef;
+    breeding: { id: string; method: string; ovulationDate: string | null; xrayPuppyCount: number | null } | null;
+    puppies: PuppyDto[];
+    whelpingEvents: { id: string; kind: string; occurredAt: string; note: string | null }[];
+    careTasks: CareTaskDto[];
+  };
+  milestones: LitterMilestonesDto | null;
+  growth: { puppyId: string; assessment: GrowthAssessmentDto }[];
+  siblings: { puppyId: string; latestGrams: number | null; rank: number | null; ofTotal: number; vsMedianGrams: number | null }[];
+  referenceBand: { day: number; grams: number; lowGrams: number; highGrams: number }[];
+  medianBirthWeightGrams: number | null;
+}
+
+export interface DashboardResponse {
+  kennels: { id: string; name: string; slug: string; role: string }[];
+  counts: {
+    dogs: number;
+    females: number;
+    activeBreedings: number;
+    littersOnTheGround: number;
+    puppiesOnTheGround: number;
+    overdueTasks: number;
+    openConflicts: number;
+    verifiedClaims: number;
+  };
+  upcomingHeats: { dog: DogRef; prediction: HeatPredictionDto }[];
+  activeBreedings: BreedingDto[];
+  activeLitters: {
+    id: string;
+    name: string | null;
+    letter: string | null;
+    status: string;
+    expectedWhelpOn: string | null;
+    whelpedOn: string | null;
+    sire: DogRef;
+    dam: DogRef;
+    puppies: { id: string; sex: string; status: string }[];
+    milestones: LitterMilestonesDto | null;
+    available: number;
+    reserved: number;
+  }[];
+  dueTasks: CareTaskDto[];
+}
+
+export interface HeatsResponse {
+  dog: { id: string; callName: string; sex: string };
+  cycles: HeatCycleDto[];
+  prediction: HeatPredictionDto;
+  interpretation: ProgesteroneInterpretationDto | null;
+}

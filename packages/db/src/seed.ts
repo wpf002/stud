@@ -467,6 +467,201 @@ async function main() {
     console.info('  ✓ reported claims (owner-attested tier)');
   }
 
+  // ── Phase 3: a full breeding cycle, whelp to eight weeks ─────────────────
+  //
+  // Seeded backwards from today so the workspace always shows a litter in the
+  // middle of its life rather than a fixed date that goes stale.
+  const DAY = 86_400_000;
+  const today = new Date();
+  const at = (daysAgo: number) => new Date(today.getTime() - daysAgo * DAY);
+
+  const juniper = await db.dog.findUnique({ where: { slug: 'blackwaters-juniper' }, select: { id: true } });
+  const ranger = await db.dog.findUnique({ where: { slug: 'blackwaters-ranger-of-the-marsh' }, select: { id: true } });
+  const marigold = await db.dog.findUnique({ where: { slug: 'cedar-run-marigold' }, select: { id: true } });
+  const atlasDog = await db.dog.findUnique({ where: { slug: 'cedar-run-atlas' }, select: { id: true } });
+
+  if (juniper && ranger) {
+    // Three prior heats, so the prediction has her own interval to work from
+    // rather than a breed average.
+    const priorHeats = [at(560), at(378), at(190)];
+    for (const startedOn of priorHeats) {
+      const exists = await db.heatCycle.findFirst({ where: { dogId: juniper.id, startedOn } });
+      if (!exists) await db.heatCycle.create({ data: { dogId: juniper.id, startedOn } });
+    }
+
+    // The cycle she was bred on, with a real progesterone series that crosses
+    // both thresholds — so the interpretation has something to interpret.
+    const bredHeatStart = at(58 + 12);
+    let bredHeat = await db.heatCycle.findFirst({ where: { dogId: juniper.id, startedOn: bredHeatStart } });
+    if (!bredHeat) {
+      bredHeat = await db.heatCycle.create({
+        data: {
+          dogId: juniper.id,
+          startedOn: bredHeatStart,
+          endedOn: at(58 - 6),
+          notes: 'Straightforward cycle. Flagging by day 9.',
+        },
+      });
+      const series: [number, number][] = [
+        [58 + 6, 0.4],
+        [58 + 4, 1.1],
+        [58 + 2, 2.6],
+        [58, 6.4],
+      ];
+      for (const [daysAgo, value] of series) {
+        await db.progesteroneTest.create({
+          data: { heatCycleId: bredHeat.id, takenOn: at(daysAgo), value, unit: 'NG_ML', lab: 'Denton Vet' },
+        });
+      }
+    }
+
+    // Ovulation 58 days ago → whelp at 63 days from ovulation, i.e. 5 days
+    // from now. The litter below is the PREVIOUS one, already on the ground.
+    let breeding = await db.breeding.findFirst({ where: { damId: juniper.id, sireId: ranger.id } });
+    if (!breeding) {
+      breeding = await db.breeding.create({
+        data: {
+          sireId: ranger.id,
+          damId: juniper.id,
+          heatCycleId: bredHeat.id,
+          kennelId: blackwater.id,
+          method: 'NATURAL',
+          status: 'CONFIRMED_PREGNANT',
+          ovulationDate: at(58),
+          lhSurgeDate: at(60),
+          ultrasoundOn: at(30),
+          ultrasoundResult: 'Pregnancy confirmed, multiple sacs',
+          xrayOn: at(3),
+          xrayPuppyCount: 8,
+        },
+      });
+      for (const daysAgo of [56, 54]) {
+        await db.breedingEvent.create({
+          data: { breedingId: breeding.id, occurredOn: at(daysAgo), method: 'NATURAL', tieMinutes: 22 },
+        });
+      }
+      await db.litter.create({
+        data: {
+          breedingId: breeding.id,
+          kennelId: blackwater.id,
+          sireId: ranger.id,
+          damId: juniper.id,
+          letter: 'B',
+          status: 'EXPECTED',
+          expectedWhelpOn: new Date(at(58).getTime() + 63 * DAY),
+        },
+      });
+    }
+    console.info('  ✓ heat cycles, progesterone series, breeding (due in 5 days)');
+  }
+
+  // ── A litter on the ground at 18 days, mid growth-tracking ───────────────
+  if (marigold && atlasDog) {
+    const whelpedOn = at(18);
+    let litter = await db.litter.findFirst({ where: { damId: marigold.id, letter: 'A' } });
+    if (!litter) {
+      litter = await db.litter.create({
+        data: {
+          kennelId: cedarRun.id,
+          sireId: atlasDog.id,
+          damId: marigold.id,
+          letter: 'A',
+          status: 'ON_THE_GROUND',
+          whelpedOn,
+          whelpingNotes: 'Straightforward whelp, six hours start to finish. One small male needed help latching.',
+        },
+      });
+
+      const pups: { collar: string; sex: 'MALE' | 'FEMALE'; birth: number; struggling?: boolean }[] = [
+        { collar: 'Green', sex: 'MALE', birth: 420 },
+        { collar: 'Blue', sex: 'MALE', birth: 445 },
+        { collar: 'Red', sex: 'FEMALE', birth: 398 },
+        { collar: 'Yellow', sex: 'FEMALE', birth: 410 },
+        { collar: 'Orange', sex: 'MALE', birth: 388 },
+        // The runt. Seeded to actually trip the growth flags rather than to
+        // look tidy — a demo where nothing is ever wrong teaches nothing.
+        { collar: 'Purple', sex: 'FEMALE', birth: 330, struggling: true },
+      ];
+
+      for (const [i, pup] of pups.entries()) {
+        const puppy = await db.puppy.create({
+          data: {
+            litterId: litter.id,
+            birthOrder: i + 1,
+            collarColor: pup.collar,
+            sex: pup.sex,
+            birthWeightGrams: pup.birth,
+            colorPattern: 'Golden',
+            bornAt: new Date(whelpedOn.getTime() + i * 40 * 60_000),
+            status: i < 4 ? 'AVAILABLE' : 'RESERVED',
+          },
+        });
+
+        // Daily weights. The healthy puppies track the band; the runt falls off it.
+        for (let day = 0; day <= 18; day++) {
+          const growth = pup.struggling
+            ? 1 + day * 0.048 // reaches only ~1.9x by day 18 — fails to double
+            : 1 + day * 0.085;
+          await db.puppyWeight.create({
+            data: {
+              puppyId: puppy.id,
+              recordedOn: new Date(whelpedOn.getTime() + day * DAY),
+              grams: Math.round(pup.birth * growth),
+            },
+          });
+        }
+      }
+
+      await db.litter.update({
+        where: { id: litter.id },
+        data: { totalBorn: pups.length, liveBorn: pups.length, stillborn: 0 },
+      });
+
+      for (const e of [
+        { kind: 'contraction', note: 'Hard contractions started', mins: 0 },
+        { kind: 'puppy_born', note: '#1 green male 420 g', mins: 35 },
+        { kind: 'placenta', note: null, mins: 42 },
+        { kind: 'rest', note: 'Settled for 40 minutes', mins: 80 },
+        { kind: 'note', note: 'Purple female slow to latch — tube fed 2 ml', mins: 320 },
+      ]) {
+        await db.whelpingEvent.create({
+          data: {
+            litterId: litter.id,
+            kind: e.kind,
+            note: e.note,
+            occurredAt: new Date(whelpedOn.getTime() + e.mins * 60_000),
+          },
+        });
+      }
+      console.info('  ✓ litter on the ground at 18 days, 6 puppies with daily weights');
+    }
+
+    // Generate the care schedule the same way the API does.
+    const { generateCareSchedule } = await import('@stud/breeding');
+    const tasks = generateCareSchedule(whelpedOn, today).filter((t) => t.kind !== 'WEIGHING');
+    for (const t of tasks) {
+      await db.careTask.upsert({
+        where: { dedupeKey: `litter:${litter.id}:${t.key}` },
+        update: { dueOn: t.dueOn },
+        create: {
+          litterId: litter.id,
+          kind: t.kind,
+          title: t.title,
+          detail: t.detail,
+          dueOn: t.dueOn,
+          required: t.required,
+          generatedKey: t.key,
+          dedupeKey: `litter:${litter.id}:${t.key}`,
+          // Everything already past is marked done except the most recent, so
+          // the dashboard has exactly one honest overdue item.
+          status: t.dueOn < new Date(today.getTime() - 2 * DAY) ? 'DONE' : 'PENDING',
+          completedOn: t.dueOn < new Date(today.getTime() - 2 * DAY) ? t.dueOn : null,
+        },
+      });
+    }
+    console.info(`  ✓ care schedule — ${tasks.length} tasks`);
+  }
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);

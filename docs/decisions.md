@@ -238,3 +238,97 @@ the dog, which is the direction errors must never run in a trust product.
 **Consequence.** A claim under review drags the number down until a human
 resolves it. Concerning outcomes (`AT_RISK`, `ABNORMAL`) are counted in the
 summary and displayed, never suppressed.
+
+## D18 — `@stud/breeding` is pure, like `@stud/pedigree` (Phase 3)
+
+**Decision.** All heat prediction, gestation forecasting, progesterone
+interpretation, growth assessment and care-schedule generation lives in a pure
+package. No clock — every function that needs "now" takes it as an argument.
+
+**Why.** These are the numbers a breeder plans a season around. They have to be
+reproducible and testable against hand-worked cases, and a hidden `Date.now()`
+makes both impossible. It also means the same functions run in the API, in the
+seed, and eventually in a mobile app without a network round trip.
+
+**Consequence.** 52 tests, all deterministic. The route layer never computes a
+date itself; it loads records, calls the pure function, and returns the
+prediction with its confidence attached.
+
+## D19 — Every prediction carries its basis and confidence (Phase 3)
+
+**Decision.** `forecastWhelp` returns `basis: OVULATION | LH_SURGE |
+BREEDING_DATE | NONE` alongside the date, and the UI never renders one without
+the other.
+
+**Why.** Gestation is 63 ± 1 days from ovulation and 58–68 days from a breeding
+date. Those are the same feature with a tenfold difference in accuracy.
+Rendering them identically would be lying to someone who is about to sit up all
+night, and it would quietly devalue the progesterone testing that earns the
+better number.
+
+**Consequence.** Heat predictions widen their window to two standard deviations
+of the bitch's own intervals, floored at a week — no bitch is regular enough to
+deserve a three-day promise. A single logged cycle gets a 90-day window and
+says so.
+
+## D20 — Progesterone interpolation errs LATE (Phase 3)
+
+**Decision.** When a progesterone series crosses a threshold between two tests,
+the crossing is estimated by **log-linear** interpolation and **rounded up**.
+
+**Why.** Two compounding reasons. Progesterone rises roughly exponentially
+through this phase, so linear interpolation systematically places the crossing
+earlier than it happened. And of the two ways to be wrong, early is far more
+expensive: the frozen-semen window is ovulation + 3 to + 4 days, and semen that
+survives hours rather than days does not forgive a day of error. Breeding a day
+late still catches viable oocytes; a day early misses them entirely.
+
+**Consequence.** A test caught this — the naive implementation returned a day
+earlier and looked perfectly reasonable.
+
+## D21 — Growth is assessed against the litter, not a breed curve (Phase 3)
+
+**Decision.** The reference band is a multiple of *this litter's* median birth
+weight, and sibling comparison is a first-class output.
+
+**Why.** Relative early growth is remarkably consistent across breeds — a
+Chihuahua and a Great Dane both roughly double birth weight by day ten — so an
+absolute per-breed curve would need maintaining forever and would still be
+wrong for every crossbreed. Meanwhile the litter is its own perfect control
+group: same dam, same milk, same day.
+
+**Consequence.** Flags fire on trajectory, not on size. Small is not a problem;
+falling off your own line is. Every flag is phrased as an observation rather
+than a diagnosis — the software says what it sees, the breeder and their vet
+decide what it means.
+
+## D22 — A single non-null `dedupeKey`, not a compound unique over nullables (Phase 3)
+
+**Decision.** `CareTask.dedupeKey String @unique`, generated as
+`"<scope>:<scopeId>:<protocolKey>"`.
+
+**Why.** The obvious `@@unique([litterId, puppyId, generatedKey])` does not
+work: Postgres treats NULLs as distinct inside a unique index, so litter-scoped
+tasks (with a null `puppyId`) would not have been constrained at all. A breeder
+correcting a whelp date by one day would have ended up with two of every
+vaccination. This is the *second* time this pattern bit — the same mistake was
+in the Phase 2 verification schema.
+
+**Consequence.** Regeneration is genuinely idempotent, and manual tasks get a
+random key so they are unconstrained.
+
+## D23 — Breeder mobile deferred to Phase 5, with the workspace built mobile-first (Phase 3)
+
+**Decision.** No Expo app in Phase 3. The studio is built for phone use
+instead: 44px tap-target floor, bottom tab bar, one-handed forms, and a
+whelping flow whose only required field is sex.
+
+**Why.** The roadmap leaned toward shipping mobile with Phase 3 because
+whelping logging is inherently mobile — and that reasoning is right. But a
+native app is a second client to keep in step with an API that is still
+changing every phase, and the actual 3am requirement is *big targets and few
+required fields*, which a responsive web app delivers now.
+
+**Consequence.** Revisit at Phase 5, when the API has settled. If offline
+logging in a barn with no signal turns out to matter, that is the argument for
+native — and it is a better argument than "the roadmap said so".

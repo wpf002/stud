@@ -65,6 +65,9 @@ importers:
       '@prisma/client':
         specifier: ^6.1.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@stud/breeding':
+        specifier: workspace:*
+        version: link:../../packages/breeding
       '@stud/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -222,6 +225,18 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  packages/breeding:
+    devDependencies:
+      '@stud/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
   packages/config: {}
 
   packages/db:
@@ -229,6 +244,9 @@ importers:
       '@prisma/client':
         specifier: ^6.1.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@stud/breeding':
+        specifier: workspace:*
+        version: link:../breeding
       '@stud/verify':
         specifier: workspace:*
         version: link:../verify

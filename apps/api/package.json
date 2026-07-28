@@ -25,7 +25,8 @@
     "zod": "^3.24.1",
     "dotenv": "^16.4.7",
     "@stud/pedigree": "workspace:*",
-    "@stud/verify": "workspace:*"
+    "@stud/verify": "workspace:*",
+    "@stud/breeding": "workspace:*"
   },
   "devDependencies": {
     "@stud/config": "workspace:*",

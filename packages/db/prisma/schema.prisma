@@ -277,6 +277,17 @@ model Dog {
   documentSubmissions DocumentSubmission[]
   verificationSummary DogVerificationSummary?
 
+  // Phase 3 — breeder workspace
+  heatCycles      HeatCycle[]
+  breedingsAsSire Breeding[]  @relation("BreedingSire")
+  breedingsAsDam  Breeding[]  @relation("BreedingDam")
+  littersAsSire   Litter[]    @relation("LitterSire")
+  littersAsDam    Litter[]    @relation("LitterDam")
+  puppyRecord     Puppy?
+  careTasks       CareTask[]
+  feedRoutines    FeedRoutine[]
+  vaultDocuments  VaultDocument[]
+
   @@index([breed, sex])
   @@index([kennelId])
   @@index([isPublished, breed])
@@ -813,4 +824,429 @@ model DogVerificationSummary {
   @@index([density])
   @@index([healthNormalCount])
   @@map("dog_verification_summaries")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 3 — Breeder workspace
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A heat cycle. The first day of proestrus is the anchor everything else
+/// hangs off, so it is required and everything else is optional.
+model HeatCycle {
+  id    String @id @default(cuid())
+  dogId String
+
+  /// First day of visible discharge. The one date that must be right.
+  startedOn DateTime
+  endedOn   DateTime?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dog                Dog                  @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  progesteroneTests  ProgesteroneTest[]
+  breedings          Breeding[]
+  observations       HeatObservation[]
+
+  @@index([dogId, startedOn])
+  @@map("heat_cycles")
+}
+
+enum ProgesteroneUnit {
+  NG_ML
+  NMOL_L
+}
+
+/// A progesterone reading. Stored in the unit it was reported in — converting
+/// on the way in would lose the lab's own number, which is the one a vet reads
+/// back over the phone.
+model ProgesteroneTest {
+  id          String           @id @default(cuid())
+  heatCycleId String
+  takenOn     DateTime
+  value       Float
+  unit        ProgesteroneUnit @default(NG_ML)
+  lab         String?
+  notes       String?
+
+  createdAt DateTime @default(now())
+
+  heatCycle HeatCycle @relation(fields: [heatCycleId], references: [id], onDelete: Cascade)
+
+  @@index([heatCycleId, takenOn])
+  @@map("progesterone_tests")
+}
+
+/// Physical signs. Vulvar swelling, discharge colour, flagging, and the
+/// temperature readings that precede whelping.
+model HeatObservation {
+  id          String   @id @default(cuid())
+  heatCycleId String
+  observedOn  DateTime
+
+  /// "proestrus" | "estrus" | "diestrus"
+  phase          String?
+  dischargeColor String?
+  swelling       String?
+  receptive      Boolean?
+  temperatureC   Float?
+  notes          String?
+
+  createdAt DateTime @default(now())
+
+  heatCycle HeatCycle @relation(fields: [heatCycleId], references: [id], onDelete: Cascade)
+
+  @@index([heatCycleId, observedOn])
+  @@map("heat_observations")
+}
+
+enum BreedingMethod {
+  NATURAL
+  AI_FRESH
+  AI_CHILLED
+  AI_FROZEN
+  AI_SURGICAL
+  TCI
+}
+
+enum BreedingStatus {
+  PLANNED
+  BRED
+  CONFIRMED_PREGNANT
+  CONFIRMED_EMPTY
+  WHELPED
+  ABANDONED
+}
+
+/// A mating. Links a sire and a dam to a heat cycle and, eventually, a litter.
+model Breeding {
+  id          String @id @default(cuid())
+  kennelId    String?
+  sireId      String
+  damId       String
+  heatCycleId String?
+
+  method BreedingMethod
+  status BreedingStatus @default(PLANNED)
+
+  /// The timing anchor. Gestation is 63 days from ovulation and 58–68 from a
+  /// breeding date — which is why this column exists and why the UI shows
+  /// which one a forecast was built on.
+  ovulationDate DateTime?
+  lhSurgeDate   DateTime?
+
+  /// Pregnancy confirmation.
+  ultrasoundOn    DateTime?
+  ultrasoundResult String?
+  xrayOn          DateTime?
+  xrayPuppyCount  Int?
+
+  /// Collection and shipping paperwork for AI.
+  collectionDate   DateTime?
+  semenSource      String?
+  shippingProvider String?
+  shippingTracking String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sire      Dog        @relation("BreedingSire", fields: [sireId], references: [id], onDelete: Cascade)
+  dam       Dog        @relation("BreedingDam", fields: [damId], references: [id], onDelete: Cascade)
+  heatCycle HeatCycle? @relation(fields: [heatCycleId], references: [id], onDelete: SetNull)
+  events    BreedingEvent[]
+  litter    Litter?
+
+  @@index([kennelId, status])
+  @@index([damId, createdAt])
+  @@index([sireId])
+  @@map("breedings")
+}
+
+/// One tie or insemination. A breeding usually has two or three.
+model BreedingEvent {
+  id         String   @id @default(cuid())
+  breedingId String
+  occurredOn DateTime
+  method     BreedingMethod
+  /// Tie duration in minutes, for a natural breeding.
+  tieMinutes Int?
+  notes      String?
+
+  createdAt DateTime @default(now())
+
+  breeding Breeding @relation(fields: [breedingId], references: [id], onDelete: Cascade)
+
+  @@index([breedingId, occurredOn])
+  @@map("breeding_events")
+}
+
+enum LitterStatus {
+  EXPECTED
+  WHELPING
+  ON_THE_GROUND
+  WEANED
+  PLACED
+  ARCHIVED
+}
+
+/// A litter. Created when a breeding is confirmed and carried through to
+/// placement — this is the record the marketplace listing composes itself from
+/// in Phase 6.
+model Litter {
+  id         String @id @default(cuid())
+  breedingId String? @unique
+  kennelId   String?
+  sireId     String
+  damId      String
+
+  name   String?
+  /// Letter naming, the way most programs track litters.
+  letter String?
+
+  status LitterStatus @default(EXPECTED)
+
+  expectedWhelpOn DateTime?
+  whelpedOn       DateTime?
+
+  totalBorn  Int?
+  liveBorn   Int?
+  stillborn  Int?
+  /// Deaths after a live birth. Recorded honestly — a litter's real history is
+  /// worth more than a flattering one.
+  neonatalDeaths Int @default(0)
+
+  whelpingNotes String? @db.Text
+  notes         String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  breeding Breeding? @relation(fields: [breedingId], references: [id], onDelete: SetNull)
+  sire     Dog       @relation("LitterSire", fields: [sireId], references: [id], onDelete: Cascade)
+  dam      Dog       @relation("LitterDam", fields: [damId], references: [id], onDelete: Cascade)
+  puppies  Puppy[]
+  whelpingEvents WhelpingEvent[]
+  careTasks      CareTask[]
+
+  @@index([kennelId, status])
+  @@index([damId])
+  @@index([expectedWhelpOn])
+  @@map("litters")
+}
+
+enum PuppyStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  KEPT
+  DECEASED
+  STILLBORN
+}
+
+/// An individual puppy. Becomes a Dog record on placement (Phase 8), but
+/// starts life here where the weights and the collar colour live.
+model Puppy {
+  id       String @id @default(cuid())
+  litterId String
+
+  /// Birth order matters clinically — the last out is often the one at risk.
+  birthOrder Int?
+  name       String?
+  /// What the breeder actually calls it before it is named: "green collar".
+  collarColor String?
+  sex        Sex
+  status     PuppyStatus @default(AVAILABLE)
+
+  birthWeightGrams Int?
+  colorPattern     String?
+  markings         String?
+  microchip        String?
+
+  bornAt      DateTime?
+  diedAt      DateTime?
+  causeOfDeath String?
+
+  notes String? @db.Text
+
+  /// Set once the puppy has its own Dog record.
+  dogId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  litter  Litter        @relation(fields: [litterId], references: [id], onDelete: Cascade)
+  dog     Dog?          @relation(fields: [dogId], references: [id], onDelete: SetNull)
+  weights PuppyWeight[]
+  careTasks CareTask[]
+
+  @@index([litterId, birthOrder])
+  @@index([status])
+  @@map("puppies")
+}
+
+/// A weight. The single most useful number in a whelping box.
+model PuppyWeight {
+  id      String   @id @default(cuid())
+  puppyId String
+  recordedOn DateTime
+  grams   Int
+  notes   String?
+
+  createdAt DateTime @default(now())
+
+  puppy Puppy @relation(fields: [puppyId], references: [id], onDelete: Cascade)
+
+  @@index([puppyId, recordedOn])
+  @@map("puppy_weights")
+}
+
+/// The live log during whelping. Written one-handed at 3am, so the schema is
+/// deliberately forgiving — a timestamp and a note is a valid entry.
+model WhelpingEvent {
+  id       String   @id @default(cuid())
+  litterId String
+  occurredAt DateTime @default(now())
+
+  /// "contraction" | "puppy_born" | "placenta" | "rest" | "vet_called" | "note"
+  kind    String
+  puppyId String?
+  note    String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  litter Litter @relation(fields: [litterId], references: [id], onDelete: Cascade)
+
+  @@index([litterId, occurredAt])
+  @@map("whelping_events")
+}
+
+enum CareTaskStatus {
+  PENDING
+  DONE
+  SKIPPED
+}
+
+/// A dated care task — vaccination, deworming, vet check, milestone.
+///
+/// Generated from the protocol in @stud/breeding, then editable. The generated
+/// schedule is a starting point; the breeder's vet is the authority.
+model CareTask {
+  id       String @id @default(cuid())
+  litterId String?
+  puppyId  String?
+  dogId    String?
+
+  kind   String
+  title  String
+  detail String? @db.Text
+
+  dueOn      DateTime
+  status     CareTaskStatus @default(PENDING)
+  completedOn DateTime?
+  completedByUserId String?
+
+  /// What was actually given, when it differs from the protocol.
+  productUsed String?
+  dose        String?
+  administeredBy String?
+  notes       String? @db.Text
+
+  /// True for tasks the protocol marks as blocking go-home.
+  required Boolean @default(false)
+
+  /// Idempotency key for generated tasks.
+  ///
+  /// A SINGLE non-null unique column rather than a compound key over nullable
+  /// scope columns. Postgres treats NULLs as distinct inside a unique index,
+  /// so `@@unique([litterId, puppyId, generatedKey])` would not have prevented
+  /// duplicates for litter-scoped tasks at all — a breeder correcting a whelp
+  /// date by one day would have ended up with two of every vaccination.
+  ///
+  /// Generated: "<scope>:<scopeId>:<protocolKey>". Manual: a random id.
+  dedupeKey String @unique @default(cuid())
+  /// The protocol key this came from, when it was generated.
+  generatedKey String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  litter Litter? @relation(fields: [litterId], references: [id], onDelete: Cascade)
+  puppy  Puppy?  @relation(fields: [puppyId], references: [id], onDelete: Cascade)
+  dog    Dog?    @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([dueOn, status])
+  @@index([litterId, dueOn])
+  @@index([dogId, dueOn])
+  @@map("care_tasks")
+}
+
+/// Feeding and diet routine for a dog or a litter.
+model FeedRoutine {
+  id       String @id @default(cuid())
+  dogId    String?
+  litterId String?
+
+  label     String
+  food      String
+  amount    String?
+  frequency String?
+  notes     String? @db.Text
+
+  startedOn DateTime?
+  endedOn   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dog Dog? @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([dogId])
+  @@index([litterId])
+  @@map("feed_routines")
+}
+
+enum VaultDocumentKind {
+  REGISTRATION_PAPER
+  HEALTH_CERTIFICATE
+  VET_RECORD
+  PEDIGREE
+  CONTRACT
+  INSURANCE
+  LICENCE
+  OTHER
+}
+
+/// The document vault. Distinct from DocumentSubmission (Phase 2), which is a
+/// verification queue — this is simply a filing cabinet.
+model VaultDocument {
+  id       String @id @default(cuid())
+  kennelId String?
+  dogId    String?
+  litterId String?
+  puppyId  String?
+
+  kind     VaultDocumentKind @default(OTHER)
+  title    String
+  url      String
+  fileName String?
+  mimeType String?
+  fileSize Int?
+  notes    String?
+
+  issuedOn  DateTime?
+  expiresOn DateTime?
+
+  uploadedByUserId String?
+  createdAt        DateTime @default(now())
+
+  dog Dog? @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([kennelId, kind])
+  @@index([dogId])
+  @@index([expiresOn])
+  @@map("vault_documents")
 }

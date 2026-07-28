@@ -1,4 +1,4 @@
-import { GitBranch, Microchip, PawPrint, Ruler, ShieldCheck, Weight } from 'lucide-react';
+import { CalendarHeart, GitBranch, Microchip, PawPrint, Ruler, ShieldCheck, Weight } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -40,6 +40,13 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
         description={dog.registeredName ?? dog.breed}
         actions={
           <>
+            {dog.sex === 'FEMALE' && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/dogs/${slug}/heats`}>
+                  <CalendarHeart /> Heats
+                </Link>
+              </Button>
+            )}
             <Button variant="outline" size="sm" asChild>
               <Link href={`/dogs/${slug}/pedigree`}>
                 <GitBranch /> Pedigree
