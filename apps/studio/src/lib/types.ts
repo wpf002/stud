@@ -434,3 +434,147 @@ export interface HeatsResponse {
   prediction: HeatPredictionDto;
   interpretation: ProgesteroneInterpretationDto | null;
 }
+
+// ── Phase 4: stud directory ─────────────────────────────────────────────────
+
+export interface StudRow {
+  id: string;
+  dogId: string;
+  availability: string;
+  studFeeCents: number | null;
+  pickOfLitter: boolean;
+  semenTypes: string[];
+  shipsSemen: boolean;
+  travelRadiusMiles: number | null;
+  distanceMiles: number | null;
+  driveHours: number | null;
+  projectedCoi: number | null;
+  geneticRisk: { atRisk: number; unknown: number; worst: string } | null;
+  cachedDensity: number;
+  dog: {
+    id: string;
+    slug: string;
+    callName: string;
+    registeredName: string | null;
+    breed: string;
+    dateOfBirth: string | null;
+    colorPattern: string | null;
+    media: { id: string; url: string }[];
+    registrations: { body: string; number: string }[];
+    pedigreeStats: { coi: number; completenessRatio: number } | null;
+    verificationSummary: VerificationSummaryDto | null;
+    kennel: {
+      id: string;
+      slug: string;
+      name: string;
+      city: string | null;
+      region: string | null;
+    } | null;
+    verifiedClaims: {
+      claimType: string;
+      markerName: string;
+      outcome: string | null;
+      rawResult: string | null;
+      state: string;
+      source: string;
+    }[];
+  };
+}
+
+export interface StudSearchResponse {
+  studs: StudRow[];
+  total: number;
+  take: number;
+  skip: number;
+  filtersApplied: {
+    verifiedNormal: string[];
+    hasTitle: string[];
+    requireChic: boolean;
+    withinMiles: number | null;
+    damId: string | null;
+  };
+}
+
+export interface MarkerRiskDto {
+  markerName: string;
+  claimType: string;
+  mode: string;
+  sireStatus: 'CLEAR' | 'CARRIER' | 'AFFECTED' | 'UNKNOWN';
+  damStatus: 'CLEAR' | 'CARRIER' | 'AFFECTED' | 'UNKNOWN';
+  outcome: { affected: number; carrier: number; clear: number } | null;
+  level: 'NONE' | 'CARRIERS_PRODUCED' | 'AT_RISK' | 'UNKNOWN';
+  message: string;
+  untestedSide: 'SIRE' | 'DAM' | 'BOTH' | null;
+}
+
+export interface GeneticRiskDto {
+  markers: MarkerRiskDto[];
+  atRisk: MarkerRiskDto[];
+  safe: MarkerRiskDto[];
+  unknown: MarkerRiskDto[];
+  worst: string;
+  summary: string;
+}
+
+export interface HealthComparisonRow {
+  claimType: string;
+  sire: { result: string | null; outcome: string | null; state: string } | null;
+  dam: { result: string | null; outcome: string | null; state: string } | null;
+  bothVerified: boolean;
+  gap: 'BOTH' | 'SIRE' | 'DAM' | null;
+}
+
+export interface PairingEvaluateResponse extends TrialPairingResponse {
+  geneticRisk: GeneticRiskDto;
+  healthComparison: HealthComparisonRow[];
+}
+
+export interface StudInquiryDto {
+  id: string;
+  status: string;
+  message: string;
+  projectedCoi: number | null;
+  coiGenerations: number | null;
+  geneticRiskSummary: string | null;
+  atRiskMarkerCount: number;
+  damVerifiedCount: number;
+  proposedSeason: string | null;
+  proposedMethod: string | null;
+  replyMessage: string | null;
+  createdAt: string;
+  studListing: { id: string; dog: { id: string; slug: string; callName: string; registeredName?: string | null } };
+  dam: {
+    id: string;
+    slug: string;
+    callName: string;
+    registeredName: string | null;
+    breed?: string;
+    dateOfBirth?: string | null;
+    verificationSummary?: VerificationSummaryDto | null;
+    pedigreeStats?: { coi: number; completenessRatio: number } | null;
+    kennel?: { id: string; slug: string; name: string; city: string | null; region: string | null } | null;
+    verifiedClaims?: { claimType: string; outcome: string | null; rawResult: string | null; markerName: string }[];
+  } | null;
+  fromUser: { id: string; displayName: string | null; city: string | null; region: string | null; avatarUrl: string | null };
+}
+
+export interface SavedPairingDto {
+  id: string;
+  label: string | null;
+  notes: string | null;
+  projectedCoi: number | null;
+  coiBand: string | null;
+  coiConfidence: string | null;
+  atRiskMarkerCount: number;
+  sharedAncestors: number;
+  computedAt: string;
+  sire: {
+    id: string;
+    slug: string;
+    callName: string;
+    registeredName: string | null;
+    verificationSummary: { density: number; verifiedCount: number } | null;
+    studListing: { studFeeCents: number | null; availability: string } | null;
+  };
+  dam: { id: string; slug: string; callName: string; registeredName: string | null };
+}

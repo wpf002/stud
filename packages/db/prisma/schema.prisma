@@ -81,6 +81,8 @@ model User {
   reportedClaims  ReportedClaim[]
   documentsReviewed  DocumentSubmission[] @relation("DocumentReviewer")
   documentsSubmitted DocumentSubmission[] @relation("DocumentSubmitter")
+  studInquiries      StudInquiry[]
+  savedPairings      SavedPairing[]
 
   @@index([country, region, city])
   @@index([createdAt])
@@ -287,6 +289,12 @@ model Dog {
   careTasks       CareTask[]
   feedRoutines    FeedRoutine[]
   vaultDocuments  VaultDocument[]
+
+  // Phase 4 — stud directory
+  studListing        StudListing?
+  inquiriesAsDam     StudInquiry[]  @relation("InquiryDam")
+  savedPairingsSire  SavedPairing[] @relation("SavedPairingSire")
+  savedPairingsDam   SavedPairing[] @relation("SavedPairingDam")
 
   @@index([breed, sex])
   @@index([kennelId])
@@ -1249,4 +1257,164 @@ model VaultDocument {
   @@index([dogId])
   @@index([expiresOn])
   @@map("vault_documents")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 4 — Stud directory & match
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum StudAvailability {
+  AVAILABLE
+  LIMITED
+  BOOKED
+  RETIRED
+  NOT_LISTED
+}
+
+enum SemenType {
+  NATURAL
+  FRESH
+  CHILLED
+  FROZEN
+}
+
+/// A stud dog's public listing — his résumé, not a classified ad.
+///
+/// Almost nothing here is free text a seller controls: health, titles and
+/// pedigree all come from the verified record. What lives on this model is
+/// only the commercial terms, which are genuinely the owner's to state.
+model StudListing {
+  id    String @id @default(cuid())
+  dogId String @unique
+
+  availability StudAvailability @default(NOT_LISTED)
+
+  /// Integer cents. Always. (Invariant 2.)
+  studFeeCents Int?
+  /// Some owners take a puppy instead of, or as well as, a fee.
+  pickOfLitter Boolean @default(false)
+  feeNotes     String?
+
+  semenTypes   SemenType[] @default([])
+  shipsSemen   Boolean     @default(false)
+  /// How far the owner will travel, or expects the bitch to.
+  travelRadiusMiles Int?
+  willTravel   Boolean @default(false)
+
+  /// Owner-stated. Rendered as a Reported claim, never as verified.
+  temperamentNotes String? @db.Text
+  producedNotes    String? @db.Text
+  requirements     String? @db.Text
+
+  /// What the owner requires before agreeing to a breeding. This is the
+  /// adverse-selection control — a stud owner sees who is asking before
+  /// replying, and states up front what they expect.
+  requiresHealthTesting Boolean @default(true)
+  requiresContract      Boolean @default(true)
+  requiresBrucellosis   Boolean @default(true)
+
+  /// Denormalised for search. Recomputed, never authored.
+  cachedVerifiedCount Int   @default(0)
+  cachedCoi           Float?
+  cachedDensity       Float @default(0)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  dog       Dog           @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  inquiries StudInquiry[]
+
+  @@index([availability, studFeeCents])
+  @@index([publishedAt])
+  @@map("stud_listings")
+}
+
+enum InquiryStatus {
+  NEW
+  READ
+  REPLIED
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+/// A breeder asking about a stud.
+///
+/// Carries structured credentials rather than a bare message, so a stud owner
+/// can triage on evidence instead of on how well someone writes. This is the
+/// adverse-selection control the whole inquiry flow exists for.
+model StudInquiry {
+  id            String @id @default(cuid())
+  studListingId String
+  /// The bitch being proposed. Optional — some inquiries are exploratory.
+  damId         String?
+  fromUserId    String
+  fromKennelId  String?
+
+  status  InquiryStatus @default(NEW)
+  message String        @db.Text
+
+  /// Snapshot of the pairing at the time of asking. Kept so a stud owner
+  /// sees the numbers the breeder saw, even if the pedigree changes later.
+  projectedCoi        Float?
+  coiGenerations      Int?
+  geneticRiskSummary  String? @db.Text
+  atRiskMarkerCount   Int     @default(0)
+  damVerifiedCount    Int     @default(0)
+
+  proposedSeason String?
+  proposedMethod String?
+
+  replyMessage String?   @db.Text
+  repliedAt    DateTime?
+  readAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studListing StudListing @relation(fields: [studListingId], references: [id], onDelete: Cascade)
+  dam         Dog?        @relation("InquiryDam", fields: [damId], references: [id], onDelete: SetNull)
+  fromUser    User        @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  @@index([studListingId, status, createdAt])
+  @@index([fromUserId, createdAt])
+  @@map("stud_inquiries")
+}
+
+/// A pairing a breeder saved to come back to.
+///
+/// Stores the computed numbers alongside the two dogs so a shortlist can be
+/// sorted and compared without recomputing a graph walk per row — and so a
+/// breeder can see what changed since they saved it.
+model SavedPairing {
+  id       String @id @default(cuid())
+  userId   String
+  kennelId String?
+
+  sireId String
+  damId  String
+
+  label String?
+  notes String? @db.Text
+
+  /// Snapshot at save time.
+  projectedCoi      Float?
+  coiGenerations    Int?
+  coiBand           String?
+  coiConfidence     String?
+  atRiskMarkerCount Int     @default(0)
+  sharedAncestors   Int     @default(0)
+
+  computedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sire Dog  @relation("SavedPairingSire", fields: [sireId], references: [id], onDelete: Cascade)
+  dam  Dog  @relation("SavedPairingDam", fields: [damId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sireId, damId])
+  @@index([userId, createdAt])
+  @@map("saved_pairings")
 }

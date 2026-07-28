@@ -662,6 +662,152 @@ async function main() {
     console.info(`  ✓ care schedule — ${tasks.length} tasks`);
   }
 
+  // ── Phase 4: stud listings and an inquiry ────────────────────────────────
+  const studListings: {
+    slug: string;
+    feeCents: number;
+    availability: 'AVAILABLE' | 'LIMITED' | 'BOOKED';
+    semen: ('NATURAL' | 'FRESH' | 'CHILLED' | 'FROZEN')[];
+    ships: boolean;
+    radius: number;
+    temperament: string;
+    requirements: string;
+  }[] = [
+    {
+      slug: 'blackwaters-ranger-of-the-marsh',
+      feeCents: 220000,
+      availability: 'AVAILABLE',
+      semen: ['NATURAL', 'CHILLED', 'FROZEN'],
+      ships: true,
+      radius: 400,
+      temperament:
+        'Biddable, high drive in the field, completely settled in the house. Good with children and other dogs.',
+      requirements:
+        'OFA hips and elbows on the bitch, current brucellosis, and a signed stud contract. Happy to discuss co-ownership for the right home.',
+    },
+    {
+      slug: 'lindqvists-jack-of-tulsa',
+      feeCents: 120000,
+      availability: 'LIMITED',
+      semen: ['NATURAL'],
+      ships: false,
+      radius: 150,
+      temperament:
+        'Big personality, very handler-focused. Not a kennel dog — he lives in the house and behaves like it.',
+      requirements:
+        'I am not a breeder, so I lean on the bitch owner for the paperwork. Health testing required.',
+    },
+    {
+      slug: 'cedar-run-atlas',
+      feeCents: 175000,
+      availability: 'AVAILABLE',
+      semen: ['NATURAL', 'CHILLED'],
+      ships: true,
+      radius: 250,
+      temperament: 'Placed two service prospects from his last litter. Extremely stable.',
+      requirements: 'Health testing and a signed contract.',
+    },
+  ];
+
+  for (const l of studListings) {
+    const dog = await db.dog.findUnique({
+      where: { slug: l.slug },
+      select: { id: true, verificationSummary: true, pedigreeStats: true },
+    });
+    if (!dog) continue;
+    await db.studListing.upsert({
+      where: { dogId: dog.id },
+      update: { availability: l.availability, studFeeCents: l.feeCents, publishedAt: new Date() },
+      create: {
+        dogId: dog.id,
+        availability: l.availability,
+        studFeeCents: l.feeCents,
+        semenTypes: l.semen,
+        shipsSemen: l.ships,
+        travelRadiusMiles: l.radius,
+        willTravel: l.radius > 200,
+        temperamentNotes: l.temperament,
+        requirements: l.requirements,
+        cachedVerifiedCount: dog.verificationSummary?.verifiedCount ?? 0,
+        cachedDensity: dog.verificationSummary?.density ?? 0,
+        cachedCoi: dog.pedigreeStats?.coi ?? null,
+        publishedAt: new Date(),
+      },
+    });
+    await db.dog.update({ where: { id: dog.id }, data: { isPublished: true } });
+  }
+  console.info(`  ✓ ${studListings.length} stud listings published`);
+
+  // A carrier × carrier pairing, so the genetic risk detector has something
+  // real to catch. Ranger is Clear and Juniper is a Carrier for Cone
+  // Degeneration in the fixture data, which is safe — so Atlas is given the
+  // same carrier status to create a genuinely at-risk match with Juniper.
+  const atlasForRisk = await db.dog.findUnique({ where: { slug: 'cedar-run-atlas' }, select: { id: true } });
+  if (atlasForRisk) {
+    const now = new Date();
+    await db.verifiedClaim.upsert({
+      where: {
+        dogId_claimType_markerName_source: {
+          dogId: atlasForRisk.id,
+          claimType: 'DNA_MARKER',
+          markerName: 'Cone Degeneration (CD)',
+          source: 'FIXTURE',
+        },
+      },
+      update: { outcome: 'CARRIER', rawResult: 'Carrier', state: 'VERIFIED' },
+      create: {
+        dogId: atlasForRisk.id,
+        claimType: 'DNA_MARKER',
+        markerName: 'Cone Degeneration (CD)',
+        category: 'GENETIC',
+        source: 'FIXTURE',
+        state: 'VERIFIED',
+        outcome: 'CARRIER',
+        rawResult: 'Carrier',
+        testedAt: new Date('2023-05-02'),
+        lastCheckedAt: now,
+        staleAfter: new Date(now.getTime() + 30 * 86_400_000),
+        matchedIdentifier: 'SS12009944',
+      },
+    });
+    await recomputeSummary(db, atlasForRisk.id);
+    console.info('  ✓ seeded a carrier × carrier pairing for the risk detector');
+  }
+
+  // An inquiry in the stud owner's inbox, with the pairing numbers attached.
+  const rangerListing = await db.studListing.findFirst({
+    where: { dog: { slug: 'blackwaters-ranger-of-the-marsh' } },
+    select: { id: true, dogId: true },
+  });
+  const marigoldForInquiry = await db.dog.findUnique({
+    where: { slug: 'cedar-run-marigold' },
+    select: { id: true, verificationSummary: true },
+  });
+  if (rangerListing && marigoldForInquiry) {
+    const existing = await db.studInquiry.findFirst({
+      where: { studListingId: rangerListing.id, damId: marigoldForInquiry.id },
+    });
+    if (!existing) {
+      await db.studInquiry.create({
+        data: {
+          studListingId: rangerListing.id,
+          damId: marigoldForInquiry.id,
+          fromUserId: studOwner.id,
+          message:
+            "I have been watching Ranger's NAVHDA results for a while and think he would suit my Marigold well. She is due in season around October. Happy to travel or to use chilled — whichever suits you. I can send her full panel and her hip films.",
+          proposedSeason: 'October 2026',
+          proposedMethod: 'Chilled',
+          projectedCoi: 0,
+          coiGenerations: 6,
+          geneticRiskSummary: 'Both dogs are tested and clear across all shared markers.',
+          atRiskMarkerCount: 0,
+          damVerifiedCount: marigoldForInquiry.verificationSummary?.verifiedCount ?? 0,
+        },
+      });
+      console.info('  ✓ a stud inquiry waiting in the inbox');
+    }
+  }
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);

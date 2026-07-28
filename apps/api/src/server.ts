@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import breedingRoutes from './routes/breeding.js';
 import dashboardRoutes from './routes/dashboard.js';
 import litterRoutes from './routes/litters.js';
+import studRoutes from './routes/studs.js';
 import dogRoutes from './routes/dogs.js';
 import kennelRoutes from './routes/kennels.js';
 import pedigreeRoutes from './routes/pedigree.js';
@@ -79,6 +80,7 @@ export async function buildServer() {
       await api.register(breedingRoutes);
       await api.register(litterRoutes);
       await api.register(dashboardRoutes);
+      await api.register(studRoutes);
     },
     { prefix: '/v1' },
   );

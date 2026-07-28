@@ -238,7 +238,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **1** ✅ | Dog record & pedigree graph | Import a 5-generation pedigree, render it, compute Wright's COI against a hand-checked case |
 | **2** ✅ | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
 | **3** ✅ | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
-| **4** | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
+| **4** ✅ | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
 | **5** | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
 | **6** | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
 | **7** | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
@@ -312,3 +312,34 @@ One decision worth knowing about: when a progesterone series crosses a
 threshold between two tests, the crossing is estimated **log-linearly and
 rounded up**. Progesterone rises exponentially, so linear interpolation lands
 early — and of the two ways to be wrong, early is the expensive one.
+
+
+---
+
+## Genetic risk
+
+The feature that justifies having built verification before the marketplace.
+Once both dogs' panels are *verified claims* rather than recollections, the
+Mendelian arithmetic answers the one question that actually prevents affected
+puppies: **are these two both carriers of the same recessive?**
+
+| Sire × Dam | Affected | Carriers |
+|---|---|---|
+| clear × clear | 0% | 0% |
+| clear × carrier | **0%** | 50% |
+| carrier × carrier | **25%** | 50% |
+| carrier × affected | 50% | 50% |
+
+Three rules govern how this is presented:
+
+1. **Only verified claims count.** A reported "he's clear" is not evidence. The
+   one feature that prevents affected puppies must not be defeated by a
+   sentence typed into a form.
+2. **Untested is never "probably clear."** A marker tested on one side reads as
+   *cannot be cleared*, and names which dog to test.
+3. **Carrier is not a failure.** A carrier bred to a clear dog produces no
+   affected puppies. Colouring carriers red would push breeders to cull healthy
+   dogs, and at scale that would harm breed diversity more than it helps.
+
+The risk panel sits **above** the COI on the pairing page. A 3% COI on a
+pairing that would produce 25% affected puppies is not the headline.

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, GitBranch, Info, Repeat } from 'lucide-react';
+import { ArrowRight, Dna, GitBranch, Info, Repeat } from 'lucide-react';
 import * as React from 'react';
 import {
   Alert,
@@ -16,7 +16,8 @@ import {
   Select,
 } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
-import type { DogSummary, TrialPairingResponse } from '@/lib/types';
+import type { DogSummary, PairingEvaluateResponse } from '@/lib/types';
+import { GeneticRiskPanel, HealthComparison } from '@/components/genetic-risk-panel';
 
 const RELATIONSHIP_COPY: Record<string, string> = {
   UNRELATED: 'No shared ancestors in the pedigree we hold',
@@ -50,7 +51,7 @@ export function PairingClient({
 
   const [sireId, setSireId] = React.useState(initialSireId || sires[0]?.id || '');
   const [damId, setDamId] = React.useState(initialDamId || dams[0]?.id || '');
-  const [result, setResult] = React.useState<TrialPairingResponse | null>(null);
+  const [result, setResult] = React.useState<PairingEvaluateResponse | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -59,8 +60,12 @@ export function PairingClient({
     setBusy(true);
     setError(null);
     try {
+      // The full evaluation: COI, shared ancestors, genetic risk and a
+      // side-by-side health comparison in one round trip.
       setResult(
-        await api<TrialPairingResponse>(`/pairings/trial?sireId=${sireId}&damId=${damId}&generations=6`),
+        await api<PairingEvaluateResponse>(
+          `/pairings/evaluate?sireId=${sireId}&damId=${damId}&generations=6`,
+        ),
       );
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not evaluate that pairing.');
@@ -135,10 +140,30 @@ export function PairingClient({
   );
 }
 
-function Result({ result }: { result: TrialPairingResponse }) {
-  const { pairing, sire, dam, crossBreed } = result;
+function Result({ result }: { result: PairingEvaluateResponse }) {
+  const { pairing, sire, dam, crossBreed, geneticRisk, healthComparison } = result;
 
   return (
+    <div className="space-y-4">
+      {/*
+        Genetic risk sits above everything else, including the COI. A COI of
+        3% on a pairing that would produce 25% affected puppies is not the
+        headline, and laying it out as though it were would be a design
+        decision with consequences.
+      */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              <Dna className="h-4 w-4 text-ink-400" /> Genetic risk
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <GeneticRiskPanel risk={geneticRisk} />
+        </CardContent>
+      </Card>
+
     <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
       <div className="space-y-4">
         <CoiReadout
@@ -271,11 +296,26 @@ function Result({ result }: { result: TrialPairingResponse }) {
               <p className="mt-4 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
                 An ancestor that is itself inbred contributes more than its position alone suggests
                 — Wright&rsquo;s formula carries a (1 + F) term for exactly that reason. This is a
-                genetic relatedness figure only; it says nothing about health testing, structure or
-                temperament.
+                genetic relatedness figure only; it says nothing about structure or temperament.
               </p>
             </>
           )}
+        </CardContent>
+      </Card>
+    </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle as="h4" className="text-md">
+            Health, side by side
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <HealthComparison rows={healthComparison} />
+          <p className="mt-4 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
+            Gaps are shown as prominently as results. A pairing where one dog is fully panelled and
+            the other is not is a real finding.
+          </p>
         </CardContent>
       </Card>
     </div>
