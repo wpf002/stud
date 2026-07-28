@@ -239,7 +239,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **2** ✅ | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
 | **3** ✅ | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
 | **4** ✅ | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
-| **5** | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
+| **5** ✅ | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
 | **6** | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
 | **7** | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
 | **8** | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
@@ -343,3 +343,46 @@ Three rules govern how this is presented:
 
 The risk panel sits **above** the COI on the pairing page. A 3% COI on a
 pairing that would produce 25% affected puppies is not the headline.
+
+
+---
+
+## The breeding transaction
+
+Two pure packages carry it. [`packages/contracts`](packages/contracts) decides
+what a document says, whether it is valid, what its hash is, and whether a
+signature may be taken. [`packages/payments`](packages/payments) models the
+money. Neither does any I/O.
+
+**A contract is an ordered list of versioned clause instances, never a blob of
+edited text.** A blob cannot be diffed, cannot be reasoned about by the refund
+logic, and cannot tell you what changed between the version a party read and
+the version they signed.
+
+Each clause carries an `effects` object — `definesBalanceTrigger`,
+`definesNoLitterRemedy`, `grantsRepeatBreeding`. **The payment schedule and the
+escrow decision are derived from those, never from the prose.** A refund
+decision that depends on parsing English is a refund decision that will
+eventually be wrong.
+
+| | |
+|---|---|
+| **Freeze on send** | Sending renders the document, hashes it (FNV-1a 128-bit) and locks the clauses. Editing after a signature is refused; an amendment supersedes instead. |
+| **Signature** | Requires an authenticated account, an affirmed consent statement, a typed name matching the account, and the hash the signer was shown. A document that changed mid-read is refused, not silently signed. |
+| **Health schedule** | Attached from the verified record at drafting time and frozen with the document, each line marked verified-with-source or reported. A later verification change cannot rewrite what the parties saw. |
+| **Ledger** | Double-entry, append-only, integer cents. A correction is a reversal pair, never an edit — when two parties disagree about who paid what, the answer has to be reconstructible. |
+| **Escrow** | Deposit releases on confirmed pregnancy; the balance waits for the whelp. The platform fee is taken at release, so a breeding that did not happen refunds in full and earns us nothing. |
+
+**When the contract is silent about what happens if there is no litter, Stud
+refuses to decide.** `assessEscrow` returns `NEEDS_REVIEW` rather than guessing.
+Inventing a refund position the parties did not agree to is a decision the
+platform has no authority to make.
+
+**No money moves.** `MockProvider` is the only implementation and
+`PAYMENTS_PROVIDER=mock` the only accepted value. Live animal sales are a
+high-risk vertical — large tickets, an 8–16 week gap between deposit and
+fulfilment, emotionally charged disputes — and a processor that has not
+approved it in writing will close the account at the worst possible moment. So
+every layer above the provider boundary is real and tested, and the one thing
+that must not exist before a signed processor agreement does not exist. See
+[`docs/payments-diligence.md`](docs/payments-diligence.md).

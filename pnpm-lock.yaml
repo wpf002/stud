@@ -68,9 +68,15 @@ importers:
       '@stud/breeding':
         specifier: workspace:*
         version: link:../../packages/breeding
+      '@stud/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@stud/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@stud/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@stud/pedigree':
         specifier: workspace:*
         version: link:../../packages/pedigree
@@ -239,6 +245,18 @@ importers:
 
   packages/config: {}
 
+  packages/contracts:
+    devDependencies:
+      '@stud/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
   packages/db:
     dependencies:
       '@prisma/client':
@@ -247,6 +265,12 @@ importers:
       '@stud/breeding':
         specifier: workspace:*
         version: link:../breeding
+      '@stud/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@stud/payments':
+        specifier: workspace:*
+        version: link:../payments
       '@stud/verify':
         specifier: workspace:*
         version: link:../verify
@@ -272,6 +296,18 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+
+  packages/payments:
+    devDependencies:
+      '@stud/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
 
   packages/pedigree:
     devDependencies:

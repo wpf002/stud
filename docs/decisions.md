@@ -402,3 +402,99 @@ Phases 3 and 4.
 
 **Consequence.** Route validation still happens — `next build` does it, and
 build runs in CI.
+
+## D29 — Money decisions read clause effects, never contract prose (Phase 5)
+
+**Decision.** A clause carries a machine-readable `effects` object —
+`definesBalanceTrigger`, `definesNoLitterRemedy`, `grantsRepeatBreeding`. The
+payment schedule, the escrow assessment and the repeat-breeding right are all
+derived from those, and never from the rendered sentence.
+
+**Why.** A refund decision that depends on parsing English is a refund decision
+that will eventually be wrong, and it will be wrong about somebody's $2,000 in
+front of somebody's lawyer. Prose is for the parties; effects are for the code.
+
+**Consequence.** Editing a clause's wording cannot change what the money does,
+and changing what the money does requires an explicit effect change that shows
+up in review. A clause without effects simply has no financial consequence,
+which is the correct default.
+
+## D30 — When the contract is silent, Stud refuses to decide (Phase 5)
+
+**Decision.** `assessEscrow` returns `NEEDS_REVIEW` with `requiresHuman: true`
+when a breeding produced no litter and no clause defines a remedy.
+
+**Why.** A platform that invents a refund position the contract did not state
+is making a decision it has no authority to make. Guessing "refund" robs the
+stud owner of a service they performed; guessing "no refund" robs the bitch
+owner. Both guesses are worse than saying so.
+
+**Consequence.** Some contracts land in a state that needs a human, and that is
+the honest outcome rather than a gap. The UI says it plainly: "Stud will not
+decide this one. The parties or an admin have to."
+
+## D31 — The platform fee is taken at release, not at capture (Phase 5)
+
+**Decision.** `releaseFromEscrow` takes the fee; `captureToEscrow` does not.
+
+**Why.** A refunded breeding refunds in full, and the platform earns nothing on
+a breeding that did not happen. Taking the fee at capture would mean the buyer
+gets back less than they paid on a service they never received.
+
+**Consequence.** Revenue recognises later than it would otherwise, which is the
+correct trade for not having to explain a partial refund.
+
+## D32 — CHOICE options separate value, label and document text (Phase 5)
+
+**Decision.** `ClauseOption` has three fields: `value` (what the logic reads),
+`label` (the drafter's picker text, never printed), and `text` (what appears in
+the document, defaulting to `value`).
+
+**Why.** Two of the three were originally collapsed, and the renderer printed
+the picker label. The contract read "the service shall be by ai — chilled",
+"borne by bitch owner", and ended a remedy clause with the fragment "not
+refundable". Those are three different jobs and the type now says so.
+
+**Consequence.** `balanceTrigger` keeps machine values (`ON_WHELP`) because
+`extractScheduleTerms` switches on them, and carries its own wording. A test
+sweeps the whole library asserting no picker label reaches the page.
+
+## D33 — An omitted optional field leaves no trace (Phase 5)
+
+**Decision.** A blank *required* variable renders as `[Label]`; a blank
+*optional* one renders as nothing, and the empty paragraph is collapsed.
+
+**Why.** The visible placeholder exists so drafting holes get filled. An
+optional field left blank is not a hole — it is a term that is not part of this
+agreement. Printing "[Additional detail]" into a signed document reads as a
+mistake, because it is one.
+
+**Consequence.** Clause bodies can carry optional paragraphs without the author
+having to write conditional templates.
+
+## D34 — An escrow assessment accounts for what has already been paid out (Phase 5)
+
+**Decision.** `assessEscrow` takes `alreadyReleasedCents` and nets it against
+the deposit tranche.
+
+**Why.** Without it, settling twice on a confirmed pregnancy re-read "the
+deposit is releasable" and released it a second time — out of the balance that
+exists to protect the bitch owner until there are puppies on the ground. Every
+assessment is a statement about the whole agreement, not about the current
+escrow balance in isolation.
+
+**Consequence.** A second settlement on the same state returns `HOLD` with
+"The deposit has already been released." The same netting keeps a
+`REFUND_BALANCE` contract from under-refunding the payer.
+
+## D35 — Both parties need an account before a contract exists (Phase 5)
+
+**Decision.** `POST /contracts` refuses a counterparty email with no Stud
+account.
+
+**Why.** A signature is only worth something if it is tied to an authenticated
+identity. A typed name against an email address nobody proved they control is a
+checkbox with extra steps.
+
+**Consequence.** There is friction at exactly the point where friction is
+right, and the error says why rather than just refusing.

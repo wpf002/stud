@@ -236,6 +236,11 @@ export default async function breedingRoutes(app: FastifyInstance) {
         events: { orderBy: { occurredOn: 'asc' } },
         heatCycle: { include: { progesteroneTests: { orderBy: { takenOn: 'asc' } } } },
         litter: { include: { puppies: { orderBy: { birthOrder: 'asc' } } } },
+        collections: { orderBy: { collectedOn: 'asc' } },
+        contracts: {
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, title: true, kind: true, status: true },
+        },
       },
     });
     if (!breeding) throw notFound('Breeding not found');

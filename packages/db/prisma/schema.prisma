@@ -83,6 +83,8 @@ model User {
   documentsSubmitted DocumentSubmission[] @relation("DocumentSubmitter")
   studInquiries      StudInquiry[]
   savedPairings      SavedPairing[]
+  contractParties    ContractParty[]
+  contractSignatures ContractSignature[]
 
   @@index([country, region, city])
   @@index([createdAt])
@@ -293,6 +295,8 @@ model Dog {
   // Phase 4 — stud directory
   studListing        StudListing?
   inquiriesAsDam     StudInquiry[]  @relation("InquiryDam")
+  contractsAsSire    Contract[]     @relation("ContractSire")
+  contractsAsDam     Contract[]     @relation("ContractDam")
   savedPairingsSire  SavedPairing[] @relation("SavedPairingSire")
   savedPairingsDam   SavedPairing[] @relation("SavedPairingDam")
 
@@ -967,6 +971,8 @@ model Breeding {
   heatCycle HeatCycle? @relation(fields: [heatCycleId], references: [id], onDelete: SetNull)
   events    BreedingEvent[]
   litter    Litter?
+  contracts Contract[]
+  collections CollectionRecord[]
 
   @@index([kennelId, status])
   @@index([damId, createdAt])
@@ -1417,4 +1423,357 @@ model SavedPairing {
   @@unique([userId, sireId, damId])
   @@index([userId, createdAt])
   @@map("saved_pairings")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 5 — Breeding transaction
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  PARTIALLY_SIGNED
+  SIGNED
+  VOIDED
+  COMPLETED
+}
+
+enum ContractKind {
+  STUD_SERVICE
+  STUD_SERVICE_PICK_OF_LITTER
+  CO_OWNERSHIP
+  REPEAT_BREEDING_ONLY
+  PUPPY_SALE
+}
+
+/// A contract between two parties.
+///
+/// The clause instances are the source of truth; `renderedText` and
+/// `contentHash` are the frozen artefact a signature binds to. Once anyone has
+/// signed, the clauses are immutable — an amendment is a new contract that
+/// supersedes this one.
+model Contract {
+  id       String       @id @default(cuid())
+  kennelId String?
+  kind     ContractKind
+  status   ContractStatus @default(DRAFT)
+
+  title String
+
+  /// Ordered ClauseInstance[] from @stud/contracts.
+  clauses Json
+
+  /// Frozen at send time. A signature binds to this hash, so editing the
+  /// contract afterwards invalidates the signature rather than silently
+  /// changing what somebody agreed to.
+  renderedText String? @db.Text
+  contentHash  String?
+
+  /// The health schedule as it stood when the contract was drawn, so a later
+  /// verification change cannot rewrite what the parties saw.
+  healthSchedule Json?
+
+  /// What this contract is about.
+  breedingId String?
+  sireId     String?
+  damId      String?
+  litterId   String?
+
+  sentAt      DateTime?
+  signedAt    DateTime?
+  voidedAt    DateTime?
+  voidReason  String?
+  completedAt DateTime?
+
+  /// Set when this contract replaces another (an amendment).
+  supersedesContractId String?
+
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  breeding   Breeding?           @relation(fields: [breedingId], references: [id], onDelete: SetNull)
+  sire       Dog?                @relation("ContractSire", fields: [sireId], references: [id], onDelete: SetNull)
+  dam        Dog?                @relation("ContractDam", fields: [damId], references: [id], onDelete: SetNull)
+  parties    ContractParty[]
+  signatures ContractSignature[]
+  schedule   PaymentSchedule?
+  repeatClaims RepeatBreedingClaim[]
+
+  @@index([kennelId, status])
+  @@index([breedingId])
+  @@index([status, createdAt])
+  @@map("contracts")
+}
+
+enum PartyRole {
+  STUD_OWNER
+  BITCH_OWNER
+  CO_OWNER
+  BUYER
+  SELLER
+  WITNESS
+}
+
+model ContractParty {
+  id         String    @id @default(cuid())
+  contractId String
+  userId     String
+  role       PartyRole
+  /// Snapshotted at invite time — the name in the document must not change
+  /// because someone later edited their profile.
+  legalName  String
+  email      String
+  /// False for a witness or observer.
+  mustSign   Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, userId])
+  @@index([userId])
+  @@map("contract_parties")
+}
+
+/// An electronic signature.
+///
+/// See packages/contracts/src/signature.ts for exactly what this is and is
+/// not. In short: an auditable record of an authenticated party affirming
+/// intent against a document whose content we can prove — not a
+/// certificate-based digital signature.
+model ContractSignature {
+  id         String @id @default(cuid())
+  contractId String
+  userId     String
+
+  /// Snapshotted identity at signing.
+  legalName String
+  email     String
+  typedName String
+
+  /// The exact consent wording shown and affirmed. Part of the record.
+  consentText String @db.Text
+  /// Hash of the document as rendered when they signed it.
+  documentHash String
+
+  ipAddress String?
+  userAgent String?
+  signedAt  DateTime
+
+  createdAt DateTime @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, userId])
+  @@index([contractId])
+  @@map("contract_signatures")
+}
+
+enum InstalmentStatus {
+  PENDING
+  DUE
+  PAID
+  WAIVED
+  REFUNDED
+}
+
+/// The payment plan for a contract. Integer cents throughout (invariant 2).
+model PaymentSchedule {
+  id         String @id @default(cuid())
+  contractId String @unique
+
+  totalCents   Int
+  depositCents Int @default(0)
+  /// From the contract's clause effects, never parsed from its prose.
+  balanceTrigger String @default("ON_CONFIRMED_PREGNANCY")
+  /// From clause effects. Null when the contract is silent — in which case
+  /// escrow refuses to decide and asks a human.
+  noLitterRemedy String?
+
+  currency String @default("USD")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contract    Contract     @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  instalments Instalment[]
+  escrow      EscrowHold?
+
+  @@map("payment_schedules")
+}
+
+model Instalment {
+  id         String @id @default(cuid())
+  scheduleId String
+
+  key         String
+  label       String
+  amountCents Int
+  trigger     String
+  status      InstalmentStatus @default(PENDING)
+
+  dueSince DateTime?
+  paidAt   DateTime?
+
+  /// Provider reference, when one exists. Never a source of truth — the
+  /// ledger is.
+  providerChargeId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedule PaymentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, key])
+  @@index([status, dueSince])
+  @@map("instalments")
+}
+
+enum EscrowStatus {
+  EMPTY
+  HOLDING
+  PARTIALLY_RELEASED
+  RELEASED
+  REFUNDED
+  DISPUTED
+}
+
+model EscrowHold {
+  id         String @id @default(cuid())
+  scheduleId String @unique
+
+  status       EscrowStatus @default(EMPTY)
+  heldCents    Int          @default(0)
+  releasedCents Int         @default(0)
+  refundedCents Int         @default(0)
+
+  /// Who the money goes to on release, and back to on refund.
+  payeeUserId String?
+  payerUserId String?
+
+  disputeOpenedAt DateTime?
+  disputeReason   String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedule PaymentSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("escrow_holds")
+}
+
+/// Double-entry, append-only. Never updated, never deleted.
+///
+/// A correction is a REVERSAL pair, exactly like a real ledger — because when
+/// two parties disagree about who paid what, the answer has to be
+/// reconstructible from an immutable record.
+model LedgerEntry {
+  id String @id @default(cuid())
+
+  /// Groups the legs of one movement. Legs must sum to zero.
+  transactionId String
+
+  accountKind    String
+  accountOwnerId String?
+
+  /// Positive credits, negative debits. Integer cents.
+  amountCents Int
+  reason      String
+
+  referenceType String
+  referenceId   String
+  memo          String?
+
+  reversesTransactionId String?
+
+  occurredAt DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([referenceType, referenceId])
+  @@index([accountKind, accountOwnerId])
+  @@map("ledger_entries")
+}
+
+enum RepeatClaimStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  DECLINED
+  FULFILLED
+}
+
+/// A claim on a repeat-breeding right.
+///
+/// The right itself comes from the contract's clause effects. This record
+/// tracks the claim through to the repeat service actually happening.
+model RepeatBreedingClaim {
+  id         String @id @default(cuid())
+  contractId String
+
+  status RepeatClaimStatus @default(SUBMITTED)
+
+  /// What went wrong.
+  reason        String  @db.Text
+  vetConfirmed  Boolean @default(false)
+  vetDocumentUrl String?
+
+  /// The breeding that failed, and the one that replaced it.
+  failedBreedingId String?
+  repeatBreedingId String?
+
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  reviewNote       String?   @db.Text
+
+  submittedByUserId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, status])
+  @@map("repeat_breeding_claims")
+}
+
+/// Collection and insemination paperwork for an AI breeding.
+model CollectionRecord {
+  id         String @id @default(cuid())
+  breedingId String
+
+  collectedOn   DateTime
+  collectedBy   String?
+  clinic        String?
+
+  /// Semen evaluation, as reported by the collecting vet.
+  volumeMl          Float?
+  concentrationMkml Float?
+  motilityPercent   Int?
+  morphologyPercent Int?
+  totalMotileMillions Float?
+
+  shippedOn       DateTime?
+  shippingCarrier String?
+  trackingNumber  String?
+  receivedOn      DateTime?
+  receivedCondition String?
+
+  inseminatedOn DateTime?
+  inseminatedBy String?
+  method        String?
+
+  documentUrl String?
+  notes       String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  breeding Breeding @relation(fields: [breedingId], references: [id], onDelete: Cascade)
+
+  @@index([breedingId, collectedOn])
+  @@map("collection_records")
 }

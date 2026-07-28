@@ -7,6 +7,12 @@
  * exactly the wedge case the product was designed around.
  */
 import { PrismaClient, type Prisma } from '@prisma/client';
+import {
+  CONSENT_TEXT_V1,
+  draftFromTemplate,
+  renderContract,
+} from '@stud/contracts';
+import { buildSchedule, captureToEscrow } from '@stud/payments';
 import { loadRootEnv } from './env.js';
 import argon2 from 'argon2';
 
@@ -805,6 +811,353 @@ async function main() {
         },
       });
       console.info('  ✓ a stud inquiry waiting in the inbox');
+    }
+  }
+
+  // ── Phase 5: the breeding transaction ────────────────────────────────────
+  //
+  // The inquiry above becomes an agreement. This section seeds the whole
+  // lifecycle so the gate — template to signed to paid to litter-linked — is
+  // visible in the app without anyone having to click through it first.
+  //
+  // Everything is built with the same pure functions the API uses, so the
+  // seeded contract hashes to exactly what a real one would.
+  const rangerForContract = await db.dog.findUnique({
+    where: { slug: 'blackwaters-ranger-of-the-marsh' },
+    select: { id: true, callName: true, registeredName: true },
+  });
+  const marigoldForContract = await db.dog.findUnique({
+    where: { slug: 'cedar-run-marigold' },
+    select: { id: true, callName: true, registeredName: true },
+  });
+
+  if (rangerForContract && marigoldForContract) {
+    // The breeding the contract is about: chilled semen shipped from Blackwater
+    // to Cedar Run, ovulation 35 days ago, pregnancy confirmed on ultrasound.
+    let studBreeding = await db.breeding.findFirst({
+      where: { sireId: rangerForContract.id, damId: marigoldForContract.id },
+    });
+    if (!studBreeding) {
+      studBreeding = await db.breeding.create({
+        data: {
+          sireId: rangerForContract.id,
+          damId: marigoldForContract.id,
+          kennelId: cedarRun.id,
+          method: 'AI_CHILLED',
+          status: 'CONFIRMED_PREGNANT',
+          ovulationDate: at(35),
+          lhSurgeDate: at(37),
+          ultrasoundOn: at(6),
+          ultrasoundResult: 'Pregnancy confirmed, five to seven sacs',
+        },
+      });
+      await db.breedingEvent.create({
+        data: { breedingId: studBreeding.id, occurredOn: at(33), method: 'AI_CHILLED' },
+      });
+      // The chain of custody. If this breeding had missed, this record is the
+      // difference between a dispute about the stud and one about the courier.
+      await db.collectionRecord.create({
+        data: {
+          breedingId: studBreeding.id,
+          collectedOn: at(34),
+          collectedBy: 'Dr. Renata Vance',
+          clinic: 'Denton Veterinary Reproduction',
+          volumeMl: 4.2,
+          concentrationMkml: 310,
+          motilityPercent: 88,
+          morphologyPercent: 91,
+          totalMotileMillions: 1145,
+          shippedOn: at(34),
+          shippingCarrier: 'FedEx Priority Overnight',
+          trackingNumber: '7749 2210 8834',
+          receivedOn: at(33),
+          receivedCondition: 'Arrived 06:40, coolant still firm, 4°C. Motility 82% on arrival.',
+          inseminatedOn: at(33),
+          inseminatedBy: 'Dr. Amara Iyer',
+          method: 'TCI',
+          notes: 'Second insemination not required — progesterone timing was clean.',
+        },
+      });
+    }
+
+    // ── The contract itself ──
+    //
+    // $2,200 stud fee: $800 on signing, $1,400 on confirmed pregnancy, with a
+    // repeat service as the sole remedy if no live litter results. The remedy
+    // is what the escrow logic reads — from the clause effect, never the prose.
+    const FEE_CENTS = 220_000;
+    const DEPOSIT_CENTS = 80_000;
+    const BALANCE_CENTS = FEE_CENTS - DEPOSIT_CENTS;
+
+    const draft = draftFromTemplate('STUD_SERVICE', {
+      'parties.stud_service': {
+        agreementDate: at(40).toISOString().slice(0, 10),
+        studOwnerName: 'Jordan Hale, Blackwater Kennels',
+        sireName: rangerForContract.registeredName ?? rangerForContract.callName,
+        sireRegistration: 'AKC SR91234501',
+        bitchOwnerName: 'Priya Raman, Cedar Run',
+        damName: marigoldForContract.registeredName ?? marigoldForContract.callName,
+        damRegistration: 'AKC SS10044821',
+      },
+      'fee.deposit_and_balance': {
+        feeTotal: FEE_CENTS,
+        depositAmount: DEPOSIT_CENTS,
+        balanceAmount: BALANCE_CENTS,
+        balanceTrigger: 'ON_CONFIRMED_PREGNANCY',
+      },
+      'service.method': {
+        method: 'artificial insemination with chilled shipped semen',
+        methodDetail: 'Collection and shipping arranged through Denton Veterinary Reproduction.',
+        costBearer: 'the Bitch Owner',
+      },
+      'health.brucellosis': { testWindow: '30 days' },
+      'remedy.repeat_breeding': {
+        minimumPuppies: 1,
+        survivalAge: '72 hours of age',
+        notificationWindow: '14 days',
+        feeDisposition: 'The stud fee is not refundable.',
+      },
+      'ownership.registration_papers': { paperworkWindow: '14 days', whelpNotification: '72 hours' },
+      'general.governing_law': { jurisdiction: 'the State of Texas' },
+    });
+
+    if (draft) {
+      // The health schedule as it stood when the contract was drawn — a later
+      // verification change must not rewrite what the parties saw.
+      const healthSchedule: {
+        animal: 'SIRE' | 'DAM';
+        claimLabel: string;
+        result: string;
+        tier: 'VERIFIED' | 'REPORTED';
+        source?: string | null;
+        testedOn?: string | null;
+      }[] = [];
+      for (const [animal, dogId] of [
+        ['SIRE', rangerForContract.id],
+        ['DAM', marigoldForContract.id],
+      ] as const) {
+        const verified = await db.verifiedClaim.findMany({
+          where: { dogId, state: { in: ['VERIFIED', 'STALE'] } },
+          select: { claimType: true, markerName: true, rawResult: true, source: true, testedAt: true },
+        });
+        for (const c of verified) {
+          healthSchedule.push({
+            animal,
+            claimLabel: c.markerName || c.claimType,
+            result: c.rawResult ?? '—',
+            tier: 'VERIFIED',
+            source: c.source,
+            testedOn: c.testedAt?.toISOString().slice(0, 10) ?? null,
+          });
+        }
+      }
+
+      // The title is part of the hashed document, and the API recomputes the
+      // hash from the stored `contract.title` — so render under the title this
+      // contract will actually be stored with, not the template's.
+      const CONTRACT_TITLE = 'Stud service agreement — Ranger × Marigold';
+      const rendered = renderContract({ ...draft, title: CONTRACT_TITLE, healthSchedule });
+
+      let contract = await db.contract.findFirst({
+        where: { breedingId: studBreeding.id, kind: 'STUD_SERVICE' },
+      });
+      if (!contract) {
+        contract = await db.contract.create({
+          data: {
+            kind: 'STUD_SERVICE',
+            status: 'SIGNED',
+            title: CONTRACT_TITLE,
+            kennelId: blackwater.id,
+            breedingId: studBreeding.id,
+            sireId: rangerForContract.id,
+            damId: marigoldForContract.id,
+            clauses: draft.instances as unknown as Prisma.InputJsonValue,
+            healthSchedule: healthSchedule as unknown as Prisma.InputJsonValue,
+            renderedText: rendered.plainText,
+            contentHash: rendered.contentHash,
+            createdByUserId: breeder.id,
+            sentAt: at(40),
+            signedAt: at(38),
+            parties: {
+              create: [
+                {
+                  userId: breeder.id,
+                  role: 'STUD_OWNER',
+                  legalName: 'Jordan Hale',
+                  email: 'breeder@stud.dev',
+                },
+                {
+                  userId: studOwner.id,
+                  role: 'BITCH_OWNER',
+                  legalName: 'Priya Raman',
+                  email: 'studowner@stud.dev',
+                },
+              ],
+            },
+            signatures: {
+              create: [
+                {
+                  userId: breeder.id,
+                  legalName: 'Jordan Hale',
+                  email: 'breeder@stud.dev',
+                  typedName: 'Jordan Hale',
+                  consentText: CONSENT_TEXT_V1,
+                  documentHash: rendered.contentHash,
+                  ipAddress: '198.51.100.24',
+                  signedAt: at(39),
+                },
+                {
+                  userId: studOwner.id,
+                  legalName: 'Priya Raman',
+                  email: 'studowner@stud.dev',
+                  typedName: 'Priya Raman',
+                  consentText: CONSENT_TEXT_V1,
+                  documentHash: rendered.contentHash,
+                  ipAddress: '203.0.113.7',
+                  signedAt: at(38),
+                },
+              ],
+            },
+          },
+        });
+
+        // ── The money ──
+        const schedule = buildSchedule({
+          totalCents: FEE_CENTS,
+          depositCents: DEPOSIT_CENTS,
+          balanceTrigger: 'ON_CONFIRMED_PREGNANCY',
+        });
+        const created = await db.paymentSchedule.create({
+          data: {
+            contractId: contract.id,
+            totalCents: schedule.totalCents,
+            depositCents: DEPOSIT_CENTS,
+            balanceTrigger: 'ON_CONFIRMED_PREGNANCY',
+            // From the clause effect, not the sentence.
+            noLitterRemedy: 'REPEAT_ONLY',
+            instalments: {
+              create: schedule.instalments.map((i) => ({
+                key: i.key,
+                label: i.label,
+                amountCents: i.amountCents,
+                trigger: i.trigger,
+                // The deposit is paid; pregnancy is confirmed, so the balance
+                // has fallen due but has not been settled yet.
+                status: i.key === 'deposit' ? 'PAID' : 'DUE',
+                paidAt: i.key === 'deposit' ? at(38) : null,
+                dueSince: i.key === 'deposit' ? at(38) : at(6),
+                providerChargeId: i.key === 'deposit' ? 'ch_mock_seed_0001' : null,
+              })),
+            },
+          },
+        });
+        await db.escrowHold.create({
+          data: {
+            scheduleId: created.id,
+            status: 'HOLDING',
+            heldCents: DEPOSIT_CENTS,
+            payeeUserId: breeder.id,
+            payerUserId: studOwner.id,
+          },
+        });
+
+        // Double-entry, built by the same movement builder the API uses, so
+        // the seeded books balance for exactly the same reason the real ones do.
+        const legs = captureToEscrow(
+          {
+            transactionId: `seed_${contract.id}_deposit`,
+            referenceType: 'Contract',
+            referenceId: contract.id,
+            occurredAt: at(38),
+            memo: 'Deposit on signing',
+          },
+          { payerId: studOwner.id, amountCents: DEPOSIT_CENTS, isDeposit: true },
+        );
+        await db.ledgerEntry.createMany({
+          data: legs.map((l) => ({
+            transactionId: l.transactionId,
+            accountKind: l.account.kind,
+            accountOwnerId: l.account.ownerId ?? null,
+            amountCents: l.amountCents,
+            reason: l.reason,
+            referenceType: l.referenceType,
+            referenceId: l.referenceId,
+            memo: l.memo ?? null,
+            occurredAt: l.occurredAt,
+          })),
+        });
+        console.info('  ✓ a signed stud contract, deposit paid, balance due, escrow holding');
+      }
+    }
+  }
+
+  // A second contract left in draft, so the builder and the send/freeze step
+  // have something to open into.
+  const juniperForDraft = await db.dog.findUnique({
+    where: { slug: 'blackwaters-juniper' },
+    select: { id: true, registeredName: true, callName: true },
+  });
+  const atlasForDraft = await db.dog.findUnique({
+    where: { slug: 'cedar-run-atlas' },
+    select: { id: true, registeredName: true, callName: true },
+  });
+  if (juniperForDraft && atlasForDraft) {
+    const existingDraft = await db.contract.findFirst({
+      where: { status: 'DRAFT', sireId: atlasForDraft.id, damId: juniperForDraft.id },
+    });
+    if (!existingDraft) {
+      const draft = draftFromTemplate('STUD_SERVICE', {
+        'parties.stud_service': {
+          agreementDate: today.toISOString().slice(0, 10),
+          studOwnerName: 'Priya Raman, Cedar Run',
+          sireName: atlasForDraft.registeredName ?? atlasForDraft.callName,
+          sireRegistration: 'AKC SS12009944',
+          bitchOwnerName: 'Jordan Hale, Blackwater Kennels',
+          damName: juniperForDraft.registeredName ?? juniperForDraft.callName,
+          damRegistration: 'AKC SR88451102',
+        },
+        'fee.deposit_and_balance': {
+          feeTotal: 175_000,
+          depositAmount: 60_000,
+          balanceAmount: 115_000,
+          balanceTrigger: 'ON_CONFIRMED_PREGNANCY',
+        },
+        'service.method': {
+          method: 'natural service',
+          costBearer: 'the Bitch Owner',
+        },
+        'health.brucellosis': { testWindow: '30 days' },
+        'remedy.repeat_breeding': {
+          minimumPuppies: 1,
+          survivalAge: '72 hours of age',
+          notificationWindow: '14 days',
+          feeDisposition:
+            'The balance, but not the deposit, is refundable at the Bitch Owner’s election in place of a repeat service.',
+        },
+        'ownership.registration_papers': { paperworkWindow: '14 days', whelpNotification: '72 hours' },
+        'general.governing_law': { jurisdiction: 'the State of Texas' },
+      });
+      if (draft) {
+        await db.contract.create({
+          data: {
+            kind: 'STUD_SERVICE',
+            status: 'DRAFT',
+            title: 'Stud service agreement — Atlas × Juniper',
+            kennelId: blackwater.id,
+            sireId: atlasForDraft.id,
+            damId: juniperForDraft.id,
+            clauses: draft.instances as unknown as Prisma.InputJsonValue,
+            createdByUserId: breeder.id,
+            parties: {
+              create: [
+                { userId: breeder.id, role: 'BITCH_OWNER', legalName: 'Jordan Hale', email: 'breeder@stud.dev' },
+                { userId: studOwner.id, role: 'STUD_OWNER', legalName: 'Priya Raman', email: 'studowner@stud.dev' },
+              ],
+            },
+          },
+        });
+        console.info('  ✓ a second contract left in draft, unsent and still editable');
+      }
     }
   }
 

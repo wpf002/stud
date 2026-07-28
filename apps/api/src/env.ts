@@ -26,6 +26,12 @@ const schema = z.object({
   VERIFY_USER_AGENT: z.string().default('StudVerify/0.1 (+https://stud.dog/verification)'),
   VERIFY_REQUEST_TIMEOUT_MS: z.coerce.number().default(8000),
   VERIFY_FRESHNESS_DAYS: z.coerce.number().default(30),
+
+  // ── Payments (Phase 5/7) ──────────────────────────────────────────────────
+  // `mock` is the ONLY supported value until a processor has approved live
+  // animal sales in writing. See docs/payments-diligence.md.
+  PAYMENTS_PROVIDER: z.string().default('mock'),
+  PLATFORM_FEE_BPS: z.coerce.number().int().min(0).max(10_000).default(600),
 });
 
 const parsed = schema.safeParse(process.env);

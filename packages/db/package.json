@@ -25,7 +25,9 @@
   "dependencies": {
     "@prisma/client": "^6.1.0",
     "@stud/verify": "workspace:*",
-    "@stud/breeding": "workspace:*"
+    "@stud/breeding": "workspace:*",
+    "@stud/contracts": "workspace:*",
+    "@stud/payments": "workspace:*"
   },
   "devDependencies": {
     "@stud/config": "workspace:*",

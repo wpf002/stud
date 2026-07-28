@@ -578,3 +578,234 @@ export interface SavedPairingDto {
   };
   dam: { id: string; slug: string; callName: string; registeredName: string | null };
 }
+
+// ── Phase 5: contracts ──────────────────────────────────────────────────────
+
+export interface ContractPartyDto {
+  id: string;
+  userId: string;
+  role: string;
+  legalName: string;
+  email: string;
+  mustSign: boolean;
+}
+
+export interface ContractSignatureDto {
+  id: string;
+  userId: string;
+  legalName: string;
+  typedName: string;
+  consentText: string;
+  documentHash: string;
+  ipAddress: string | null;
+  signedAt: string;
+}
+
+export interface RepeatClaimDto {
+  id: string;
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'DECLINED' | 'FULFILLED';
+  reason: string;
+  vetConfirmed: boolean;
+  vetDocumentUrl: string | null;
+  failedBreedingId: string | null;
+  repeatBreedingId: string | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
+export interface RenderedContractDto {
+  title: string;
+  clauses: { clauseId: string; clauseVersion: number; title: string; body: string; order: number }[];
+  healthSchedule: {
+    animal: 'SIRE' | 'DAM';
+    claimLabel: string;
+    result: string;
+    tier: 'VERIFIED' | 'REPORTED';
+    source?: string | null;
+    testedOn?: string | null;
+  }[];
+  plainText: string;
+  contentHash: string;
+}
+
+export interface ContractDetailResponse {
+  contract: {
+    id: string;
+    kind: string;
+    status: string;
+    title: string;
+    contentHash: string | null;
+    sentAt: string | null;
+    signedAt: string | null;
+    parties: ContractPartyDto[];
+    signatures: ContractSignatureDto[];
+    sire: { id: string; slug: string; callName: string } | null;
+    dam: { id: string; slug: string; callName: string } | null;
+    breeding: {
+      id: string;
+      status: string;
+      litter: { id: string; whelpedOn: string | null; liveBorn: number | null } | null;
+    } | null;
+    repeatClaims: RepeatClaimDto[];
+  };
+  rendered: RenderedContractDto;
+  issues: { clauseId: string; variableKey?: string; severity: 'error' | 'warning'; message: string }[];
+  editable: boolean;
+  canSign: boolean;
+  mySignature: ContractSignatureDto | null;
+  consentText: string;
+  integrityWarning: boolean;
+}
+
+export interface PaymentsResponse {
+  schedule: {
+    id: string;
+    totalCents: number;
+    depositCents: number;
+    balanceTrigger: string;
+    noLitterRemedy: string | null;
+    instalments: {
+      id: string;
+      key: string;
+      label: string;
+      amountCents: number;
+      trigger: string;
+      status: string;
+      paidAt: string | null;
+    }[];
+    escrow: {
+      id: string;
+      status: string;
+      heldCents: number;
+      releasedCents: number;
+      refundedCents: number;
+    } | null;
+  } | null;
+  ledger: {
+    id: string;
+    accountKind: string;
+    accountOwnerId: string | null;
+    amountCents: number;
+    reason: string;
+    occurredAt: string;
+  }[];
+  assessment: {
+    decision: string;
+    releasableCents: number;
+    refundableCents: number;
+    reason: string;
+    requiresHuman: boolean;
+  } | null;
+  provider?: { id: string; isLive: boolean };
+}
+
+export interface ContractRow {
+  id: string;
+  kind: string;
+  status: string;
+  title: string;
+  updatedAt: string;
+  parties: ContractPartyDto[];
+  signatures: { userId: string; signedAt: string }[];
+  sire: { id: string; slug: string; callName: string } | null;
+  dam: { id: string; slug: string; callName: string } | null;
+  schedule: PaymentsResponse['schedule'];
+}
+
+export interface ClauseVariableDto {
+  key: string;
+  label: string;
+  kind: 'TEXT' | 'MONEY_CENTS' | 'INTEGER' | 'DATE' | 'BOOLEAN' | 'CHOICE';
+  required: boolean;
+  options?: { value: string; label: string }[];
+  help?: string;
+  defaultValue?: string | number | boolean | null;
+}
+
+export interface ClauseDto {
+  id: string;
+  version: number;
+  category:
+    | 'PARTIES'
+    | 'CONSIDERATION'
+    | 'PERFORMANCE'
+    | 'HEALTH'
+    | 'GUARANTEE'
+    | 'REMEDY'
+    | 'OWNERSHIP'
+    | 'GENERAL';
+  title: string;
+  body: string;
+  variables: ClauseVariableDto[];
+  effects?: {
+    grantsRepeatBreeding?: boolean;
+    definesBalanceTrigger?: string;
+    definesNoLitterRemedy?: string;
+  };
+  drafterNote?: string;
+}
+
+export interface TemplatesResponse {
+  templates: {
+    id: string;
+    name: string;
+    description: string;
+    requiresLegalReview: boolean;
+    clauseIds: string[];
+    guidance: string;
+  }[];
+  clauses: ClauseDto[];
+  consentText: string;
+  disclaimer: string;
+  payments: { provider: string; isLive: boolean; note: string | null };
+}
+
+// ── Breedings ───────────────────────────────────────────────────────────────
+
+export interface CollectionRecordDto {
+  id: string;
+  collectedOn: string;
+  collectedBy: string | null;
+  clinic: string | null;
+  volumeMl: number | null;
+  concentrationMkml: number | null;
+  motilityPercent: number | null;
+  morphologyPercent: number | null;
+  totalMotileMillions: number | null;
+  shippedOn: string | null;
+  shippingCarrier: string | null;
+  trackingNumber: string | null;
+  receivedOn: string | null;
+  receivedCondition: string | null;
+  inseminatedOn: string | null;
+  inseminatedBy: string | null;
+  method: string | null;
+  documentUrl: string | null;
+  notes: string | null;
+}
+
+export interface GestationMilestoneDto {
+  day: number;
+  on: string;
+  label: string;
+  detail: string;
+  kind: 'CHECK' | 'CARE' | 'PREP' | 'ALERT';
+  done: boolean;
+}
+
+export interface BreedingDetailResponse {
+  breeding: BreedingDto & {
+    heatCycle: {
+      id: string;
+      startedOn: string;
+      progesteroneTests: { id: string; takenOn: string; ngMl: number }[];
+    } | null;
+    litter: { id: string; status: string; whelpedOn: string | null; liveBorn: number | null } | null;
+    collections: CollectionRecordDto[];
+    contracts: { id: string; title: string; kind: string; status: string }[];
+  };
+  forecast: WhelpForecastDto;
+  milestones: GestationMilestoneDto[];
+  milestoneAnchor: 'OVULATION' | 'BREEDING_DATE';
+}

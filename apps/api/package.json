@@ -26,7 +26,9 @@
     "dotenv": "^16.4.7",
     "@stud/pedigree": "workspace:*",
     "@stud/verify": "workspace:*",
-    "@stud/breeding": "workspace:*"
+    "@stud/breeding": "workspace:*",
+    "@stud/contracts": "workspace:*",
+    "@stud/payments": "workspace:*"
   },
   "devDependencies": {
     "@stud/config": "workspace:*",
