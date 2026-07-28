@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DATABASE_URL: postgresql://stud:stud@localhost:5432/stud?schema=public
+  DIRECT_URL: postgresql://stud:stud@localhost:5432/stud?schema=public
+  SHADOW_DATABASE_URL: postgresql://stud:stud@localhost:5432/stud_shadow?schema=public
+  AUTH_SECRET: ci-secret-not-used-in-production-abcdef
+  NEXT_PUBLIC_API_URL: http://localhost:4000
+
+jobs:
+  verify:
+    name: typecheck · lint · test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: stud
+          POSTGRES_PASSWORD: stud
+          POSTGRES_DB: stud
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U stud"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stud/db generate
+
+      - name: Create shadow database
+        run: PGPASSWORD=stud psql -h localhost -U stud -d stud -c 'CREATE DATABASE stud_shadow;'
+
+      - name: Apply migrations
+        run: pnpm --filter @stud/db exec prisma migrate deploy
+
+      - name: Migration drift check
+        run: |
+          pnpm --filter @stud/db exec prisma migrate diff \
+            --from-migrations ./prisma/migrations \
+            --to-schema-datamodel ./prisma/schema.prisma \
+            --shadow-database-url "$SHADOW_DATABASE_URL" \
+            --exit-code && echo "no drift" || (echo "::error::schema.prisma has changes with no migration. Run 'pnpm db:migrate'." && exit 1)
+
+      - run: pnpm typecheck
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      - name: Build
+        run: pnpm build

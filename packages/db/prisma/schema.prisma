@@ -1,0 +1,350 @@
+// Stud — Prisma schema
+//
+// Invariants (locked in Phase 0, see README §Architecture):
+//   1. Money is ALWAYS integer cents. Never Float, never Decimal-as-dollars.
+//   2. Verification is a state machine, never a boolean.
+//   3. A dog record is append-only. Corrections supersede, they do not overwrite.
+//   4. Self-reported and verified data never share a field.
+//
+// Sections are appended per phase. Do not reorder.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [citext, pg_trgm]
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 0 — Identity, kennels, dogs, registrations
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum Role {
+  OWNER
+  BREEDER
+  BUYER
+  ADMIN
+}
+
+enum MembershipRole {
+  KENNEL_OWNER
+  MANAGER
+  HANDLER
+  VIEWER
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique @db.Citext
+  emailVerified DateTime?
+  passwordHash  String?
+  name          String?
+  displayName   String?
+  avatarUrl     String?
+  phone         String?
+  bio           String?
+
+  // Location — used for distance search across every surface.
+  city      String?
+  region    String? // state / province
+  country   String  @default("US")
+  postalCode String?
+  latitude  Float?
+  longitude Float?
+
+  // A user can hold several roles at once: an owner of a stud who also buys.
+  roles Role[] @default([BUYER])
+
+  timezone String  @default("America/Chicago")
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastSeenAt DateTime?
+
+  accounts      Account[]
+  sessions      Session[]
+  memberships   Membership[]
+  ownedDogs     DogOwnership[]
+  auditEntries  AuditLog[]
+
+  @@index([country, region, city])
+  @@index([createdAt])
+  @@map("users")
+}
+
+/// OAuth / external identity link. One row per provider account.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  provider          String // "google" | "apple" | "facebook"
+  providerAccountId String
+  type              String  @default("oauth")
+  refreshToken      String? @db.Text
+  accessToken       String? @db.Text
+  expiresAt         Int?
+  tokenType         String?
+  scope             String?
+  idToken           String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  expiresAt    DateTime
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Single-use tokens: email verification, password reset, invite acceptance.
+model VerificationToken {
+  id        String   @id @default(cuid())
+  identifier String
+  token     String   @unique
+  purpose   String // "email_verify" | "password_reset" | "kennel_invite"
+  payload   Json?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([identifier, purpose])
+  @@map("verification_tokens")
+}
+
+/// A breeding program. Dogs, litters, contracts and payouts all hang off this.
+model Kennel {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  name     String
+  prefix   String? // registered kennel prefix, e.g. "Blackwater"
+  tagline  String?
+  about    String? @db.Text
+  logoUrl  String?
+  coverUrl String?
+  websiteUrl String?
+
+  city       String?
+  region     String?
+  country    String  @default("US")
+  postalCode String?
+  latitude   Float?
+  longitude  Float?
+
+  /// Primary breeds this program works in. Denormalised for search.
+  breeds String[] @default([])
+
+  foundedYear Int?
+  isPublished Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  dogs        Dog[]
+
+  @@index([country, region])
+  @@index([isPublished])
+  @@map("kennels")
+}
+
+model Membership {
+  id       String         @id @default(cuid())
+  userId   String
+  kennelId String
+  role     MembershipRole @default(KENNEL_OWNER)
+
+  invitedByUserId String?
+  acceptedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kennel Kennel @relation(fields: [kennelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kennelId])
+  @@index([kennelId])
+  @@map("memberships")
+}
+
+/// The dog. Identity only — everything claimed *about* a dog that could be
+/// verified lives in a separate table with its own provenance (Phase 2).
+model Dog {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  callName     String // "Ranger"
+  registeredName String? // "Blackwater's Ranger Of The Marsh"
+  breed        String
+  secondaryBreed String? // for documented crosses
+  sex          Sex
+  dateOfBirth  DateTime?
+  dateOfDeath  DateTime?
+
+  colorPattern String?
+  markings     String?
+  coatType     String?
+  heightCm     Float?
+  weightKg     Float?
+
+  microchip      String?
+  microchipIssuer String?
+  dnaProfileId   String? // e.g. AKC DNA profile
+
+  /// Self-reported free text. NEVER merged with verified data (invariant 4).
+  temperamentNotes String? @db.Text
+  ownerNotes       String? @db.Text
+
+  /// Denormalised kennel of record. Ownership history is in DogOwnership.
+  kennelId String?
+
+  isDeceased    Boolean @default(false)
+  isRetired     Boolean @default(false)
+  isPublished   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kennel        Kennel?        @relation(fields: [kennelId], references: [id], onDelete: SetNull)
+  registrations Registration[]
+  ownerships    DogOwnership[]
+  media         DogMedia[]
+
+  @@index([breed, sex])
+  @@index([kennelId])
+  @@index([isPublished, breed])
+  @@index([microchip])
+  @@map("dogs")
+}
+
+enum RegistryBody {
+  AKC
+  UKC
+  CKC // Canadian Kennel Club
+  FCI
+  KC // The Kennel Club (UK)
+  NAVHDA
+  AFTCA
+  ABCA
+  JRTCA
+  CONTINENTAL
+  OTHER
+}
+
+/// A dog's registration with a registry body. A dog may hold several.
+model Registration {
+  id       String       @id @default(cuid())
+  dogId    String
+  body     RegistryBody
+  number   String
+  /// Registered name as it appears on the papers — may differ from Dog.registeredName.
+  nameOnRecord String?
+  issuedAt DateTime?
+
+  isPrimary Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@unique([body, number])
+  @@index([dogId])
+  @@map("registrations")
+}
+
+/// Append-only ownership ledger. Transfers (Phase 8) close one row and open
+/// the next; rows are never deleted.
+model DogOwnership {
+  id     String @id @default(cuid())
+  dogId  String
+  userId String
+
+  /// Co-ownership is common and contractually significant.
+  sharePercent Int      @default(100)
+  startedAt    DateTime @default(now())
+  endedAt      DateTime?
+  reason       String? // "purchase" | "transfer" | "co_ownership" | "initial"
+
+  createdAt DateTime @default(now())
+
+  dog  Dog  @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([dogId, endedAt])
+  @@index([userId, endedAt])
+  @@map("dog_ownerships")
+}
+
+enum MediaKind {
+  PHOTO
+  VIDEO
+  DOCUMENT
+}
+
+model DogMedia {
+  id      String    @id @default(cuid())
+  dogId   String
+  kind    MediaKind @default(PHOTO)
+  url     String
+  thumbUrl String?
+  caption String?
+  width   Int?
+  height  Int?
+  durationSeconds Int?
+  position Int      @default(0)
+  isPrimary Boolean @default(false)
+
+  takenAt   DateTime?
+  createdAt DateTime  @default(now())
+
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([dogId, position])
+  @@map("dog_media")
+}
+
+/// Every consequential mutation lands here. Auditable over impressive.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorType  String   @default("user") // "user" | "system" | "worker"
+  action     String // "dog.create" | "verification.transition" | ...
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}

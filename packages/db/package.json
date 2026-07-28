@@ -1,0 +1,36 @@
+{
+  "name": "@stud/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./seed": "./src/seed.ts",
+    "./env": "./src/env.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "push": "dotenv -e ../../.env -- prisma db push",
+    "seed": "tsx src/seed.ts",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
+    "typecheck": "tsc --noEmit",
+    "build": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0"
+  },
+  "devDependencies": {
+    "@stud/config": "workspace:*",
+    "prisma": "^6.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "argon2": "^0.41.1",
+    "dotenv": "^16.4.7",
+    "dotenv-cli": "^8.0.0"
+  }
+}

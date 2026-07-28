@@ -1,0 +1,13 @@
+{
+  "name": "@stud/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "tsconfig",
+    "tailwind"
+  ],
+  "exports": {
+    "./tsconfig/*": "./tsconfig/*",
+    "./tailwind": "./tailwind/preset.js"
+  }
+}
