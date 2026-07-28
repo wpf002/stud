@@ -10,7 +10,9 @@ import { HttpError } from './lib/errors.js';
 import authPlugin from './plugins/auth.js';
 import prismaPlugin from './plugins/prisma.js';
 import authRoutes from './routes/auth.js';
+import dogRoutes from './routes/dogs.js';
 import kennelRoutes from './routes/kennels.js';
+import pedigreeRoutes from './routes/pedigree.js';
 
 export async function buildServer() {
   const app = Fastify({
@@ -67,6 +69,8 @@ export async function buildServer() {
     async (api) => {
       await api.register(authRoutes);
       await api.register(kennelRoutes);
+      await api.register(dogRoutes);
+      await api.register(pedigreeRoutes);
     },
     { prefix: '/v1' },
   );

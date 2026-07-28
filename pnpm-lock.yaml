@@ -68,6 +68,9 @@ importers:
       '@stud/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@stud/pedigree':
+        specifier: workspace:*
+        version: link:../../packages/pedigree
       argon2:
         specifier: ^0.41.1
         version: 0.41.1
@@ -245,6 +248,18 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+
+  packages/pedigree:
+    devDependencies:
+      '@stud/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
 
   packages/ui:
     dependencies:

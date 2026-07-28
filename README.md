@@ -153,14 +153,54 @@ fields.
 **The verification badge is the core design object.**
 [`packages/ui/src/verification-badge.tsx`](packages/ui/src/verification-badge.tsx)
 
+**The pedigree chart is the second one.**
+[`packages/ui/src/pedigree-chart.tsx`](packages/ui/src/pedigree-chart.tsx) — the
+layout conventions every breeder already knows, plus the things paper cannot
+do: repeated ancestors colour-linked, COI contributors ranked in place, and
+empty slots rendered rather than hidden.
+
+---
+
+## The pedigree engine
+
+[`packages/pedigree`](packages/pedigree) is pure — zero runtime dependencies,
+no I/O, no clock. It takes a graph and returns numbers.
+
+Two independent implementations of the same maths live there on purpose:
+
+- **`kinship()`** — recursive coancestry. Exact on arbitrarily deep and densely
+  looped pedigrees. This is what `inbreedingCoefficient()` reports.
+- **`pathContributions()`** — Wright's original path method, which answers the
+  question a breeder actually asks: *which ancestor is causing this?*
+
+Wright's theorem says they agree. The test suite asserts exactly that on every
+fixture, which is a far stronger check than either alone. Alongside it are
+hand-checkable constants a human can verify with a pen:
+
+| Pairing | Expected F |
+|---|---|
+| Unrelated parents | 0 |
+| Half siblings | 0.125 |
+| First cousins | 0.0625 |
+| Full siblings | 0.25 |
+| Parent × offspring | 0.25 |
+| Half sibs through a full-sib-bred ancestor | 0.15625 — *not* 0.125 |
+
+That last row is the one that catches implementations which drop the `(1 + F_A)`
+term. They return 0.125 and look completely plausible.
+
+**A COI is never rendered without its pedigree completeness.** `CoiReadout`
+takes both in one component, because 0% on two known parents and nothing else
+is not a low COI — it is no information.
+
 ---
 
 ## Phases
 
 | Phase | Scope | Gate |
 |---|---|---|
-| **0** | Foundations | `pnpm dev` boots web + studio + api against a seeded Postgres |
-| **1** | Dog record & pedigree graph | Import a 5-generation pedigree, render it, compute Wright's COI against a hand-checked case |
+| **0** ✅ | Foundations | `pnpm dev` boots web + studio + api against a seeded Postgres |
+| **1** ✅ | Dog record & pedigree graph | Import a 5-generation pedigree, render it, compute Wright's COI against a hand-checked case |
 | **2** | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
 | **3** | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
 | **4** | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |

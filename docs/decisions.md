@@ -107,3 +107,61 @@ brand blue rather than a success green — verification is the brand promise, so
 the badge and the mark share a colour. Generic `success` maps to the same blue;
 `warning` stays amber, `danger` a deeper red than `clay` so the two never read
 as the same signal.
+
+## D9 — Ancestry is self-relations on Dog, not an edge table (Phase 1)
+
+**Decision.** `Dog.sireId` and `Dog.damId`, both nullable self-references.
+
+**Why.** The roadmap called for "a proper DAG, not a nested JSON blob", and a
+pair of self-references *is* the proper DAG here. Biology gives every dog
+exactly one sire and one dam, so the schema can enforce that. An edge table
+would permit three sires and require a join for every traversal.
+
+**Consequence.** Cycles are the one thing the shape cannot prevent, so they are
+checked before every parent write (`wouldCreateCycle`) and again in
+`buildGraph`, which throws `PedigreeCycleError` rather than looping forever.
+
+## D10 — Two independent COI implementations that check each other (Phase 1)
+
+**Decision.** `kinship()` (recursive coancestry) computes the number we report.
+`pathContributions()` (Wright's original path method) computes the per-ancestor
+breakdown. The test suite asserts they agree on every fixture.
+
+**Why.** COI is the number breeders make decisions on, and a wrong one looks
+exactly like a right one. Hand-checked constants catch obvious errors; two
+independent algorithms agreeing catches subtle ones. The path method also
+answers the question a breeder actually asks — *which* ancestor is doing this —
+which the tabular method cannot.
+
+**Consequence.** The path method is exponential in the worst case and is
+therefore bounded. When it truncates, the UI says so explicitly: the reported
+COI is still exact, only the breakdown is partial.
+
+## D11 — A COI is never rendered without its pedigree completeness (Phase 1)
+
+**Decision.** `CoiReadout` takes both, in one component. There is no way to
+ship the number on its own.
+
+**Why.** 0% COI on two known parents and nothing else is not a low COI, it is
+no information. Presenting it as a measurement is the single most misleading
+thing this product could do — and it would be misleading in the direction that
+sells more dogs, which is exactly why it needs a structural guard rather than a
+guideline.
+
+**Consequence.** Confidence bands (`HIGH | MODERATE | LOW | INSUFFICIENT`) are
+driven by Maignel's complete generation equivalent, and by the *weaker* of the
+two pedigrees in a pairing. Empty ancestor slots render in the chart rather
+than collapsing.
+
+## D12 — Merged records are superseded, never deleted (Phase 1)
+
+**Decision.** A merge re-points descendants, moves registrations and media,
+fills gaps on the survivor, then marks the loser `supersededByDogId` and writes
+a `DogSupersession` row.
+
+**Why.** Invariant 4. Someone may already hold a link to the losing record —
+in a contract, an email, a printed pedigree. Deleting it breaks that link
+silently.
+
+**Consequence.** Every list query filters `supersededByDogId: null`; the detail
+route deliberately does not, so an old link still resolves and explains itself.

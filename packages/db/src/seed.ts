@@ -260,6 +260,136 @@ async function main() {
 
   console.info('  ✓ dogs, registrations, ownerships');
 
+  // ── Phase 1: a real five-generation pedigree ─────────────────────────────
+  //
+  // Ranger's papers, as a breeder would actually have them. Two ancestors are
+  // line-bred on purpose so the COI is a real number rather than zero:
+  //
+  //   · Marshland Drake  appears as Ranger's paternal AND maternal
+  //                      great-grandsire  → the main contributor
+  //   · Rivergate Willow appears twice on the sire side
+  //
+  // Wright's formula over this graph gives a COI a human can check by hand,
+  // which is exactly what the Phase 1 gate asks for.
+  type Anc = {
+    slug: string;
+    call: string;
+    registered: string;
+    sex: 'MALE' | 'FEMALE';
+    reg?: string;
+    year: number;
+    sire?: string;
+    dam?: string;
+  };
+
+  const GSP = 'German Shorthaired Pointer';
+
+  // Generation 6 → 1, ordered so every parent exists before its child. This
+  // gives Ranger five genuinely populated generations.
+  const ancestry: Anc[] = [
+    // ── Gen 6 (foundation stock) ──
+    { slug: 'harrow-lane-pike', call: 'Pike', registered: 'Harrow Lane Pike', sex: 'MALE', reg: 'SR15220301', year: 2005 },
+    { slug: 'harrow-lane-juno', call: 'Juno', registered: 'Harrow Lane Juno', sex: 'FEMALE', reg: 'SR15220302', year: 2005 },
+    { slug: 'cold-spring-basil', call: 'Basil', registered: 'Cold Spring Basil', sex: 'MALE', reg: 'SR16003311', year: 2006 },
+    { slug: 'cold-spring-nettle', call: 'Nettle', registered: 'Cold Spring Nettle', sex: 'FEMALE', reg: 'SR16003312', year: 2006 },
+    { slug: 'wideacre-colt', call: 'Colt', registered: 'Wideacre Colt', sex: 'MALE', reg: 'SR16880501', year: 2006 },
+    { slug: 'wideacre-saffron', call: 'Saffron', registered: 'Wideacre Saffron', sex: 'FEMALE', reg: 'SR16880502', year: 2006 },
+    { slug: 'longmeadow-rook', call: 'Rook', registered: 'Longmeadow Rook', sex: 'MALE', reg: 'SR17441101', year: 2007 },
+    { slug: 'longmeadow-vesta', call: 'Vesta', registered: 'Longmeadow Vesta', sex: 'FEMALE', reg: 'SR17441102', year: 2007 },
+
+    // ── Gen 5 ──
+    { slug: 'old-mill-brandt', call: 'Brandt', registered: 'Old Mill Brandt', sex: 'MALE', reg: 'SR20114402', year: 2008, sire: 'harrow-lane-pike', dam: 'harrow-lane-juno' },
+    { slug: 'old-mill-freya', call: 'Freya', registered: 'Old Mill Freya', sex: 'FEMALE', reg: 'SR20114403', year: 2008, sire: 'cold-spring-basil', dam: 'cold-spring-nettle' },
+    { slug: 'kettle-creek-ash', call: 'Ash', registered: 'Kettle Creek Ash', sex: 'MALE', reg: 'SR21550801', year: 2009, sire: 'wideacre-colt', dam: 'wideacre-saffron' },
+    { slug: 'kettle-creek-birdie', call: 'Birdie', registered: 'Kettle Creek Birdie', sex: 'FEMALE', reg: 'SR21550802', year: 2009, sire: 'longmeadow-rook', dam: 'longmeadow-vesta' },
+    { slug: 'north-fork-gunner', call: 'Gunner', registered: 'North Fork Gunner', sex: 'MALE', reg: 'SR22901101', year: 2009, sire: 'harrow-lane-pike', dam: 'cold-spring-nettle' },
+    { slug: 'north-fork-clover', call: 'Clover', registered: 'North Fork Clover', sex: 'FEMALE', reg: 'SR22901102', year: 2010, sire: 'wideacre-colt', dam: 'longmeadow-vesta' },
+    { slug: 'stone-ridge-cass', call: 'Cass', registered: 'Stone Ridge Cass', sex: 'MALE', reg: 'SR23400501', year: 2010, sire: 'cold-spring-basil', dam: 'harrow-lane-juno' },
+    { slug: 'stone-ridge-pearl', call: 'Pearl', registered: 'Stone Ridge Pearl', sex: 'FEMALE', reg: 'SR23400502', year: 2010, sire: 'longmeadow-rook', dam: 'wideacre-saffron' },
+
+    // ── Gen 4 — the two line-bred ancestors ──
+    { slug: 'marshland-drake', call: 'Drake', registered: 'FC Marshland Drake', sex: 'MALE', reg: 'SR51002288', year: 2012, sire: 'old-mill-brandt', dam: 'old-mill-freya' },
+    { slug: 'rivergate-willow', call: 'Willow', registered: 'Rivergate Willow', sex: 'FEMALE', reg: 'SR51330904', year: 2012, sire: 'kettle-creek-ash', dam: 'kettle-creek-birdie' },
+    { slug: 'north-fork-tessa', call: 'Tessa', registered: 'North Fork Tessa', sex: 'FEMALE', reg: 'SR52110307', year: 2013, sire: 'north-fork-gunner', dam: 'north-fork-clover' },
+    { slug: 'stone-ridge-hoyt', call: 'Hoyt', registered: 'Stone Ridge Hoyt', sex: 'MALE', reg: 'SR52880110', year: 2013, sire: 'stone-ridge-cass', dam: 'stone-ridge-pearl' },
+
+    // ── Gen 3 — Drake on both sides, Willow twice on the sire side ──
+    { slug: 'blackwaters-tern', call: 'Tern', registered: "Blackwater's Tern", sex: 'MALE', reg: 'SR61220101', year: 2015, sire: 'marshland-drake', dam: 'rivergate-willow' },
+    { slug: 'blackwaters-reed', call: 'Reed', registered: "Blackwater's Reed", sex: 'FEMALE', reg: 'SR61220102', year: 2015, sire: 'stone-ridge-hoyt', dam: 'rivergate-willow' },
+    { slug: 'marshland-teal', call: 'Teal', registered: 'Marshland Teal', sex: 'MALE', reg: 'SR62009911', year: 2016, sire: 'marshland-drake', dam: 'north-fork-tessa' },
+    { slug: 'rivergate-thistle', call: 'Thistle', registered: 'Rivergate Thistle', sex: 'FEMALE', reg: 'SR53001177', year: 2016, sire: 'stone-ridge-hoyt', dam: 'north-fork-tessa' },
+
+    // ── Gen 2 ──
+    { slug: 'blackwaters-storm', call: 'Storm', registered: "CH Blackwater's Storm", sex: 'MALE', reg: 'SR75110203', year: 2018, sire: 'blackwaters-tern', dam: 'blackwaters-reed' },
+    { slug: 'blackwaters-wren', call: 'Wren', registered: "Blackwater's Wren", sex: 'FEMALE', reg: 'SR52883101', year: 2018, sire: 'marshland-teal', dam: 'rivergate-thistle' },
+  ];
+
+  const ancIds = new Map<string, string>();
+  for (const a of ancestry) {
+    const parents = {
+      sireId: a.sire ? (ancIds.get(a.sire) ?? null) : null,
+      damId: a.dam ? (ancIds.get(a.dam) ?? null) : null,
+    };
+    const record = await db.dog.upsert({
+      where: { slug: a.slug },
+      // Ancestry IS updated on re-seed. An empty `update` here would leave
+      // rows from an earlier, shallower version of this fixture unlinked —
+      // which silently produces a different COI than the one intended.
+      update: parents,
+      create: {
+        slug: a.slug,
+        callName: a.call,
+        registeredName: a.registered,
+        breed: GSP,
+        sex: a.sex,
+        dateOfBirth: new Date(`${a.year}-05-01`),
+        isAncestorStub: true,
+        isPublished: false,
+        ...parents,
+      },
+    });
+    ancIds.set(a.slug, record.id);
+
+    if (a.reg) {
+      await db.registration.upsert({
+        where: { body_number: { body: 'AKC', number: a.reg } },
+        update: {},
+        create: { dogId: record.id, body: 'AKC', number: a.reg, nameOnRecord: a.registered, isPrimary: true },
+      });
+    }
+  }
+
+  // Ranger and Juniper are Storm × Wren siblings from Phase 0's seed; wire
+  // their parents so the five-generation pedigree hangs off a real dog.
+  await db.dog.update({
+    where: { slug: 'blackwaters-ranger-of-the-marsh' },
+    data: { sireId: ancIds.get('blackwaters-storm')!, damId: ancIds.get('blackwaters-wren')! },
+  });
+  await db.dog.update({
+    where: { slug: 'blackwaters-juniper' },
+    data: { sireId: ancIds.get('marshland-teal')!, damId: ancIds.get('blackwaters-reed')! },
+  });
+
+  // A deliberate near-duplicate for the merge tool to find: same dog, kennel
+  // prefix dropped and one letter different. This is exactly the shape of the
+  // record that quietly halves a COI in production.
+  await db.dog.upsert({
+    where: { slug: 'marshland-drake-dup' },
+    update: {},
+    create: {
+      slug: 'marshland-drake-dup',
+      callName: 'Drake',
+      registeredName: 'Marshland Drake',
+      breed: GSP,
+      sex: 'MALE',
+      dateOfBirth: new Date('2012-05-01'),
+      isAncestorStub: true,
+      isPublished: false,
+    },
+  });
+
+  console.info('  ✓ five-generation pedigree + a planted duplicate');
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);

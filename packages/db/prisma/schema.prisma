@@ -77,6 +77,7 @@ model User {
   memberships   Membership[]
   ownedDogs     DogOwnership[]
   auditEntries  AuditLog[]
+  pedigreeImports PedigreeImport[]
 
   @@index([country, region, city])
   @@index([createdAt])
@@ -215,6 +216,21 @@ model Dog {
   microchipIssuer String?
   dnaProfileId   String? // e.g. AKC DNA profile
 
+  // ── Ancestry (Phase 1) ──────────────────────────────────────────────────
+  // The DAG. One sire, one dam, both nullable — biology's own constraint,
+  // enforced by the schema rather than by application code.
+  sireId String?
+  damId  String?
+
+  /// True for ancestor records created by a pedigree import that exist only
+  /// as a name on someone else's papers. They still occupy real slots in the
+  /// graph; they just have nobody maintaining them.
+  isAncestorStub Boolean @default(false)
+
+  /// Set when this record has been merged into another (invariant 4). The
+  /// row survives so existing links keep resolving.
+  supersededByDogId String?
+
   /// Self-reported free text. NEVER merged with verified data (invariant 4).
   temperamentNotes String? @db.Text
   ownerNotes       String? @db.Text
@@ -234,10 +250,31 @@ model Dog {
   ownerships    DogOwnership[]
   media         DogMedia[]
 
+  // Ancestry self-relations. SetNull on delete so removing a dog leaves an
+  // honest gap in its descendants' pedigrees rather than cascading them away.
+  sire         Dog?  @relation("DogSire", fields: [sireId], references: [id], onDelete: SetNull)
+  damRel       Dog?  @relation("DogDam", fields: [damId], references: [id], onDelete: SetNull)
+  sireOffspring Dog[] @relation("DogSire")
+  damOffspring  Dog[] @relation("DogDam")
+
+  supersededBy Dog?  @relation("DogSupersededBy", fields: [supersededByDogId], references: [id], onDelete: SetNull)
+  supersedes   Dog[] @relation("DogSupersededBy")
+
+  pedigreeStats     DogPedigreeStats?
+  pedigreeImports   PedigreeImport[]    @relation("PedigreeImportRoot")
+  mergeCandidatesA  DogMergeCandidate[] @relation("MergeCandidateA")
+  mergeCandidatesB  DogMergeCandidate[] @relation("MergeCandidateB")
+  supersessionAsOld DogSupersession?    @relation("SupersededDog")
+  supersessionAsNew DogSupersession[]   @relation("SurvivingDog")
+
   @@index([breed, sex])
   @@index([kennelId])
   @@index([isPublished, breed])
   @@index([microchip])
+  @@index([sireId])
+  @@index([damId])
+  @@index([registeredName])
+  @@index([supersededByDogId])
   @@map("dogs")
 }
 
@@ -347,4 +384,134 @@ model AuditLog {
   @@index([entityType, entityId, createdAt])
   @@index([actorId, createdAt])
   @@map("audit_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 1 — Ancestry graph, pedigree import, duplicate resolution
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Ancestry is modelled as self-relations on Dog, not an edge table.
+//
+// Biology gives every dog exactly one sire and one dam, so a pair of nullable
+// self-references IS the proper DAG here — indexable, join-free, and
+// impossible to represent inconsistently. An edge table would let a dog carry
+// three sires. Cycles are rejected at write time (see @stud/pedigree's
+// buildGraph and the API's assertNoCycle).
+
+enum PedigreeSourceKind {
+  MANUAL
+  CSV
+  REGISTRY_TEXT
+  REGISTRY_API
+  MERGE
+}
+
+/// Records how a dog's ancestry got here. Provenance matters as much for
+/// pedigree as it does for health results — a hand-typed great-grandsire and
+/// one pulled from a registry are not the same quality of fact.
+model PedigreeImport {
+  id       String             @id @default(cuid())
+  kennelId String?
+  userId   String?
+  rootDogId String?
+
+  kind      PedigreeSourceKind
+  /// Original pasted text or file name. Kept so an import can be re-run when
+  /// the parser improves.
+  rawInput  String?            @db.Text
+  fileName  String?
+
+  dogsCreated  Int @default(0)
+  dogsLinked   Int @default(0)
+  dogsSkipped  Int @default(0)
+  /// Parser warnings and errors, verbatim.
+  issues       Json?
+
+  createdAt DateTime @default(now())
+
+  rootDog Dog?  @relation("PedigreeImportRoot", fields: [rootDogId], references: [id], onDelete: SetNull)
+  user    User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([kennelId, createdAt])
+  @@index([rootDogId])
+  @@map("pedigree_imports")
+}
+
+enum MergeStatus {
+  OPEN
+  MERGED
+  DISMISSED
+}
+
+/// A suspected duplicate pair, surfaced by @stud/pedigree's findDuplicates.
+///
+/// A duplicated ancestor silently LOWERS every COI it appears in — the two
+/// copies read as unrelated dogs. This queue exists because that failure is
+/// invisible unless something goes looking for it.
+model DogMergeCandidate {
+  id        String      @id @default(cuid())
+  /// Ordered so (a,b) and (b,a) can never both exist.
+  dogAId    String
+  dogBId    String
+  score     Float
+  confidence String     // "certain" | "likely" | "possible"
+  reasons   String[]    @default([])
+  conflicts String[]    @default([])
+  status    MergeStatus @default(OPEN)
+
+  resolvedByUserId String?
+  resolvedAt       DateTime?
+  /// Which record survived, when status is MERGED.
+  keptDogId        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dogA Dog @relation("MergeCandidateA", fields: [dogAId], references: [id], onDelete: Cascade)
+  dogB Dog @relation("MergeCandidateB", fields: [dogBId], references: [id], onDelete: Cascade)
+
+  @@unique([dogAId, dogBId])
+  @@index([status, score])
+  @@map("dog_merge_candidates")
+}
+
+/// Append-only supersession pointer (invariant 4). When two records merge,
+/// the losing record is not deleted — it is marked as superseded so any link
+/// anyone already holds still resolves.
+model DogSupersession {
+  id             String   @id @default(cuid())
+  supersededDogId String  @unique
+  survivingDogId String
+  reason         String   @default("merge")
+  actorUserId    String?
+  createdAt      DateTime @default(now())
+
+  supersededDog Dog @relation("SupersededDog", fields: [supersededDogId], references: [id], onDelete: Cascade)
+  survivingDog  Dog @relation("SurvivingDog", fields: [survivingDogId], references: [id], onDelete: Cascade)
+
+  @@index([survivingDogId])
+  @@map("dog_supersessions")
+}
+
+/// Cached COI so list views and search filters do not recompute a graph walk
+/// per row. Always recomputed, never authored — a stale value here is a
+/// correctness bug, so `computedAt` and `generations` are mandatory context.
+model DogPedigreeStats {
+  dogId               String   @id
+  /// Wright's F over `generations`.
+  coi                 Float
+  generations         Int
+  /// Maignel's complete generation equivalent.
+  generationEquivalent Float
+  completenessRatio   Float
+  distinctAncestors   Int
+  knownSlots          Int
+  deepestGeneration   Int
+  computedAt          DateTime @default(now())
+
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([coi])
+  @@index([computedAt])
+  @@map("dog_pedigree_stats")
 }
