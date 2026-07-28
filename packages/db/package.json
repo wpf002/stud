@@ -9,7 +9,9 @@
     ".": "./src/index.ts",
     "./seed": "./src/seed.ts",
     "./env": "./src/env.ts",
-    "./verification": "./src/verification-service.ts"
+    "./verification": "./src/verification-service.ts",
+    "./pedigree-loader": "./src/pedigree-loader.ts",
+    "./listings": "./src/listing-service.ts"
   },
   "scripts": {
     "generate": "prisma generate",
@@ -27,7 +29,8 @@
     "@stud/verify": "workspace:*",
     "@stud/breeding": "workspace:*",
     "@stud/contracts": "workspace:*",
-    "@stud/payments": "workspace:*"
+    "@stud/payments": "workspace:*",
+    "@stud/pedigree": "workspace:*"
   },
   "devDependencies": {
     "@stud/config": "workspace:*",

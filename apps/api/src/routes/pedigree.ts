@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { audit } from '../lib/audit.js';
 import { badRequest, forbidden, notFound } from '../lib/errors.js';
 import { canEditDog } from '../lib/dog-access.js';
-import { loadAncestryGraph, loadDescendantIds, wouldCreateCycle } from '../lib/pedigree-loader.js';
+import { loadAncestryGraph, loadDescendantIds, wouldCreateCycle } from '@stud/db/pedigree-loader';
 
 const REGISTRY_BODIES = [
   'AKC', 'UKC', 'CKC', 'FCI', 'KC', 'NAVHDA', 'AFTCA', 'ABCA', 'JRTCA', 'CONTINENTAL', 'OTHER',

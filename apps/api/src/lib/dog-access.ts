@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@stud/db';
-import { loadDescendantIds } from './pedigree-loader.js';
+import { loadDescendantIds } from '@stud/db/pedigree-loader';
 
 /**
  * Who may edit a dog record.

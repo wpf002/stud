@@ -498,3 +498,111 @@ checkbox with extra steps.
 
 **Consequence.** There is friction at exactly the point where friction is
 right, and the error says why rather than just refusing.
+
+## D36 — A listing is separate from a litter (Phase 6)
+
+**Decision.** `LitterListing` is its own table with its own slug, price and
+publication date. `Litter` stays a breeding record.
+
+**Why.** A litter exists whether or not anyone is selling anything. Merging the
+two would mean a breeder cannot record a whelp without also publishing it, and
+the first thing that gets skipped under pressure is the record.
+
+**Consequence.** A litter can be tracked from day one and published on day
+forty, or never. Unpublishing hides the page without touching a single
+breeding fact.
+
+## D37 — The public page reads everything live; only search is denormalised (Phase 6)
+
+**Decision.** The litter page reads parent health, titles, registrations, COI
+and pedigree completeness from the dog records at request time. A handful of
+`cached*` columns exist on the listing purely so search can filter and sort.
+
+**Why.** This is the phase gate — zero re-entry. A breeder who has done the
+work of getting their dogs verified must never retype a hip score into a
+marketing form, because that is exactly how the number on the listing drifts
+from the number on the certificate.
+
+**Consequence.** The cached columns are never authored by a human and never
+rendered to one. If one drifts, a listing is mis-*sorted*; it cannot display a
+wrong health result, because it is not the source of any displayed result.
+`refreshListingCache` lives in `@stud/db` so the API, the seed and any future
+worker cannot grow three different versions of it.
+
+## D38 — Reserving a puppy updates the marketplace immediately (Phase 6)
+
+**Decision.** `PATCH /puppies/:id` recomputes the listing cache whenever
+`status` or `isPublic` changes.
+
+**Why.** The cache was originally recomputed only when a breeder re-saved the
+listing. A browse page still advertising a puppy that sold last week is the
+fastest way to lose a buyer's trust and the breeder's.
+
+**Consequence.** One extra query on a status change, which is a rare write.
+
+## D39 — Health filters mean BOTH parents (Phase 6)
+
+**Decision.** `verifiedNormal=HIP` on the litter search requires a verified
+normal hip result on the sire **and** the dam. Selecting two claim types means
+both types, on both parents.
+
+**Why.** A buyer filtering for verified hips is asking about the puppy they
+take home. One clear parent does not make a clear puppy, and quietly widening
+this to "either" would return the wrong litter to someone who asked a precise
+question.
+
+**Consequence.** Far fewer results than a classified board would return, which
+the page states out loud rather than hiding. A `CONFLICTED` result does not
+count as verified either — an open conflict is not evidence.
+
+## D40 — A first publication date is never cleared (Phase 6)
+
+**Decision.** `publishedAt` records the first time a listing went public and is
+never nulled. Visibility is `availability`.
+
+**Why.** The original code nulled it on unpublish, so a breeder who hid a
+litter for a week and put it back lost its age. A page that has been up for two
+years is a genuinely different thing from one posted this morning, both to a
+search engine and to a buyer reading a program's history.
+
+**Consequence.** Every public query filters on `availability` as well as
+`publishedAt`. Both conditions, everywhere — the browse list, the detail page,
+the enquiry endpoint, the kennel profile and the sitemap.
+
+## D41 — A sold-out litter stays published (Phase 6)
+
+**Decision.** `FULLY_RESERVED` and `PAST` are public, indexed states.
+
+**Why.** A sold-out litter is the best evidence a breeder has, and taking the
+page down throws away the accumulated ranking along with the proof. It is also
+what a buyer researching a program actually wants to read.
+
+**Consequence.** The sitemap gives past litters a lower priority than current
+ones, because they are still worth indexing but are not what somebody
+searching today is looking for.
+
+## D42 — Eight weeks is refused, not warned (Phase 6)
+
+**Decision.** A go-home date less than 56 days after whelping is a 400.
+
+**Why.** It is a statutory minimum in most states and a welfare minimum
+everywhere. This is the one field on a marketing form where being agreeable
+would do real harm to an animal.
+
+**Consequence.** The only hard refusal in the publish path. Everything else
+about a listing is the breeder's business.
+
+## D43 — The ancestry loader moved into @stud/db (Phase 6)
+
+**Decision.** `loadAncestryGraph` and friends live in `@stud/db/pedigree-loader`
+rather than in the API.
+
+**Why.** The listing cache needs a projected COI, and it is used by the API and
+by the seed. Duplicating the ancestry walk would have produced two subtly
+different pedigrees, and the first symptom would be a COI on a public page that
+disagreed with the one in the workspace. Same reasoning as
+`verification-service` in Phase 2.
+
+**Consequence.** `@stud/db` now depends on `@stud/pedigree`. Both are still
+pure of each other's concerns — the engine does no I/O and the loader does no
+arithmetic.

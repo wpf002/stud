@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { audit } from '../lib/audit.js';
 import { badRequest, forbidden, notFound } from '../lib/errors.js';
 import { canEditDog } from '../lib/dog-access.js';
-import { loadAncestryGraph, wouldCreateCycle } from '../lib/pedigree-loader.js';
+import { loadAncestryGraph, wouldCreateCycle } from '@stud/db/pedigree-loader';
 
 function slugify(s: string): string {
   return s

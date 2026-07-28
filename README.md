@@ -240,7 +240,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **3** ✅ | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
 | **4** ✅ | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
 | **5** ✅ | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
-| **6** | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
+| **6** ✅ | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
 | **7** | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
 | **8** | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
 | **9** | Trust, discovery & growth | Organic traffic is the primary channel; the verified tier converts measurably better |
@@ -386,3 +386,47 @@ approved it in writing will close the account at the worst possible moment. So
 every layer above the provider boundary is real and tested, and the one thing
 that must not exist before a signed processor agreement does not exist. See
 [`docs/payments-diligence.md`](docs/payments-diligence.md).
+
+
+---
+
+## The marketplace
+
+The phase gate was one sentence: **a public litter page ranks, loads fast, and
+shows verified parent data with zero re-entry.** Each third of that shaped
+something.
+
+**Zero re-entry.** A breeder publishing a litter writes a headline, a
+paragraph, a price and a go-home date. That is the entire form. Parent health,
+titles, registration numbers, projected COI, pedigree completeness and the
+Mendelian risk for the pairing are all read from the dog records when the page
+renders. Nobody retypes a hip score into a marketing form, so what a buyer
+reads cannot drift from what the certificate says.
+
+**Loads fast.** One API round trip builds the whole page — 10–18 ms and ~24 kB
+for a six-puppy litter — cached at the data layer and server-rendered. The only
+client component is the enquiry form; the page ships 2.7 kB of its own
+JavaScript.
+
+**Ranks.** Server-rendered HTML, canonical URLs, a stable slug that is built
+once and never regenerated, `Product` + `AggregateOffer` + `Organization` +
+`BreadcrumbList` structured data, a sitemap, and filtered views excluded from
+the crawl so they cannot dilute the page they duplicate. The structured data
+carries the verified results with their provenance, which is the part no
+classified listing can reproduce.
+
+### What the page says that a classified board cannot
+
+| | |
+|---|---|
+| **What is missing** | A parent with no hip result reads *not tested*, not silence. A board cannot do this, because it never knew what was supposed to be there. |
+| **What cannot be ruled out** | A marker tested on one side only is shown as unresolvable, naming which dog to test. Untested never renders as probably clear. |
+| **How related the parents are** | The projected COI, its band, the relationship in words (*half siblings*), and how complete the pedigree behind the number is. |
+| **What was lost** | Stillbirths and neonatal deaths appear in the litter's arithmetic. A litter's real history is worth more than a flattering one. |
+| **What is already gone** | Reserving a puppy updates the availability count on the browse page immediately, not when the breeder next edits the listing. |
+
+Search filters read the same verified tables. `verifiedNormal=HIP,ELBOW`
+requires both results on **both** parents, and an open `CONFLICTED` result does
+not count as verified. The consequence is a much smaller directory than a
+classified board with the same number of breeders — which the empty state says
+out loud, because it is the trade the whole product is making.

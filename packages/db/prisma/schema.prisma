@@ -55,12 +55,12 @@ model User {
   bio           String?
 
   // Location — used for distance search across every surface.
-  city      String?
-  region    String? // state / province
-  country   String  @default("US")
+  city       String?
+  region     String? // state / province
+  country    String  @default("US")
   postalCode String?
-  latitude  Float?
-  longitude Float?
+  latitude   Float?
+  longitude  Float?
 
   // A user can hold several roles at once: an owner of a stud who also buys.
   roles Role[] @default([BUYER])
@@ -68,20 +68,21 @@ model User {
   timezone String  @default("America/Chicago")
   isActive Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
   lastSeenAt DateTime?
 
-  accounts      Account[]
-  sessions      Session[]
-  memberships   Membership[]
-  ownedDogs     DogOwnership[]
-  auditEntries  AuditLog[]
-  pedigreeImports PedigreeImport[]
-  reportedClaims  ReportedClaim[]
+  accounts           Account[]
+  sessions           Session[]
+  memberships        Membership[]
+  ownedDogs          DogOwnership[]
+  auditEntries       AuditLog[]
+  pedigreeImports    PedigreeImport[]
+  reportedClaims     ReportedClaim[]
   documentsReviewed  DocumentSubmission[] @relation("DocumentReviewer")
   documentsSubmitted DocumentSubmission[] @relation("DocumentSubmitter")
   studInquiries      StudInquiry[]
+  litterInquiries    LitterInquiry[]
   savedPairings      SavedPairing[]
   contractParties    ContractParty[]
   contractSignatures ContractSignature[]
@@ -132,14 +133,14 @@ model Session {
 
 /// Single-use tokens: email verification, password reset, invite acceptance.
 model VerificationToken {
-  id        String   @id @default(cuid())
+  id         String    @id @default(cuid())
   identifier String
-  token     String   @unique
-  purpose   String // "email_verify" | "password_reset" | "kennel_invite"
-  payload   Json?
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
+  token      String    @unique
+  purpose    String // "email_verify" | "password_reset" | "kennel_invite"
+  payload    Json?
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
 
   @@index([identifier, purpose])
   @@map("verification_tokens")
@@ -147,14 +148,14 @@ model VerificationToken {
 
 /// A breeding program. Dogs, litters, contracts and payouts all hang off this.
 model Kennel {
-  id       String  @id @default(cuid())
-  slug     String  @unique
-  name     String
-  prefix   String? // registered kennel prefix, e.g. "Blackwater"
-  tagline  String?
-  about    String? @db.Text
-  logoUrl  String?
-  coverUrl String?
+  id         String  @id @default(cuid())
+  slug       String  @unique
+  name       String
+  prefix     String? // registered kennel prefix, e.g. "Blackwater"
+  tagline    String?
+  about      String? @db.Text
+  logoUrl    String?
+  coverUrl   String?
   websiteUrl String?
 
   city       String?
@@ -205,13 +206,13 @@ model Dog {
   id   String @id @default(cuid())
   slug String @unique
 
-  callName     String // "Ranger"
+  callName       String // "Ranger"
   registeredName String? // "Blackwater's Ranger Of The Marsh"
-  breed        String
+  breed          String
   secondaryBreed String? // for documented crosses
-  sex          Sex
-  dateOfBirth  DateTime?
-  dateOfDeath  DateTime?
+  sex            Sex
+  dateOfBirth    DateTime?
+  dateOfDeath    DateTime?
 
   colorPattern String?
   markings     String?
@@ -219,9 +220,9 @@ model Dog {
   heightCm     Float?
   weightKg     Float?
 
-  microchip      String?
+  microchip       String?
   microchipIssuer String?
-  dnaProfileId   String? // e.g. AKC DNA profile
+  dnaProfileId    String? // e.g. AKC DNA profile
 
   // ── Ancestry (Phase 1) ──────────────────────────────────────────────────
   // The DAG. One sire, one dam, both nullable — biology's own constraint,
@@ -245,9 +246,9 @@ model Dog {
   /// Denormalised kennel of record. Ownership history is in DogOwnership.
   kennelId String?
 
-  isDeceased    Boolean @default(false)
-  isRetired     Boolean @default(false)
-  isPublished   Boolean @default(false)
+  isDeceased  Boolean @default(false)
+  isRetired   Boolean @default(false)
+  isPublished Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -259,8 +260,8 @@ model Dog {
 
   // Ancestry self-relations. SetNull on delete so removing a dog leaves an
   // honest gap in its descendants' pedigrees rather than cascading them away.
-  sire         Dog?  @relation("DogSire", fields: [sireId], references: [id], onDelete: SetNull)
-  damRel       Dog?  @relation("DogDam", fields: [damId], references: [id], onDelete: SetNull)
+  sire          Dog?  @relation("DogSire", fields: [sireId], references: [id], onDelete: SetNull)
+  damRel        Dog?  @relation("DogDam", fields: [damId], references: [id], onDelete: SetNull)
   sireOffspring Dog[] @relation("DogSire")
   damOffspring  Dog[] @relation("DogDam")
 
@@ -283,22 +284,22 @@ model Dog {
 
   // Phase 3 — breeder workspace
   heatCycles      HeatCycle[]
-  breedingsAsSire Breeding[]  @relation("BreedingSire")
-  breedingsAsDam  Breeding[]  @relation("BreedingDam")
-  littersAsSire   Litter[]    @relation("LitterSire")
-  littersAsDam    Litter[]    @relation("LitterDam")
+  breedingsAsSire Breeding[]      @relation("BreedingSire")
+  breedingsAsDam  Breeding[]      @relation("BreedingDam")
+  littersAsSire   Litter[]        @relation("LitterSire")
+  littersAsDam    Litter[]        @relation("LitterDam")
   puppyRecord     Puppy?
   careTasks       CareTask[]
   feedRoutines    FeedRoutine[]
   vaultDocuments  VaultDocument[]
 
   // Phase 4 — stud directory
-  studListing        StudListing?
-  inquiriesAsDam     StudInquiry[]  @relation("InquiryDam")
-  contractsAsSire    Contract[]     @relation("ContractSire")
-  contractsAsDam     Contract[]     @relation("ContractDam")
-  savedPairingsSire  SavedPairing[] @relation("SavedPairingSire")
-  savedPairingsDam   SavedPairing[] @relation("SavedPairingDam")
+  studListing       StudListing?
+  inquiriesAsDam    StudInquiry[]  @relation("InquiryDam")
+  contractsAsSire   Contract[]     @relation("ContractSire")
+  contractsAsDam    Contract[]     @relation("ContractDam")
+  savedPairingsSire SavedPairing[] @relation("SavedPairingSire")
+  savedPairingsDam  SavedPairing[] @relation("SavedPairingDam")
 
   @@index([breed, sex])
   @@index([kennelId])
@@ -327,13 +328,13 @@ enum RegistryBody {
 
 /// A dog's registration with a registry body. A dog may hold several.
 model Registration {
-  id       String       @id @default(cuid())
-  dogId    String
-  body     RegistryBody
-  number   String
+  id           String       @id @default(cuid())
+  dogId        String
+  body         RegistryBody
+  number       String
   /// Registered name as it appears on the papers — may differ from Dog.registeredName.
   nameOnRecord String?
-  issuedAt DateTime?
+  issuedAt     DateTime?
 
   isPrimary Boolean @default(false)
 
@@ -355,8 +356,8 @@ model DogOwnership {
   userId String
 
   /// Co-ownership is common and contractually significant.
-  sharePercent Int      @default(100)
-  startedAt    DateTime @default(now())
+  sharePercent Int       @default(100)
+  startedAt    DateTime  @default(now())
   endedAt      DateTime?
   reason       String? // "purchase" | "transfer" | "co_ownership" | "initial"
 
@@ -377,17 +378,17 @@ enum MediaKind {
 }
 
 model DogMedia {
-  id      String    @id @default(cuid())
-  dogId   String
-  kind    MediaKind @default(PHOTO)
-  url     String
-  thumbUrl String?
-  caption String?
-  width   Int?
-  height  Int?
+  id              String    @id @default(cuid())
+  dogId           String
+  kind            MediaKind @default(PHOTO)
+  url             String
+  thumbUrl        String?
+  caption         String?
+  width           Int?
+  height          Int?
   durationSeconds Int?
-  position Int      @default(0)
-  isPrimary Boolean @default(false)
+  position        Int       @default(0)
+  isPrimary       Boolean   @default(false)
 
   takenAt   DateTime?
   createdAt DateTime  @default(now())
@@ -443,22 +444,22 @@ enum PedigreeSourceKind {
 /// pedigree as it does for health results — a hand-typed great-grandsire and
 /// one pulled from a registry are not the same quality of fact.
 model PedigreeImport {
-  id       String             @id @default(cuid())
-  kennelId String?
-  userId   String?
+  id        String  @id @default(cuid())
+  kennelId  String?
+  userId    String?
   rootDogId String?
 
-  kind      PedigreeSourceKind
+  kind     PedigreeSourceKind
   /// Original pasted text or file name. Kept so an import can be re-run when
   /// the parser improves.
-  rawInput  String?            @db.Text
-  fileName  String?
+  rawInput String?            @db.Text
+  fileName String?
 
-  dogsCreated  Int @default(0)
-  dogsLinked   Int @default(0)
-  dogsSkipped  Int @default(0)
+  dogsCreated Int   @default(0)
+  dogsLinked  Int   @default(0)
+  dogsSkipped Int   @default(0)
   /// Parser warnings and errors, verbatim.
-  issues       Json?
+  issues      Json?
 
   createdAt DateTime @default(now())
 
@@ -482,15 +483,15 @@ enum MergeStatus {
 /// copies read as unrelated dogs. This queue exists because that failure is
 /// invisible unless something goes looking for it.
 model DogMergeCandidate {
-  id        String      @id @default(cuid())
+  id         String      @id @default(cuid())
   /// Ordered so (a,b) and (b,a) can never both exist.
-  dogAId    String
-  dogBId    String
-  score     Float
-  confidence String     // "certain" | "likely" | "possible"
-  reasons   String[]    @default([])
-  conflicts String[]    @default([])
-  status    MergeStatus @default(OPEN)
+  dogAId     String
+  dogBId     String
+  score      Float
+  confidence String // "certain" | "likely" | "possible"
+  reasons    String[]    @default([])
+  conflicts  String[]    @default([])
+  status     MergeStatus @default(OPEN)
 
   resolvedByUserId String?
   resolvedAt       DateTime?
@@ -512,12 +513,12 @@ model DogMergeCandidate {
 /// the losing record is not deleted — it is marked as superseded so any link
 /// anyone already holds still resolves.
 model DogSupersession {
-  id             String   @id @default(cuid())
-  supersededDogId String  @unique
-  survivingDogId String
-  reason         String   @default("merge")
-  actorUserId    String?
-  createdAt      DateTime @default(now())
+  id              String   @id @default(cuid())
+  supersededDogId String   @unique
+  survivingDogId  String
+  reason          String   @default("merge")
+  actorUserId     String?
+  createdAt       DateTime @default(now())
 
   supersededDog Dog @relation("SupersededDog", fields: [supersededDogId], references: [id], onDelete: Cascade)
   survivingDog  Dog @relation("SurvivingDog", fields: [survivingDogId], references: [id], onDelete: Cascade)
@@ -530,17 +531,17 @@ model DogSupersession {
 /// per row. Always recomputed, never authored — a stale value here is a
 /// correctness bug, so `computedAt` and `generations` are mandatory context.
 model DogPedigreeStats {
-  dogId               String   @id
+  dogId                String   @id
   /// Wright's F over `generations`.
-  coi                 Float
-  generations         Int
+  coi                  Float
+  generations          Int
   /// Maignel's complete generation equivalent.
   generationEquivalent Float
-  completenessRatio   Float
-  distinctAncestors   Int
-  knownSlots          Int
-  deepestGeneration   Int
-  computedAt          DateTime @default(now())
+  completenessRatio    Float
+  distinctAncestors    Int
+  knownSlots           Int
+  deepestGeneration    Int
+  computedAt           DateTime @default(now())
 
   dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
 
@@ -610,31 +611,31 @@ model VerifiedClaim {
 
   /// Matches @stud/verify's ClaimType. Kept as a string rather than an enum so
   /// a new breed panel does not require a migration.
-  claimType String
-  category  ClaimCategory
+  claimType  String
+  category   ClaimCategory
   /// For DNA_MARKER: which gene or variant. Empty string, never NULL —
   /// Postgres treats NULLs as distinct in a unique index, so a nullable
   /// column here would silently permit duplicate claims for the same dog.
-  markerName String @default("")
+  markerName String        @default("")
 
-  state   VerificationState @default(UNVERIFIED)
+  state   VerificationState  @default(UNVERIFIED)
   source  VerificationSource
   outcome ClaimOutcome?
 
   /// Verbatim, as the source phrases it. Never normalised in place.
-  rawResult String?
+  rawResult      String?
   /// The source's own identifier for this record.
   sourceRecordId String?
   sourceUrl      String?
   /// Anything the source published that does not fit the shape above.
-  detail String?
+  detail         String?
 
   /// When the test was performed or the title awarded.
-  testedAt DateTime?
+  testedAt          DateTime?
   /// When a machine last successfully confirmed it.
-  lastCheckedAt DateTime?
+  lastCheckedAt     DateTime?
   /// When it next falls out of the freshness window.
-  staleAfter DateTime?
+  staleAfter        DateTime?
   /// The identifier the lookup matched on.
   matchedIdentifier String?
 
@@ -647,7 +648,7 @@ model VerifiedClaim {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  dog    Dog                @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  dog    Dog                 @relation(fields: [dogId], references: [id], onDelete: Cascade)
   checks VerificationCheck[]
   events VerificationEvent[]
 
@@ -671,20 +672,20 @@ model ReportedClaim {
   claimType  String
   category   ClaimCategory
   /// Empty string, never NULL — see the note on VerifiedClaim.markerName.
-  markerName String @default("")
+  markerName String        @default("")
 
   /// Exactly what the owner typed. Never normalised, never graded.
-  statedResult String
+  statedResult   String
   statedTestedAt DateTime?
-  note         String? @db.Text
+  note           String?   @db.Text
 
   /// Who said it, so the claim is attributable.
   reportedByUserId String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  dog          Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
-  reportedBy   User? @relation(fields: [reportedByUserId], references: [id], onDelete: SetNull)
+  dog        Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  reportedBy User? @relation(fields: [reportedByUserId], references: [id], onDelete: SetNull)
 
   @@unique([dogId, claimType, markerName])
   @@index([dogId])
@@ -705,16 +706,16 @@ enum LookupStatus {
 /// is a bug, and an UNAVAILABLE row is as important as a FOUND one — it is the
 /// evidence that we asked and could not get an answer.
 model VerificationCheck {
-  id      String @id @default(cuid())
+  id      String  @id @default(cuid())
   dogId   String
   claimId String?
 
-  source     VerificationSource
-  identifier String
-  status     LookupStatus
-  findingCount Int   @default(0)
+  source       VerificationSource
+  identifier   String
+  status       LookupStatus
+  findingCount Int                @default(0)
   durationMs   Int
-  error        String? @db.Text
+  error        String?            @db.Text
   /// Raw payload, so a parser fix can be replayed without re-querying.
   raw          Json?
 
@@ -740,7 +741,7 @@ model VerificationEvent {
   fromState VerificationState
   toState   VerificationState
   trigger   String
-  reason    String  @db.Text
+  reason    String              @db.Text
   source    VerificationSource?
 
   previousRawResult String?
@@ -791,14 +792,14 @@ model DocumentSubmission {
   reviewedFindings Json?
   reviewedByUserId String?
   reviewedAt       DateTime?
-  rejectionReason  String?  @db.Text
+  rejectionReason  String?   @db.Text
 
   submittedByUserId String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  dog        Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
-  reviewedBy User? @relation("DocumentReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  dog         Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  reviewedBy  User? @relation("DocumentReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   submittedBy User? @relation("DocumentSubmitter", fields: [submittedByUserId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
@@ -820,11 +821,11 @@ model DogVerificationSummary {
   conflictedCount Int @default(0)
 
   /// Verified health claims with a NORMAL outcome.
-  healthNormalCount Int @default(0)
+  healthNormalCount  Int     @default(0)
   /// Verified claims with an AT_RISK or ABNORMAL outcome. Never hidden.
-  concerningCount   Int @default(0)
-  verifiedTitleCount Int @default(0)
-  hasChic           Boolean @default(false)
+  concerningCount    Int     @default(0)
+  verifiedTitleCount Int     @default(0)
+  hasChic            Boolean @default(false)
 
   /// verified ÷ (verified + reported + unverified). The tiering input.
   density Float @default(0)
@@ -857,10 +858,10 @@ model HeatCycle {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  dog                Dog                  @relation(fields: [dogId], references: [id], onDelete: Cascade)
-  progesteroneTests  ProgesteroneTest[]
-  breedings          Breeding[]
-  observations       HeatObservation[]
+  dog               Dog                @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  progesteroneTests ProgesteroneTest[]
+  breedings         Breeding[]
+  observations      HeatObservation[]
 
   @@index([dogId, startedOn])
   @@map("heat_cycles")
@@ -934,7 +935,7 @@ enum BreedingStatus {
 
 /// A mating. Links a sire and a dam to a heat cycle and, eventually, a litter.
 model Breeding {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   kennelId    String?
   sireId      String
   damId       String
@@ -950,10 +951,10 @@ model Breeding {
   lhSurgeDate   DateTime?
 
   /// Pregnancy confirmation.
-  ultrasoundOn    DateTime?
+  ultrasoundOn     DateTime?
   ultrasoundResult String?
-  xrayOn          DateTime?
-  xrayPuppyCount  Int?
+  xrayOn           DateTime?
+  xrayPuppyCount   Int?
 
   /// Collection and shipping paperwork for AI.
   collectionDate   DateTime?
@@ -966,12 +967,12 @@ model Breeding {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sire      Dog        @relation("BreedingSire", fields: [sireId], references: [id], onDelete: Cascade)
-  dam       Dog        @relation("BreedingDam", fields: [damId], references: [id], onDelete: Cascade)
-  heatCycle HeatCycle? @relation(fields: [heatCycleId], references: [id], onDelete: SetNull)
-  events    BreedingEvent[]
-  litter    Litter?
-  contracts Contract[]
+  sire        Dog                @relation("BreedingSire", fields: [sireId], references: [id], onDelete: Cascade)
+  dam         Dog                @relation("BreedingDam", fields: [damId], references: [id], onDelete: Cascade)
+  heatCycle   HeatCycle?         @relation(fields: [heatCycleId], references: [id], onDelete: SetNull)
+  events      BreedingEvent[]
+  litter      Litter?
+  contracts   Contract[]
   collections CollectionRecord[]
 
   @@index([kennelId, status])
@@ -982,7 +983,7 @@ model Breeding {
 
 /// One tie or insemination. A breeding usually has two or three.
 model BreedingEvent {
-  id         String   @id @default(cuid())
+  id         String         @id @default(cuid())
   breedingId String
   occurredOn DateTime
   method     BreedingMethod
@@ -1011,7 +1012,7 @@ enum LitterStatus {
 /// placement — this is the record the marketplace listing composes itself from
 /// in Phase 6.
 model Litter {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   breedingId String? @unique
   kennelId   String?
   sireId     String
@@ -1026,12 +1027,12 @@ model Litter {
   expectedWhelpOn DateTime?
   whelpedOn       DateTime?
 
-  totalBorn  Int?
-  liveBorn   Int?
-  stillborn  Int?
+  totalBorn      Int?
+  liveBorn       Int?
+  stillborn      Int?
   /// Deaths after a live birth. Recorded honestly — a litter's real history is
   /// worth more than a flattering one.
-  neonatalDeaths Int @default(0)
+  neonatalDeaths Int  @default(0)
 
   whelpingNotes String? @db.Text
   notes         String? @db.Text
@@ -1039,12 +1040,13 @@ model Litter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  breeding Breeding? @relation(fields: [breedingId], references: [id], onDelete: SetNull)
-  sire     Dog       @relation("LitterSire", fields: [sireId], references: [id], onDelete: Cascade)
-  dam      Dog       @relation("LitterDam", fields: [damId], references: [id], onDelete: Cascade)
-  puppies  Puppy[]
+  breeding       Breeding?       @relation(fields: [breedingId], references: [id], onDelete: SetNull)
+  sire           Dog             @relation("LitterSire", fields: [sireId], references: [id], onDelete: Cascade)
+  dam            Dog             @relation("LitterDam", fields: [damId], references: [id], onDelete: Cascade)
+  puppies        Puppy[]
   whelpingEvents WhelpingEvent[]
   careTasks      CareTask[]
+  listing        LitterListing?
 
   @@index([kennelId, status])
   @@index([damId])
@@ -1068,23 +1070,35 @@ model Puppy {
   litterId String
 
   /// Birth order matters clinically — the last out is often the one at risk.
-  birthOrder Int?
-  name       String?
+  birthOrder  Int?
+  name        String?
   /// What the breeder actually calls it before it is named: "green collar".
   collarColor String?
-  sex        Sex
-  status     PuppyStatus @default(AVAILABLE)
+  sex         Sex
+  status      PuppyStatus @default(AVAILABLE)
 
   birthWeightGrams Int?
   colorPattern     String?
   markings         String?
   microchip        String?
 
-  bornAt      DateTime?
-  diedAt      DateTime?
+  bornAt       DateTime?
+  diedAt       DateTime?
   causeOfDeath String?
 
   notes String? @db.Text
+
+  // ── Phase 6: the public listing ──
+  /// Overrides the litter's price range for this puppy. Integer cents.
+  priceCents  Int?
+  /// Shown to buyers. Kept separate from `notes`, which is the breeder's own
+  /// working record and is never published.
+  publicNotes String?  @db.Text
+  photoUrls   String[] @default([])
+  /// Hidden from the public page without changing the breeding record. A
+  /// stillborn or deceased puppy stays in the litter's history either way —
+  /// see `Litter.neonatalDeaths`.
+  isPublic    Boolean  @default(true)
 
   /// Set once the puppy has its own Dog record.
   dogId String? @unique
@@ -1092,10 +1106,11 @@ model Puppy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  litter  Litter        @relation(fields: [litterId], references: [id], onDelete: Cascade)
-  dog     Dog?          @relation(fields: [dogId], references: [id], onDelete: SetNull)
-  weights PuppyWeight[]
+  litter    Litter          @relation(fields: [litterId], references: [id], onDelete: Cascade)
+  dog       Dog?            @relation(fields: [dogId], references: [id], onDelete: SetNull)
+  weights   PuppyWeight[]
   careTasks CareTask[]
+  inquiries LitterInquiry[]
 
   @@index([litterId, birthOrder])
   @@index([status])
@@ -1104,11 +1119,11 @@ model Puppy {
 
 /// A weight. The single most useful number in a whelping box.
 model PuppyWeight {
-  id      String   @id @default(cuid())
-  puppyId String
+  id         String   @id @default(cuid())
+  puppyId    String
   recordedOn DateTime
-  grams   Int
-  notes   String?
+  grams      Int
+  notes      String?
 
   createdAt DateTime @default(now())
 
@@ -1121,8 +1136,8 @@ model PuppyWeight {
 /// The live log during whelping. Written one-handed at 3am, so the schema is
 /// deliberately forgiving — a timestamp and a note is a valid entry.
 model WhelpingEvent {
-  id       String   @id @default(cuid())
-  litterId String
+  id         String   @id @default(cuid())
+  litterId   String
   occurredAt DateTime @default(now())
 
   /// "contraction" | "puppy_born" | "placenta" | "rest" | "vet_called" | "note"
@@ -1149,7 +1164,7 @@ enum CareTaskStatus {
 /// Generated from the protocol in @stud/breeding, then editable. The generated
 /// schedule is a starting point; the breeder's vet is the authority.
 model CareTask {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   litterId String?
   puppyId  String?
   dogId    String?
@@ -1158,16 +1173,16 @@ model CareTask {
   title  String
   detail String? @db.Text
 
-  dueOn      DateTime
-  status     CareTaskStatus @default(PENDING)
-  completedOn DateTime?
+  dueOn             DateTime
+  status            CareTaskStatus @default(PENDING)
+  completedOn       DateTime?
   completedByUserId String?
 
   /// What was actually given, when it differs from the protocol.
-  productUsed String?
-  dose        String?
+  productUsed    String?
+  dose           String?
   administeredBy String?
-  notes       String? @db.Text
+  notes          String? @db.Text
 
   /// True for tasks the protocol marks as blocking go-home.
   required Boolean @default(false)
@@ -1181,7 +1196,7 @@ model CareTask {
   /// date by one day would have ended up with two of every vaccination.
   ///
   /// Generated: "<scope>:<scopeId>:<protocolKey>". Manual: a random id.
-  dedupeKey String @unique @default(cuid())
+  dedupeKey    String  @unique @default(cuid())
   /// The protocol key this came from, when it was generated.
   generatedKey String?
 
@@ -1200,7 +1215,7 @@ model CareTask {
 
 /// Feeding and diet routine for a dog or a litter.
 model FeedRoutine {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   dogId    String?
   litterId String?
 
@@ -1237,7 +1252,7 @@ enum VaultDocumentKind {
 /// The document vault. Distinct from DocumentSubmission (Phase 2), which is a
 /// verification queue — this is simply a filing cabinet.
 model VaultDocument {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   kennelId String?
   dogId    String?
   litterId String?
@@ -1301,11 +1316,11 @@ model StudListing {
   pickOfLitter Boolean @default(false)
   feeNotes     String?
 
-  semenTypes   SemenType[] @default([])
-  shipsSemen   Boolean     @default(false)
+  semenTypes        SemenType[] @default([])
+  shipsSemen        Boolean     @default(false)
   /// How far the owner will travel, or expects the bitch to.
   travelRadiusMiles Int?
-  willTravel   Boolean @default(false)
+  willTravel        Boolean     @default(false)
 
   /// Owner-stated. Rendered as a Reported claim, never as verified.
   temperamentNotes String? @db.Text
@@ -1320,9 +1335,9 @@ model StudListing {
   requiresBrucellosis   Boolean @default(true)
 
   /// Denormalised for search. Recomputed, never authored.
-  cachedVerifiedCount Int   @default(0)
+  cachedVerifiedCount Int    @default(0)
   cachedCoi           Float?
-  cachedDensity       Float @default(0)
+  cachedDensity       Float  @default(0)
 
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
@@ -1351,7 +1366,7 @@ enum InquiryStatus {
 /// can triage on evidence instead of on how well someone writes. This is the
 /// adverse-selection control the whole inquiry flow exists for.
 model StudInquiry {
-  id            String @id @default(cuid())
+  id            String  @id @default(cuid())
   studListingId String
   /// The bitch being proposed. Optional — some inquiries are exploratory.
   damId         String?
@@ -1363,11 +1378,11 @@ model StudInquiry {
 
   /// Snapshot of the pairing at the time of asking. Kept so a stud owner
   /// sees the numbers the breeder saw, even if the pedigree changes later.
-  projectedCoi        Float?
-  coiGenerations      Int?
-  geneticRiskSummary  String? @db.Text
-  atRiskMarkerCount   Int     @default(0)
-  damVerifiedCount    Int     @default(0)
+  projectedCoi       Float?
+  coiGenerations     Int?
+  geneticRiskSummary String? @db.Text
+  atRiskMarkerCount  Int     @default(0)
+  damVerifiedCount   Int     @default(0)
 
   proposedSeason String?
   proposedMethod String?
@@ -1394,7 +1409,7 @@ model StudInquiry {
 /// sorted and compared without recomputing a graph walk per row — and so a
 /// breeder can see what changed since they saved it.
 model SavedPairing {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   userId   String
   kennelId String?
 
@@ -1453,7 +1468,7 @@ enum ContractKind {
 /// signed, the clauses are immutable — an amendment is a new contract that
 /// supersedes this one.
 model Contract {
-  id       String       @id @default(cuid())
+  id       String         @id @default(cuid())
   kennelId String?
   kind     ContractKind
   status   ContractStatus @default(DRAFT)
@@ -1492,12 +1507,12 @@ model Contract {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  breeding   Breeding?           @relation(fields: [breedingId], references: [id], onDelete: SetNull)
-  sire       Dog?                @relation("ContractSire", fields: [sireId], references: [id], onDelete: SetNull)
-  dam        Dog?                @relation("ContractDam", fields: [damId], references: [id], onDelete: SetNull)
-  parties    ContractParty[]
-  signatures ContractSignature[]
-  schedule   PaymentSchedule?
+  breeding     Breeding?             @relation(fields: [breedingId], references: [id], onDelete: SetNull)
+  sire         Dog?                  @relation("ContractSire", fields: [sireId], references: [id], onDelete: SetNull)
+  dam          Dog?                  @relation("ContractDam", fields: [damId], references: [id], onDelete: SetNull)
+  parties      ContractParty[]
+  signatures   ContractSignature[]
+  schedule     PaymentSchedule?
   repeatClaims RepeatBreedingClaim[]
 
   @@index([kennelId, status])
@@ -1554,7 +1569,7 @@ model ContractSignature {
   typedName String
 
   /// The exact consent wording shown and affirmed. Part of the record.
-  consentText String @db.Text
+  consentText  String @db.Text
   /// Hash of the document as rendered when they signed it.
   documentHash String
 
@@ -1585,10 +1600,10 @@ model PaymentSchedule {
   id         String @id @default(cuid())
   contractId String @unique
 
-  totalCents   Int
-  depositCents Int @default(0)
+  totalCents     Int
+  depositCents   Int     @default(0)
   /// From the contract's clause effects, never parsed from its prose.
-  balanceTrigger String @default("ON_CONFIRMED_PREGNANCY")
+  balanceTrigger String  @default("ON_CONFIRMED_PREGNANCY")
   /// From clause effects. Null when the contract is silent — in which case
   /// escrow refuses to decide and asks a human.
   noLitterRemedy String?
@@ -1645,10 +1660,10 @@ model EscrowHold {
   id         String @id @default(cuid())
   scheduleId String @unique
 
-  status       EscrowStatus @default(EMPTY)
-  heldCents    Int          @default(0)
-  releasedCents Int         @default(0)
-  refundedCents Int         @default(0)
+  status        EscrowStatus @default(EMPTY)
+  heldCents     Int          @default(0)
+  releasedCents Int          @default(0)
+  refundedCents Int          @default(0)
 
   /// Who the money goes to on release, and back to on refund.
   payeeUserId String?
@@ -1718,8 +1733,8 @@ model RepeatBreedingClaim {
   status RepeatClaimStatus @default(SUBMITTED)
 
   /// What went wrong.
-  reason        String  @db.Text
-  vetConfirmed  Boolean @default(false)
+  reason         String  @db.Text
+  vetConfirmed   Boolean @default(false)
   vetDocumentUrl String?
 
   /// The breeding that failed, and the one that replaced it.
@@ -1745,21 +1760,21 @@ model CollectionRecord {
   id         String @id @default(cuid())
   breedingId String
 
-  collectedOn   DateTime
-  collectedBy   String?
-  clinic        String?
+  collectedOn DateTime
+  collectedBy String?
+  clinic      String?
 
   /// Semen evaluation, as reported by the collecting vet.
-  volumeMl          Float?
-  concentrationMkml Float?
-  motilityPercent   Int?
-  morphologyPercent Int?
+  volumeMl            Float?
+  concentrationMkml   Float?
+  motilityPercent     Int?
+  morphologyPercent   Int?
   totalMotileMillions Float?
 
-  shippedOn       DateTime?
-  shippingCarrier String?
-  trackingNumber  String?
-  receivedOn      DateTime?
+  shippedOn         DateTime?
+  shippingCarrier   String?
+  trackingNumber    String?
+  receivedOn        DateTime?
   receivedCondition String?
 
   inseminatedOn DateTime?
@@ -1776,4 +1791,138 @@ model CollectionRecord {
 
   @@index([breedingId, collectedOn])
   @@map("collection_records")
+}
+
+// ── Phase 6: litter & puppy marketplace ─────────────────────────────────────
+
+enum LitterAvailability {
+  /// Drafted but not public.
+  NOT_LISTED
+  /// Bred, not yet confirmed. Buyers can register interest.
+  PLANNED
+  /// Confirmed pregnant, puppies not yet on the ground.
+  EXPECTING
+  /// Whelped, puppies available.
+  AVAILABLE
+  /// Every puppy is spoken for, but the page stays up — it is the program's
+  /// public record, and a sold-out litter is the best proof a breeder has.
+  FULLY_RESERVED
+  /// Placed and archived. Still indexed.
+  PAST
+}
+
+/**
+ * The public face of a litter.
+ * Deliberately separate from `Litter`. A litter is a breeding record that
+ * exists whether or not anyone is selling anything; a listing is a marketing
+ * artefact with a price, a slug and a publication date. Merging them would
+ * mean a breeder cannot record a litter without also publishing it.
+ * Nothing here duplicates the record. Parent health, titles, COI and pedigree
+ * are read live from the dogs at request time — the breeder does not retype a
+ * single test result to publish (the phase gate).
+ */
+model LitterListing {
+  id       String @id @default(cuid())
+  litterId String @unique
+
+  /// Stable public URL. Never regenerated once published — a changed slug is
+  /// a lost search ranking.
+  slug String @unique
+
+  availability LitterAvailability @default(NOT_LISTED)
+
+  /// Integer cents. Always. (Invariant 2.)
+  priceCentsFrom Int?
+  priceCentsTo   Int?
+  depositCents   Int?
+  /// Owner-stated context on price. Rendered as breeder-stated, never as fact.
+  priceNotes     String? @db.Text
+
+  headline          String?
+  description       String? @db.Text
+  /// What a buyer gets. Free text because every program differs.
+  includedInPrice   String? @db.Text
+  /// What the breeder expects of a buyer. The adverse-selection control, same
+  /// idea as StudListing.requirements.
+  buyerRequirements String? @db.Text
+
+  /// Earliest the puppies can go home. Eight weeks is a floor in most states
+  /// and a welfare minimum everywhere.
+  goHomeFrom DateTime?
+
+  /// URLs only. There is no upload pipeline yet, and pretending otherwise
+  /// would put a broken file input in front of a breeder.
+  photoUrls String[] @default([])
+
+  /// Denormalised for search and ranking. Recomputed, never authored.
+  cachedBreed         String?
+  cachedRegion        String?
+  cachedCountry       String  @default("US")
+  cachedLatitude      Float?
+  cachedLongitude     Float?
+  cachedSireVerified  Int     @default(0)
+  cachedDamVerified   Int     @default(0)
+  cachedParentDensity Float   @default(0)
+  cachedCoi           Float?
+  cachedAvailablePups Int     @default(0)
+  cachedTotalPups     Int     @default(0)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  litter    Litter          @relation(fields: [litterId], references: [id], onDelete: Cascade)
+  inquiries LitterInquiry[]
+
+  @@index([availability, publishedAt])
+  @@index([cachedBreed, availability])
+  @@index([cachedRegion, availability])
+  @@index([publishedAt])
+  @@map("litter_listings")
+}
+
+/**
+ * A buyer asking about a litter.
+ * Phase 6 keeps this deliberately thin — a message and enough context for the
+ * breeder to reply. Phase 7 grows it into the application pipeline; making it
+ * an application now would build the wrong thing twice.
+ */
+model LitterInquiry {
+  id              String @id @default(cuid())
+  litterListingId String
+
+  /// Null for a signed-out enquiry. The email is what we actually need.
+  fromUserId String?
+
+  name    String
+  email   String
+  phone   String?
+  message String  @db.Text
+
+  status InquiryStatus @default(NEW)
+
+  /// Which puppy they asked about, when they named one.
+  puppyId String?
+
+  /// Answers to the breeder's own questions, asked at enquiry time so the
+  /// first reply is not four rounds of the same questions.
+  householdNotes String?  @db.Text
+  hasOtherDogs   Boolean?
+  hasChildren    Boolean?
+  homeType       String?
+
+  replyMessage String?   @db.Text
+  repliedAt    DateTime?
+  readAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  litterListing LitterListing @relation(fields: [litterListingId], references: [id], onDelete: Cascade)
+  fromUser      User?         @relation(fields: [fromUserId], references: [id], onDelete: SetNull)
+  puppy         Puppy?        @relation(fields: [puppyId], references: [id], onDelete: SetNull)
+
+  @@index([litterListingId, status, createdAt])
+  @@index([email, createdAt])
+  @@map("litter_inquiries")
 }

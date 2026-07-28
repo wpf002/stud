@@ -383,13 +383,14 @@ export interface LitterDetailResponse {
     stillborn: number | null;
     neonatalDeaths: number;
     whelpingNotes: string | null;
-    sire: DogRef;
-    dam: DogRef;
+    sire: DogRef & { verificationSummary: { verifiedCount: number; density: number } | null };
+    dam: DogRef & { verificationSummary: { verifiedCount: number; density: number } | null };
     breeding: { id: string; method: string; ovulationDate: string | null; xrayPuppyCount: number | null } | null;
     puppies: PuppyDto[];
     whelpingEvents: { id: string; kind: string; occurredAt: string; note: string | null }[];
     careTasks: CareTaskDto[];
   };
+  listing: LitterListingDto | null;
   milestones: LitterMilestonesDto | null;
   growth: { puppyId: string; assessment: GrowthAssessmentDto }[];
   siblings: { puppyId: string; latestGrams: number | null; rank: number | null; ofTotal: number; vsMedianGrams: number | null }[];
@@ -808,4 +809,49 @@ export interface BreedingDetailResponse {
   forecast: WhelpForecastDto;
   milestones: GestationMilestoneDto[];
   milestoneAnchor: 'OVULATION' | 'BREEDING_DATE';
+}
+
+// ── Phase 6: marketplace listing ────────────────────────────────────────────
+
+export interface LitterListingDto {
+  id: string;
+  litterId: string;
+  slug: string;
+  availability: string;
+  priceCentsFrom: number | null;
+  priceCentsTo: number | null;
+  depositCents: number | null;
+  priceNotes: string | null;
+  headline: string | null;
+  description: string | null;
+  includedInPrice: string | null;
+  buyerRequirements: string | null;
+  goHomeFrom: string | null;
+  photoUrls: string[];
+  cachedSireVerified: number;
+  cachedDamVerified: number;
+  cachedCoi: number | null;
+  cachedAvailablePups: number;
+  cachedTotalPups: number;
+  publishedAt: string | null;
+  updatedAt: string;
+}
+
+export interface LitterInquiryDto {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  message: string;
+  status: string;
+  householdNotes: string | null;
+  hasOtherDogs: boolean | null;
+  hasChildren: boolean | null;
+  homeType: string | null;
+  replyMessage: string | null;
+  repliedAt: string | null;
+  readAt: string | null;
+  createdAt: string;
+  litterListing: { slug: string; headline: string | null; litterId: string };
+  puppy: { id: string; name: string | null; collarColor: string | null; sex: string } | null;
 }

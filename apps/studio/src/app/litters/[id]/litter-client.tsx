@@ -35,8 +35,9 @@ import {
 } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { GrowthAssessmentDto, LitterDetailResponse, PuppyDto } from '@/lib/types';
+import { ListingPanel } from './listing-panel';
 
-const TABS = ['puppies', 'growth', 'care', 'log'] as const;
+const TABS = ['puppies', 'growth', 'care', 'log', 'listing'] as const;
 
 export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
   const router = useRouter();
@@ -102,6 +103,7 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
               <TabsTrigger value="growth">Growth</TabsTrigger>
               <TabsTrigger value="care">Care schedule</TabsTrigger>
               <TabsTrigger value="log">Whelping log</TabsTrigger>
+              <TabsTrigger value="listing">Listing</TabsTrigger>
             </TabsList>
 
             {/* ── Puppies ─────────────────────────────────────────── */}
@@ -186,6 +188,19 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
                 events={litter.whelpingEvents}
                 onDone={refresh}
                 onError={setError}
+              />
+            </TabsContent>
+
+            {/* ── Public listing ──────────────────────────────────── */}
+            <TabsContent value="listing">
+              <ListingPanel
+                litterId={litter.id}
+                listing={data.listing ?? null}
+                whelpedOn={litter.whelpedOn}
+                parentVerifiedCount={
+                  (litter.sire.verificationSummary?.verifiedCount ?? 0) +
+                  (litter.dam.verificationSummary?.verifiedCount ?? 0)
+                }
               />
             </TabsContent>
           </Tabs>

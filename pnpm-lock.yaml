@@ -271,6 +271,9 @@ importers:
       '@stud/payments':
         specifier: workspace:*
         version: link:../payments
+      '@stud/pedigree':
+        specifier: workspace:*
+        version: link:../pedigree
       '@stud/verify':
         specifier: workspace:*
         version: link:../verify

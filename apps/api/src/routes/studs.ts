@@ -6,7 +6,7 @@ import { audit } from '../lib/audit.js';
 import { canEditDog } from '../lib/dog-access.js';
 import { badRequest, forbidden, notFound } from '../lib/errors.js';
 import { boundingBox, estimatedDriveHours, haversineMiles } from '../lib/geo.js';
-import { loadAncestryGraph } from '../lib/pedigree-loader.js';
+import { loadAncestryGraph } from '@stud/db/pedigree-loader';
 
 const SEMEN_TYPES = ['NATURAL', 'FRESH', 'CHILLED', 'FROZEN'] as const;
 const AVAILABILITY = ['AVAILABLE', 'LIMITED', 'BOOKED', 'RETIRED', 'NOT_LISTED'] as const;

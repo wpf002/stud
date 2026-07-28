@@ -1,9 +1,13 @@
 import type { PedigreeNode } from '@stud/pedigree';
 import { buildGraph, type PedigreeGraph } from '@stud/pedigree';
-import type { PrismaClient } from '@stud/db';
+import type { PrismaClient } from '@prisma/client';
 
 /**
  * Load an ancestry subgraph out of Postgres and hand it to @stud/pedigree.
+ *
+ * Lives in @stud/db rather than in the API so that the API, the seed and any
+ * future worker cannot end up with three subtly different ancestry walks —
+ * the same reason `verification-service` is here.
  *
  * The engine is pure (invariant 1), so all I/O lives here. The load is a
  * breadth-first sweep by generation: one query per level instead of one per

@@ -13,6 +13,7 @@ import {
   renderContract,
 } from '@stud/contracts';
 import { buildSchedule, captureToEscrow } from '@stud/payments';
+import { refreshListingCache } from './listing-service.js';
 import { loadRootEnv } from './env.js';
 import argon2 from 'argon2';
 
@@ -1159,6 +1160,100 @@ async function main() {
         console.info('  ✓ a second contract left in draft, unsent and still editable');
       }
     }
+  }
+
+  // ── Phase 6: the litter marketplace ──────────────────────────────────────
+  //
+  // Publishing is deliberately thin. Everything a buyer will read about the
+  // parents — health results, titles, registrations, COI, pedigree — is read
+  // live from the dog records at request time. What is stored here is a price,
+  // a paragraph and a go-home date, which is genuinely all a listing is.
+  const marigoldLitter = await db.litter.findFirst({
+    where: { dam: { slug: 'cedar-run-marigold' }, letter: 'A' },
+    include: {
+      dam: {
+        select: {
+          breed: true,
+          verificationSummary: true,
+          kennel: { select: { region: true, country: true, latitude: true, longitude: true } },
+        },
+      },
+      sire: { select: { verificationSummary: true } },
+      puppies: { select: { id: true, status: true, isPublic: true, birthOrder: true } },
+    },
+  });
+
+  if (marigoldLitter && !(await db.litterListing.findUnique({ where: { litterId: marigoldLitter.id } }))) {
+    const whelped = marigoldLitter.whelpedOn ?? at(18);
+    await db.litterListing.create({
+      data: {
+        litterId: marigoldLitter.id,
+        slug: 'golden-retriever-marigold-x-atlas-a',
+        availability: 'AVAILABLE',
+        priceCentsFrom: 320_000,
+        priceCentsTo: 380_000,
+        depositCents: 50_000,
+        priceNotes:
+          'Show and performance prospects are at the top of the range. Every puppy in this litter is the same dog until eight weeks — the difference in price is structure at evaluation, not a difference in how they are raised.',
+        headline: 'Golden Retriever puppies, raised in the house',
+        description:
+          "Marigold's first litter. Both parents are OFA tested — you can read every result on this page, checked against the issuing source rather than typed in by us, including the one on Atlas that is currently showing a conflict we are working through with OFA.\n\nRaised in the house, on the Puppy Culture protocol, with a full ENS programme from day three. They meet the vacuum, the stairs, the crate and at least ten strangers before they leave.\n\nWe are not the cheapest Goldens in Texas and we are not trying to be.",
+        includedInPrice:
+          'AKC limited registration, microchip registered to you, first vaccination and two deworming rounds, a health certificate from our vet, four weeks of insurance, the puppy on its current food, and a scent blanket from the litter. Lifetime phone access to us — we would much rather answer a question at 11pm than have a dog rehomed.',
+        buyerRequirements:
+          'A completed application and a phone call before we accept a deposit. Fenced yard or a serious plan for exercise. No puppies to homes intending to breed without a co-ownership agreement. We take a dog back at any point in its life, for any reason, no questions — that is a condition of sale, not a courtesy.',
+        // Eight weeks and a day. The floor is 56 days and this respects it.
+        goHomeFrom: new Date(whelped.getTime() + 57 * DAY),
+        publishedAt: at(10),
+      },
+    });
+
+    // Two already reserved, so the page shows a real mix rather than a tidy
+    // one. A marketplace where everything is available looks abandoned.
+    const ordered = [...marigoldLitter.puppies].sort((a, b) => (a.birthOrder ?? 0) - (b.birthOrder ?? 0));
+    for (const [i, pup] of ordered.entries()) {
+      await db.puppy.update({
+        where: { id: pup.id },
+        data: {
+          status: i < 2 ? 'RESERVED' : pup.status,
+          priceCents: i === 0 ? 380_000 : i === 1 ? 350_000 : 320_000,
+          publicNotes:
+            i === ordered.length - 1
+              ? 'The smallest of the litter and the one we watch most closely. She was slow to gain in the first week and is now tracking with her siblings — her weights are on her record and we will share them with anyone who asks.'
+              : null,
+        },
+      });
+    }
+    // Derived last, and by the same function the API uses — so the seeded
+    // browse counts cannot disagree with the seeded puppy statuses.
+    await refreshListingCache(db, marigoldLitter.id);
+    console.info('  ✓ a published litter listing, priced, with puppies reserved');
+  }
+
+  // A buyer enquiry waiting in the breeder's inbox.
+  const publishedListing = await db.litterListing.findFirst({
+    where: { slug: 'golden-retriever-marigold-x-atlas-a' },
+    include: { litter: { include: { puppies: { orderBy: { birthOrder: 'asc' } } } } },
+  });
+  if (publishedListing && (await db.litterInquiry.count({ where: { litterListingId: publishedListing.id } })) === 0) {
+    await db.litterInquiry.create({
+      data: {
+        litterListingId: publishedListing.id,
+        fromUserId: buyer.id,
+        puppyId: publishedListing.litter.puppies[2]?.id ?? null,
+        name: 'Dana Whitfield',
+        email: 'buyer@stud.dev',
+        phone: '(512) 555-0148',
+        message:
+          "We lost our Golden last spring at thirteen and we are finally ready. I have been reading about hip scores for a month and yours is the first litter I have found where I could actually check the results rather than take somebody's word for it. Red collar caught my eye but I would trust your read on which puppy suits us.",
+        householdNotes:
+          'Two of us, both work from home three days a week. Fenced half acre. We walk two to three miles a day and would like to try rally obedience.',
+        hasOtherDogs: false,
+        hasChildren: true,
+        homeType: 'House with fenced yard',
+      },
+    });
+    console.info('  ✓ a buyer enquiry waiting in the inbox');
   }
 
   console.info(`\n✓ seed complete`);

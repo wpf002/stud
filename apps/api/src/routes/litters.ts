@@ -6,6 +6,7 @@ import {
   referenceBand,
 } from '@stud/breeding';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import { refreshListingCache } from '@stud/db/listings';
 import { z } from 'zod';
 import { audit } from '../lib/audit.js';
 import { canEditDog } from '../lib/dog-access.js';
@@ -63,8 +64,21 @@ export default async function litterRoutes(app: FastifyInstance) {
     const full = await app.db.litter.findUnique({
       where: { id },
       include: {
-        sire: { select: { id: true, slug: true, callName: true, registeredName: true, breed: true } },
-        dam: { select: { id: true, slug: true, callName: true, registeredName: true, breed: true } },
+        sire: {
+          select: {
+            id: true, slug: true, callName: true, registeredName: true, breed: true,
+            // Phase 6: the listing panel says how many results will appear on
+            // the public page, so the breeder sees what they get for free.
+            verificationSummary: { select: { verifiedCount: true, density: true } },
+          },
+        },
+        dam: {
+          select: {
+            id: true, slug: true, callName: true, registeredName: true, breed: true,
+            verificationSummary: { select: { verifiedCount: true, density: true } },
+          },
+        },
+        listing: true,
         breeding: { select: { id: true, method: true, ovulationDate: true, xrayPuppyCount: true } },
         puppies: {
           orderBy: [{ birthOrder: 'asc' }, { createdAt: 'asc' }],
@@ -111,6 +125,7 @@ export default async function litterRoutes(app: FastifyInstance) {
 
     return {
       litter: full,
+      listing: full.listing,
       milestones: bornOn ? litterMilestones(bornOn, now) : null,
       growth,
       siblings,
@@ -258,11 +273,28 @@ export default async function litterRoutes(app: FastifyInstance) {
         diedAt: z.coerce.date().nullable().optional(),
         causeOfDeath: z.string().max(400).optional(),
         notes: z.string().max(2000).optional(),
+        // Phase 6: the public side of a puppy. `publicNotes` is deliberately
+        // separate from `notes` — the latter is the breeder's own working
+        // record and is never published.
+        priceCents: z.number().int().min(0).max(500_000_00).nullable().optional(),
+        publicNotes: z.string().max(2000).nullable().optional(),
+        photoUrls: z.array(z.string().url()).max(12).optional(),
+        isPublic: z.boolean().optional(),
       })
       .parse(req.body);
 
     const updated = await app.db.puppy.update({ where: { id }, data: body });
     if (body.status || body.diedAt !== undefined) await refreshLitterCounts(app, puppy.litterId);
+    /**
+     * Reserving a puppy has to move the marketplace immediately.
+     *
+     * The listing's availability counts drive the browse page, and a browse
+     * page still advertising a puppy that sold last week is the fastest way to
+     * lose a buyer's trust — and the breeder's.
+     */
+    if (body.status || body.isPublic !== undefined) {
+      await refreshListingCache(app.db, puppy.litterId);
+    }
     return { puppy: updated };
   });
 
