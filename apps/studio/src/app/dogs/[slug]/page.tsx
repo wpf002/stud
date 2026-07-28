@@ -11,19 +11,23 @@ import {
   CardTitle,
   EmptyState,
   VerificationBadge,
+  claimLabel,
   formatCoi,
   formatDate,
   formatDogAge,
 } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
-import type { DogDetail, DogSummary } from '@/lib/types';
+import type { DogDetail, DogSummary, VerificationResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DogPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = await serverApiSafe<{ dog: DogDetail; offspring: DogSummary[] }>(`/dogs/${slug}`);
+  const [data, verification] = await Promise.all([
+    serverApiSafe<{ dog: DogDetail; offspring: DogSummary[] }>(`/dogs/${slug}`),
+    serverApiSafe<VerificationResponse>(`/dogs/${slug}/verification`),
+  ]);
   if (!data) notFound();
 
   const { dog, offspring } = data;
@@ -180,15 +184,44 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-1.5">
-                  <VerificationBadge state="UNVERIFIED" claim="Hips" size="sm" />
-                  <VerificationBadge state="UNVERIFIED" claim="Elbows" size="sm" />
-                  <VerificationBadge state="UNVERIFIED" claim="Eyes" size="sm" />
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-ink-500">
-                  Health and title verification arrives in Phase 2. Until then every claim renders
-                  as unverified — which is the honest state, not a blank.
-                </p>
+                {verification && verification.summary && verification.summary.verifiedCount > 0 ? (
+                  <>
+                    <p className="font-mono text-2xl tabular-nums text-ink-900">
+                      {Math.round(verification.summary.density * 100)}%
+                    </p>
+                    <p className="mt-0.5 text-xs text-ink-500">
+                      {verification.summary.verifiedCount} claims verified against a source
+                      {verification.summary.hasChic ? ' · CHIC' : ''}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {verification.verified.slice(0, 6).map((c) => (
+                        <VerificationBadge
+                          key={c.id}
+                          state={c.state}
+                          claim={claimLabel(c.claimType, c.markerName)}
+                          size="sm"
+                          evidence={{
+                            source: c.source,
+                            sourceUrl: c.sourceUrl,
+                            result: c.rawResult,
+                            identifier: c.matchedIdentifier,
+                            testedAt: c.testedAt,
+                            checkedAt: c.lastCheckedAt,
+                            conflictNote: c.conflictNote,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs leading-relaxed text-ink-500">
+                    Nothing verified yet. Absence of a result is not a passing result — run a
+                    verification to check this dog against the sources.
+                  </p>
+                )}
+                <Button asChild variant="outline" size="sm" block className="mt-4">
+                  <Link href={`/dogs/${slug}/verification`}>Open verification</Link>
+                </Button>
               </CardContent>
             </Card>
           </div>

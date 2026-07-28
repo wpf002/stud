@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./seed": "./src/seed.ts",
-    "./env": "./src/env.ts"
+    "./env": "./src/env.ts",
+    "./verification": "./src/verification-service.ts"
   },
   "scripts": {
     "generate": "prisma generate",
@@ -22,7 +23,8 @@
     "build": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^6.1.0"
+    "@prisma/client": "^6.1.0",
+    "@stud/verify": "workspace:*"
   },
   "devDependencies": {
     "@stud/config": "workspace:*",

@@ -1,0 +1,5 @@
+{
+  "extends": "@stud/config/tsconfig/base.json",
+  "compilerOptions": { "noEmit": true, "declaration": false, "declarationMap": false, "types": ["node"] },
+  "include": ["src/**/*.ts"]
+}

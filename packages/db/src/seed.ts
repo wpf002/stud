@@ -390,6 +390,83 @@ async function main() {
 
   console.info('  ✓ five-generation pedigree + a planted duplicate');
 
+  // ── Phase 2: verification ────────────────────────────────────────────────
+  //
+  // Runs the real engine against the fixture source, so the seeded database
+  // contains genuine claims with genuine audit trails rather than hand-written
+  // rows. Everything below went through the same state machine production uses.
+  const { VerificationEngine } = await import('@stud/verify');
+  const { runVerification, recomputeSummary } = await import('./verification-service.js');
+
+  const engine = new VerificationEngine({ liveSources: false });
+
+  const toVerify = await db.dog.findMany({
+    where: { registrations: { some: {} }, supersededByDogId: null },
+    select: { id: true, callName: true, registrations: { select: { number: true, body: true } } },
+  });
+
+  let claimTotal = 0;
+  for (const dog of toVerify) {
+    const outcome = await runVerification(db, engine, {
+      dogId: dog.id,
+      identifiers: dog.registrations.map((r) => ({ number: r.number, body: r.body })),
+      actor: { id: null, type: 'system' },
+    });
+    claimTotal += outcome.claimsCreated;
+  }
+  console.info(`  ✓ verification — ${claimTotal} claims across ${toVerify.length} dogs`);
+
+  // A real CONFLICTED claim, produced the honest way.
+  //
+  // The fixture's Atlas record carries an amendment: his hips read "Good" on
+  // the original submission and "Fair" after a re-read. We rewind his stored
+  // claim to the original value — as if we had verified it back then — and run
+  // the engine again. The divergence is detected by the same code path a live
+  // OFA amendment would hit, and the held value is preserved for the reviewer
+  // rather than silently overwritten.
+  const atlas = await db.dog.findUnique({
+    where: { slug: 'cedar-run-atlas' },
+    select: { id: true, registrations: { select: { number: true, body: true } } },
+  });
+  if (atlas) {
+    await db.verifiedClaim.updateMany({
+      where: { dogId: atlas.id, claimType: 'HIP' },
+      data: { rawResult: 'Good', outcome: 'NORMAL' },
+    });
+    const conflicted = await runVerification(db, engine, {
+      dogId: atlas.id,
+      identifiers: atlas.registrations.map((r) => ({ number: r.number, body: r.body })),
+      actor: { id: null, type: 'system' },
+    });
+    await recomputeSummary(db, atlas.id);
+    console.info(`  ✓ seeded ${conflicted.conflicts} conflict for the admin queue`);
+  }
+
+  // Self-reported claims, so both tiers are visible side by side. These live
+  // in a different table and can never become verified (invariant 5).
+  const jack = await db.dog.findUnique({ where: { slug: 'lindqvists-jack-of-tulsa' }, select: { id: true } });
+  if (jack) {
+    for (const claim of [
+      { claimType: 'HIP', statedResult: 'Vet says they look good', note: 'Not submitted to OFA yet.' },
+      { claimType: 'TITLE_FIELD', statedResult: 'Placed 3rd at a local trial' },
+    ]) {
+      await db.reportedClaim.upsert({
+        where: { dogId_claimType_markerName: { dogId: jack.id, claimType: claim.claimType, markerName: '' } },
+        update: {},
+        create: {
+          dogId: jack.id,
+          claimType: claim.claimType,
+          category: claim.claimType === 'HIP' ? 'HEALTH' : 'PERFORMANCE',
+          statedResult: claim.statedResult,
+          note: 'note' in claim ? claim.note : null,
+          reportedByUserId: studOwner.id,
+        },
+      });
+    }
+    await recomputeSummary(db, jack.id);
+    console.info('  ✓ reported claims (owner-attested tier)');
+  }
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);

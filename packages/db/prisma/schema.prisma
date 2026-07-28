@@ -78,6 +78,9 @@ model User {
   ownedDogs     DogOwnership[]
   auditEntries  AuditLog[]
   pedigreeImports PedigreeImport[]
+  reportedClaims  ReportedClaim[]
+  documentsReviewed  DocumentSubmission[] @relation("DocumentReviewer")
+  documentsSubmitted DocumentSubmission[] @relation("DocumentSubmitter")
 
   @@index([country, region, city])
   @@index([createdAt])
@@ -266,6 +269,13 @@ model Dog {
   mergeCandidatesB  DogMergeCandidate[] @relation("MergeCandidateB")
   supersessionAsOld DogSupersession?    @relation("SupersededDog")
   supersessionAsNew DogSupersession[]   @relation("SurvivingDog")
+
+  // Phase 2 — verification
+  verifiedClaims      VerifiedClaim[]
+  reportedClaims      ReportedClaim[]
+  verificationChecks  VerificationCheck[]
+  documentSubmissions DocumentSubmission[]
+  verificationSummary DogVerificationSummary?
 
   @@index([breed, sex])
   @@index([kennelId])
@@ -514,4 +524,293 @@ model DogPedigreeStats {
   @@index([coi])
   @@index([computedAt])
   @@map("dog_pedigree_stats")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 2 — Verification engine
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Invariant 5 is enforced structurally here: VerifiedClaim and ReportedClaim
+// are SEPARATE TABLES. There is no column a self-attested value could occupy
+// on a verified record, and no fallback path from one to the other. The only
+// way into VerifiedClaim is a source lookup.
+
+enum VerificationState {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  STALE
+  CONFLICTED
+}
+
+enum VerificationSource {
+  OFA
+  AKC
+  UKC
+  CKC
+  NAVHDA
+  AFTCA
+  PENNHIP
+  EMBARK
+  WISDOM
+  UC_DAVIS
+  PAW_PRINT
+  DOCUMENT
+  FIXTURE
+}
+
+enum ClaimOutcome {
+  NORMAL
+  CARRIER
+  AT_RISK
+  ABNORMAL
+  INCONCLUSIVE
+  INFORMATIONAL
+}
+
+enum ClaimCategory {
+  HEALTH
+  GENETIC
+  TITLE
+  REGISTRATION
+  PERFORMANCE
+}
+
+/// A claim confirmed against the body that issued it.
+///
+/// Nothing writes here except the verification engine. `rawResult` is the
+/// source's own wording, retained verbatim; `outcome` is our normalised
+/// reading of it and exists only so buyers can filter comparably.
+model VerifiedClaim {
+  id    String @id @default(cuid())
+  dogId String
+
+  /// Matches @stud/verify's ClaimType. Kept as a string rather than an enum so
+  /// a new breed panel does not require a migration.
+  claimType String
+  category  ClaimCategory
+  /// For DNA_MARKER: which gene or variant. Empty string, never NULL —
+  /// Postgres treats NULLs as distinct in a unique index, so a nullable
+  /// column here would silently permit duplicate claims for the same dog.
+  markerName String @default("")
+
+  state   VerificationState @default(UNVERIFIED)
+  source  VerificationSource
+  outcome ClaimOutcome?
+
+  /// Verbatim, as the source phrases it. Never normalised in place.
+  rawResult String?
+  /// The source's own identifier for this record.
+  sourceRecordId String?
+  sourceUrl      String?
+  /// Anything the source published that does not fit the shape above.
+  detail String?
+
+  /// When the test was performed or the title awarded.
+  testedAt DateTime?
+  /// When a machine last successfully confirmed it.
+  lastCheckedAt DateTime?
+  /// When it next falls out of the freshness window.
+  staleAfter DateTime?
+  /// The identifier the lookup matched on.
+  matchedIdentifier String?
+
+  /// Populated only while CONFLICTED — what the source now says.
+  conflictRawResult String?
+  conflictOutcome   ClaimOutcome?
+  conflictNote      String?       @db.Text
+  conflictedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dog    Dog                @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  checks VerificationCheck[]
+  events VerificationEvent[]
+
+  /// One verified claim per dog per claim per marker per source.
+  @@unique([dogId, claimType, markerName, source])
+  @@index([dogId, state])
+  @@index([state, staleAfter])
+  @@index([claimType, outcome])
+  @@map("verified_claims")
+}
+
+/// A claim the owner made about their own dog.
+///
+/// Deliberately a different table with a different shape. It has no `source`,
+/// no `outcome` and no path to VERIFIED — the only way a claim becomes
+/// verified is a fresh lookup that creates a VerifiedClaim of its own.
+model ReportedClaim {
+  id    String @id @default(cuid())
+  dogId String
+
+  claimType  String
+  category   ClaimCategory
+  /// Empty string, never NULL — see the note on VerifiedClaim.markerName.
+  markerName String @default("")
+
+  /// Exactly what the owner typed. Never normalised, never graded.
+  statedResult String
+  statedTestedAt DateTime?
+  note         String? @db.Text
+
+  /// Who said it, so the claim is attributable.
+  reportedByUserId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  dog          Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  reportedBy   User? @relation(fields: [reportedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([dogId, claimType, markerName])
+  @@index([dogId])
+  @@map("reported_claims")
+}
+
+enum LookupStatus {
+  FOUND
+  NOT_FOUND
+  UNAVAILABLE
+  DISABLED
+  UNSUPPORTED_IDENTIFIER
+}
+
+/// Every lookup we ever ran, successful or not.
+///
+/// This is the receipt drawer. A verified badge without a check row behind it
+/// is a bug, and an UNAVAILABLE row is as important as a FOUND one — it is the
+/// evidence that we asked and could not get an answer.
+model VerificationCheck {
+  id      String @id @default(cuid())
+  dogId   String
+  claimId String?
+
+  source     VerificationSource
+  identifier String
+  status     LookupStatus
+  findingCount Int   @default(0)
+  durationMs   Int
+  error        String? @db.Text
+  /// Raw payload, so a parser fix can be replayed without re-querying.
+  raw          Json?
+
+  /// "user" | "system" | "worker"
+  actorType   String  @default("user")
+  actorUserId String?
+
+  createdAt DateTime @default(now())
+
+  dog   Dog            @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  claim VerifiedClaim? @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  @@index([dogId, createdAt])
+  @@index([source, status, createdAt])
+  @@map("verification_checks")
+}
+
+/// Every state transition, with the reason in the source's own words.
+model VerificationEvent {
+  id      String @id @default(cuid())
+  claimId String
+
+  fromState VerificationState
+  toState   VerificationState
+  trigger   String
+  reason    String  @db.Text
+  source    VerificationSource?
+
+  previousRawResult String?
+  observedRawResult String?
+
+  actorType   String  @default("system")
+  actorUserId String?
+
+  createdAt DateTime @default(now())
+
+  claim VerifiedClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId, createdAt])
+  @@map("verification_events")
+}
+
+enum DocumentReviewStatus {
+  QUEUED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+/// An uploaded certificate awaiting human review.
+///
+/// OCR pre-fills; a person confirms. Nothing here reaches VerifiedClaim until
+/// `reviewedByUserId` is set — an OCR mis-read that turned "Carrier" into
+/// "Clear" and auto-published would be the exact failure this platform exists
+/// to prevent.
+model DocumentSubmission {
+  id    String @id @default(cuid())
+  dogId String
+
+  /// EMBARK | WISDOM | UC_DAVIS | PAW_PRINT | OTHER
+  lab         String
+  documentUrl String
+  fileName    String?
+  mimeType    String?
+  fileSize    Int?
+
+  status DocumentReviewStatus @default(QUEUED)
+
+  /// What OCR proposed, with per-suggestion confidence and source lines.
+  ocrText        String? @db.Text
+  ocrSuggestions Json?
+
+  /// What the reviewer confirmed. Only this becomes verified.
+  reviewedFindings Json?
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  rejectionReason  String?  @db.Text
+
+  submittedByUserId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  dog        Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("DocumentReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  submittedBy User? @relation("DocumentSubmitter", fields: [submittedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([dogId])
+  @@map("document_submissions")
+}
+
+/// Denormalised verification density for a dog.
+///
+/// Drives the badge summary, marketplace filters and breeder tiering (Phase 9).
+/// Recomputed, never authored.
+model DogVerificationSummary {
+  dogId String @id
+
+  verifiedCount   Int @default(0)
+  reportedCount   Int @default(0)
+  unverifiedCount Int @default(0)
+  staleCount      Int @default(0)
+  conflictedCount Int @default(0)
+
+  /// Verified health claims with a NORMAL outcome.
+  healthNormalCount Int @default(0)
+  /// Verified claims with an AT_RISK or ABNORMAL outcome. Never hidden.
+  concerningCount   Int @default(0)
+  verifiedTitleCount Int @default(0)
+  hasChic           Boolean @default(false)
+
+  /// verified ÷ (verified + reported + unverified). The tiering input.
+  density Float @default(0)
+
+  computedAt DateTime @default(now())
+
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([density])
+  @@index([healthNormalCount])
+  @@map("dog_verification_summaries")
 }

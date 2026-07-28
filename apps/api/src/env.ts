@@ -14,6 +14,18 @@ const schema = z.object({
   COOKIE_DOMAIN: z.string().optional(),
   SESSION_TTL_DAYS: z.coerce.number().default(30),
   LOG_LEVEL: z.string().default('info'),
+
+  // ── Verification (Phase 2) ────────────────────────────────────────────────
+  // Off by default. Contacting third-party public-record sites is gated on the
+  // terms-of-use review in docs/verification-sources.md. With this false, the
+  // fixture adapter serves the same contract offline.
+  VERIFY_LIVE_SOURCES: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true' || v === '1'),
+  VERIFY_USER_AGENT: z.string().default('StudVerify/0.1 (+https://stud.dog/verification)'),
+  VERIFY_REQUEST_TIMEOUT_MS: z.coerce.number().default(8000),
+  VERIFY_FRESHNESS_DAYS: z.coerce.number().default(30),
 });
 
 const parsed = schema.safeParse(process.env);

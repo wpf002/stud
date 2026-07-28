@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import dogRoutes from './routes/dogs.js';
 import kennelRoutes from './routes/kennels.js';
 import pedigreeRoutes from './routes/pedigree.js';
+import verificationRoutes from './routes/verification.js';
 
 export async function buildServer() {
   const app = Fastify({
@@ -71,6 +72,7 @@ export async function buildServer() {
       await api.register(kennelRoutes);
       await api.register(dogRoutes);
       await api.register(pedigreeRoutes);
+      await api.register(verificationRoutes);
     },
     { prefix: '/v1' },
   );

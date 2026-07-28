@@ -170,3 +170,69 @@ export interface PreviewResponse {
   projectedCoi: number | null;
   collapsedAncestors: number;
 }
+
+export interface VerifiedClaimDto {
+  id: string;
+  claimType: string;
+  markerName: string | null;
+  category: string;
+  state: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'STALE' | 'CONFLICTED';
+  source: string;
+  outcome: 'NORMAL' | 'CARRIER' | 'AT_RISK' | 'ABNORMAL' | 'INCONCLUSIVE' | 'INFORMATIONAL' | null;
+  rawResult: string | null;
+  sourceUrl: string | null;
+  detail: string | null;
+  testedAt: string | null;
+  lastCheckedAt: string | null;
+  matchedIdentifier: string | null;
+  conflictRawResult: string | null;
+  conflictNote: string | null;
+  conflictedAt: string | null;
+}
+
+export interface ReportedClaimDto {
+  id: string;
+  claimType: string;
+  markerName: string | null;
+  category: string;
+  statedResult: string;
+  statedTestedAt: string | null;
+  note: string | null;
+}
+
+export interface VerificationSummaryDto {
+  verifiedCount: number;
+  reportedCount: number;
+  unverifiedCount: number;
+  staleCount: number;
+  conflictedCount: number;
+  healthNormalCount: number;
+  concerningCount: number;
+  verifiedTitleCount: number;
+  hasChic: boolean;
+  density: number;
+}
+
+export interface VerificationResponse {
+  dog: {
+    id: string;
+    slug: string;
+    callName: string;
+    registeredName: string | null;
+    breed: string;
+    registrations: { id: string; body: string; number: string; isPrimary: boolean }[];
+  };
+  verified: VerifiedClaimDto[];
+  reported: ReportedClaimDto[];
+  summary: VerificationSummaryDto | null;
+  recentChecks: {
+    id: string;
+    source: string;
+    status: string;
+    findingCount: number;
+    durationMs: number;
+    error: string | null;
+    createdAt: string;
+    identifier: string;
+  }[];
+}

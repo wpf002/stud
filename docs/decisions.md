@@ -165,3 +165,76 @@ silently.
 
 **Consequence.** Every list query filters `supersededByDogId: null`; the detail
 route deliberately does not, so an old link still resolves and explains itself.
+
+## D13 — Verified and reported claims are separate TABLES (Phase 2)
+
+**Decision.** `verified_claims` and `reported_claims` are different tables with
+different shapes. `ReportedClaim` has no `source`, no `outcome` and no `state`.
+There is no code path from one to the other.
+
+**Why.** Invariant 5 said "never share a field". Two nullable columns on one
+table would have satisfied the letter of that and failed it in practice — the
+first time someone wrote a `COALESCE(verified_result, reported_result)` the
+badge would start lying. Separate tables make the wrong thing impossible rather
+than merely discouraged.
+
+**Consequence.** The API returns two arrays, never a merged list. `ClaimPanel`
+renders them in separate blocks. Promoting a reported claim requires a fresh
+source lookup that creates a verified claim of its own.
+
+## D14 — "Could not ask" is not "the answer is no" (Phase 2)
+
+**Decision.** `LookupStatus` distinguishes `NOT_FOUND` from `UNAVAILABLE`,
+`DISABLED` and `UNSUPPORTED_IDENTIFIER`. Only `NOT_FOUND` is a negative result.
+
+**Why.** Collapsing them is the single most dangerous shortcut available here.
+An OFA outage would demote every verified claim on the platform to unverified,
+and it would look exactly like a data-quality improvement.
+
+**Consequence.** `runVerification` returns early on any non-answer without
+touching existing claims. Every check is written to `verification_checks`
+regardless of status, because "we asked and could not get an answer" is
+evidence worth keeping.
+
+## D15 — A conflict does not clear itself (Phase 2)
+
+**Decision.** From `CONFLICTED`, a `SOURCE_CONFIRMED` trigger returns
+`CONFLICTED`. Only an explicit admin action closes it.
+
+**Why.** Sources flap. If a later agreeing check silently resolved a conflict,
+a discrepancy could appear and vanish without any human ever seeing it — which
+is indistinguishable from never having detected it.
+
+**Consequence.** The conflict queue can only shrink through deliberate action,
+and every resolution is written to the claim's permanent history with the
+admin's name on it. On divergence the HELD value stays in `rawResult` and the
+source's new value goes into `conflictRawResult`; overwriting would erase the
+comparison the reviewer needs.
+
+## D16 — Live source lookups are off by default (Phase 2)
+
+**Decision.** `VERIFY_LIVE_SOURCES=false`. Adapters are complete but will not
+contact third-party sites until the per-source review in
+`docs/verification-sources.md` is done.
+
+**Why.** These are public records maintained by non-profits and breed clubs. A
+platform whose entire argument is "we check the receipts" does not get to start
+by scraping a charity's search endpoint without reading its terms. The standard
+we hold breeders to is the standard we hold ourselves to.
+
+**Consequence.** The fixture adapter implements the full contract offline, so
+development and CI exercise every layer for real. Switching a source on is a
+per-source decision, not a global flag flip.
+
+## D17 — Conflicted claims count against verification density (Phase 2)
+
+**Decision.** `density = verified / (verified + stale + conflicted + reported +
+unverified)`.
+
+**Why.** Excluding conflicts from the denominator produced a dog showing "100%
+verified" with an open conflict banner on the same screen. The error flattered
+the dog, which is the direction errors must never run in a trust product.
+
+**Consequence.** A claim under review drags the number down until a human
+resolves it. Concerning outcomes (`AT_RISK`, `ABNORMAL`) are counted in the
+summary and displayed, never suppressed.

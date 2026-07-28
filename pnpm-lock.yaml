@@ -71,6 +71,9 @@ importers:
       '@stud/pedigree':
         specifier: workspace:*
         version: link:../../packages/pedigree
+      '@stud/verify':
+        specifier: workspace:*
+        version: link:../../packages/verify
       argon2:
         specifier: ^0.41.1
         version: 0.41.1
@@ -226,6 +229,9 @@ importers:
       '@prisma/client':
         specifier: ^6.1.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@stud/verify':
+        specifier: workspace:*
+        version: link:../verify
     devDependencies:
       '@stud/config':
         specifier: workspace:*
@@ -315,6 +321,40 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.1)
+
+  packages/verify:
+    devDependencies:
+      '@stud/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  services/ingest:
+    dependencies:
+      '@stud/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@stud/verify':
+        specifier: workspace:*
+        version: link:../../packages/verify
+    devDependencies:
+      '@stud/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.1
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
 packages:
 

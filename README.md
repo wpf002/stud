@@ -195,13 +195,47 @@ is not a low COI — it is no information.
 
 ---
 
+## The verification engine
+
+[`packages/verify`](packages/verify) is the moat. It turns "verified" into a
+sentence that is actually true: *a machine checked this against the body that
+issued it, and we recorded which source, what it said, and when we asked.*
+
+**Verification is a state machine** — `UNVERIFIED → PENDING → VERIFIED →
+STALE → CONFLICTED` — with every transition enumerated as data, every
+transition logged with its reason, and illegal transitions **thrown** rather
+than silently coerced. Falling through to "keep the current state" would hide
+a bug behind a badge that still reads *Verified*.
+
+Three distinctions the code refuses to blur:
+
+| | |
+|---|---|
+| **`NOT_FOUND` vs `UNAVAILABLE`** | "The source has no record" vs "we could not reach the source". Collapsing these would let one OFA outage unverify the entire platform. |
+| **Verified vs Reported** | Separate tables, separate shapes, no code path between them. Promotion requires a fresh source lookup. |
+| **Carrier vs At risk** | A carrier bred to a clear dog produces no affected puppies. `CARRIER` renders neutrally and is excluded from concern flags — colouring it like a failure would push breeders to cull genetic diversity for nothing. |
+
+A conflict never clears itself. Sources flap; if an agreeing recheck silently
+resolved a discrepancy, it could appear and vanish with no human ever seeing
+it. Only an admin closes a conflict, and the held value is preserved beside the
+source's new one so there is something to compare.
+
+**Live lookups are off by default.** The adapters are complete and tested; they
+will not contact ofa.org or any registry until the per-source review in
+[`docs/verification-sources.md`](docs/verification-sources.md) is done. These
+are public records maintained by non-profits, and a platform arguing that
+receipts matter does not get to skip reading the terms. Offline, a fixture
+adapter implements the same contract, so CI exercises every layer for real.
+
+---
+
 ## Phases
 
 | Phase | Scope | Gate |
 |---|---|---|
 | **0** ✅ | Foundations | `pnpm dev` boots web + studio + api against a seeded Postgres |
 | **1** ✅ | Dog record & pedigree graph | Import a 5-generation pedigree, render it, compute Wright's COI against a hand-checked case |
-| **2** | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
+| **2** ✅ | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
 | **3** | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |
 | **4** | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
 | **5** | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
