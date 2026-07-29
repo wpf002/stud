@@ -1,11 +1,11 @@
 'use client';
 
 import {
-  ArrowLeft,
   CalendarHeart,
   Dog,
   FileSignature,
   GitBranch,
+  Globe,
   Heart,
   Home,
   Inbox,
@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { Avatar, Badge, cn } from '@stud/ui';
+import { api } from '@/lib/api';
 import { Logo } from './logo';
 
 /**
@@ -78,6 +79,26 @@ export function StudioShell({
 
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
 
+  /**
+   * The signed-in breeder's kennel slug, for the "My Public Profile" link.
+   * Fetched here rather than passed down, so every page gets it for free and
+   * the link degrades to the homepage while loading or when there is none.
+   */
+  const [kennelSlug, setKennelSlug] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    let cancelled = false;
+    api<{ kennels: { slug: string }[] }>('/kennels/mine')
+      .then((d) => {
+        if (!cancelled) setKennelSlug(d.kennels[0]?.slug ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const webUrl = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+  const publicProfileUrl = kennelSlug ? `${webUrl}/breeders/${kennelSlug}` : webUrl;
+
   return (
     <div className="flex min-h-dvh">
       {/* ── Desktop rail ─────────────────────────────────────────────── */}
@@ -97,13 +118,13 @@ export function StudioShell({
         </nav>
 
         <div className="border-t border-bone-200 p-3">
-          {/* The way back out. A workspace you cannot leave is a trap. */}
+          {/* The way back out — straight to what buyers see of you. */}
           <a
-            href={process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000'}
+            href={publicProfileUrl}
             className="mb-1 flex items-center gap-2.5 rounded-md px-2 py-2 text-sm font-medium text-ink-600 transition-colors hover:bg-bone-200 hover:text-ink-900"
           >
-            <ArrowLeft className="h-4 w-4 shrink-0 text-ink-400" />
-            Back to Main Site
+            <Globe className="h-4 w-4 shrink-0 text-ink-400" />
+            {kennelSlug ? 'My Public Profile' : 'Back to Main Site'}
           </a>
           <Link
             href="/settings"

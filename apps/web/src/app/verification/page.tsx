@@ -50,21 +50,39 @@ export default function VerificationPage() {
     <div className="mx-auto max-w-content px-5 py-16 lg:px-8 lg:py-24">
       <div className="max-w-2xl">
         <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
-          The verification standard
+          How Verification Works
         </p>
         <h1 className="mt-3 font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          &ldquo;Verified&rdquo; means a machine checked it. Not that someone typed it.
+          Anyone can say &ldquo;health tested.&rdquo;
+          <br />
+          We go check.
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-ink-600">
-          This is the whole reason the platform exists, so it is worth being precise about. Below is
-          exactly what we check, how we key the lookup, how often we re-run it, and what each badge
-          state means when you see it on a profile.
+          Every health result on Stud is looked up at the registry that issued it. Here&rsquo;s
+          exactly how — and what every badge means when you see one.
         </p>
+      </div>
+
+      {/* The whole idea, in three steps. */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        {[
+          ['The breeder adds their dog', 'Name and registration number — the same ones on the paperwork.'],
+          ['We look the results up', 'Straight from OFA, the kennel clubs and the testing labs. On a schedule, not once.'],
+          ['You see the receipt', 'The result, the source, and the date we checked. Or "not tested" — we show that too.'],
+        ].map(([title, body], i) => (
+          <div key={title} className="rounded-card bg-bone-50 p-5 ring-1 ring-inset ring-bone-300">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-clay-100 font-display text-md font-semibold text-clay-600">
+              {i + 1}
+            </span>
+            <p className="mt-3 font-display text-lg text-ink-900">{title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-500">{body}</p>
+          </div>
+        ))}
       </div>
 
       {/* Sources */}
       <section className="mt-16">
-        <h2 className="font-display text-2xl tracking-tight text-ink-900">What we check against</h2>
+        <h2 className="font-display text-2xl tracking-tight text-ink-900">Where We Check</h2>
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <thead>
@@ -91,10 +109,10 @@ export default function VerificationPage() {
 
       {/* States */}
       <section className="mt-16">
-        <h2 className="font-display text-2xl tracking-tight text-ink-900">Every badge state</h2>
+        <h2 className="font-display text-2xl tracking-tight text-ink-900">What Every Badge Means</h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-ink-600">
-          Verification is a state machine, not a checkbox. A claim moves between these states over
-          its life, and every transition is logged with a source, a timestamp and an actor.
+          A result isn&rsquo;t a one-time checkbox — it moves through these states over its life,
+          and you always see which one you&rsquo;re looking at.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STATES.map(({ state, when }) => (
@@ -131,7 +149,7 @@ export default function VerificationPage() {
       {/* Commitments */}
       <section className="mt-16 grid gap-6 lg:grid-cols-2">
         <Card className="p-7">
-          <h2 className="font-display text-xl text-ink-900">What we will never do</h2>
+          <h2 className="font-display text-xl text-ink-900">What We&rsquo;ll Never Do</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-600">
             <li>
               <span className="font-medium text-ink-800">Merge reported and verified data.</span>{' '}
@@ -153,7 +171,7 @@ export default function VerificationPage() {
         </Card>
 
         <Card className="p-7">
-          <h2 className="font-display text-xl text-ink-900">The limits, stated plainly</h2>
+          <h2 className="font-display text-xl text-ink-900">Where This Stops</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-600">
             <li>
               We reproduce what the source says. If OFA has a data-entry error, we will faithfully
@@ -170,7 +188,7 @@ export default function VerificationPage() {
           </ul>
           <Button asChild variant="outline" size="sm" className="mt-6">
             <Link href="/tools/coi">
-              Try the COI calculator <ArrowRight />
+              Try the COI Calculator <ArrowRight />
             </Link>
           </Button>
         </Card>

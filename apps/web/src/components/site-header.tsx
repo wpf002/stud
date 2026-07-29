@@ -1,10 +1,11 @@
 'use client';
 
-import { Menu, X } from 'lucide-react';
+import { Menu, UserRound, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Button, cn } from '@stud/ui';
+import { api } from '@/lib/api';
 import { Logo } from './logo';
 
 const NAV = [
@@ -15,10 +16,53 @@ const NAV = [
   { href: '/learn', label: 'Learn' },
 ];
 
+interface SessionUser {
+  id: string;
+  name: string | null;
+  displayName: string | null;
+  email: string;
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
+
+  /**
+   * Who is signed in, if anyone.
+   *
+   * The header used to be blind to the session — you could sign in
+   * successfully and it would still say "Sign In", which reads as a silent
+   * failure. Re-fetched on every route change so logging in updates it.
+   */
+  const [user, setUser] = React.useState<SessionUser | null | undefined>(undefined);
+  React.useEffect(() => {
+    let cancelled = false;
+    api<{ user: SessionUser | null }>('/auth/me')
+      .then((d) => {
+        if (!cancelled) setUser(d.user);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  async function signOut() {
+    try {
+      await api('/auth/logout', { method: 'POST' });
+    } catch {
+      // Signing out of a dead session is still signed out.
+    }
+    setUser(null);
+    router.push('/');
+    router.refresh();
+  }
+
+  const firstName = user ? (user.name ?? user.displayName ?? user.email).split(' ')[0] : null;
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -66,12 +110,31 @@ export function SiteHeader() {
               For Breeders
             </a>
           </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Sign In</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/signup">Create Account</Link>
-          </Button>
+          {user ? (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/my/applications">My Applications</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/my/dogs">My Dogs</Link>
+              </Button>
+              <span className="hidden items-center gap-1.5 pl-1 text-sm text-ink-500 xl:flex">
+                <UserRound className="h-4 w-4 text-ink-400" /> {firstName}
+              </span>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Sign In</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Create Account</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -97,14 +160,34 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <div className="flex gap-2 pt-3">
-              <Button asChild variant="outline" block size="sm">
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button asChild block size="sm">
-                <Link href="/signup">Create Account</Link>
-              </Button>
-            </div>
+            {user ? (
+              <div className="space-y-1 pt-3">
+                <Link
+                  href="/my/dogs"
+                  className="block rounded-md px-3 py-2.5 text-md font-medium text-ink-700 hover:bg-bone-200"
+                >
+                  My Dogs
+                </Link>
+                <Link
+                  href="/my/applications"
+                  className="block rounded-md px-3 py-2.5 text-md font-medium text-ink-700 hover:bg-bone-200"
+                >
+                  My Applications
+                </Link>
+                <Button variant="outline" block size="sm" onClick={signOut}>
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2 pt-3">
+                <Button asChild variant="outline" block size="sm">
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button asChild block size="sm">
+                  <Link href="/signup">Create Account</Link>
+                </Button>
+              </div>
+            )}
           </nav>
         </div>
       )}
