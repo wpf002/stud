@@ -1,4 +1,9 @@
 import { defineRailway, github, postgres, preserve, project, service } from "railway/iac";
+// NOTE: `generator: "secret(48)"` on a plain service (not a database/
+// template) didn't evaluate — it wrote the literal placeholder text as the
+// value, which failed the 16-char minimum. AUTH_SECRET was set for real via
+// `openssl rand -hex 32 | railway variable set AUTH_SECRET --stdin --service
+// api`, and preserve() below means a config apply never touches it again.
 
 /**
  * One Postgres, one API service, one web service — one GitHub source
@@ -25,9 +30,7 @@ export default defineRailway(() => {
       // Prisma's schema also wants directUrl (for a pooled DATABASE_URL) —
       // Railway's own Postgres isn't pooled, so both point at the same DB.
       DIRECT_URL: db.env.DATABASE_URL,
-      // A real session-signing secret, generated server-side — never a
-      // value this script could compute or see.
-      AUTH_SECRET: { generator: "secret(48)" },
+      AUTH_SECRET: preserve(),
       VERIFY_LIVE_SOURCES: "false",
       PAYMENTS_PROVIDER: "mock",
       CORS_ORIGINS: preserve(),
