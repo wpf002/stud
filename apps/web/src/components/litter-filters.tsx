@@ -75,7 +75,7 @@ export function LitterFilters() {
           value={params.get('breed') ?? ''}
           onChange={(e) => set('breed', e.target.value)}
         >
-          <option value="">Any breed</option>
+          <option value="">Any Breed</option>
           <option value="Golden Retriever">Golden Retriever</option>
           <option value="German Shorthaired Pointer">German Shorthaired Pointer</option>
           <option value="Labrador Retriever">Labrador Retriever</option>
@@ -90,16 +90,16 @@ export function LitterFilters() {
           onChange={(e) => set('availability', e.target.value)}
         >
           <option value="">Any</option>
-          <option value="AVAILABLE">Puppies available</option>
+          <option value="AVAILABLE">Puppies Available</option>
           <option value="EXPECTING">Expecting</option>
           <option value="PLANNED">Planned</option>
-          <option value="FULLY_RESERVED">Fully reserved</option>
-          <option value="PAST">Past litters</option>
+          <option value="FULLY_RESERVED">Fully Reserved</option>
+          <option value="PAST">Past Litters</option>
         </Select>
       </Field>
 
       <div>
-        <p className="mb-2 text-sm font-medium text-ink-700">Verified normal on both parents</p>
+        <p className="mb-2 text-sm font-medium text-ink-700">Parents Tested Normal</p>
         <div className="space-y-1.5">
           {HEALTH_FILTERS.map((h) => (
             <Checkbox
@@ -116,12 +116,15 @@ export function LitterFilters() {
           the kind of helpfulness that returns the wrong litter.
         */}
         <p className="mt-2 text-2xs leading-relaxed text-ink-400">
-          Both parents must have a verified normal result. A litter where only one side is tested
-          will not appear.
+          Both parents, checked with the registry. One side tested is not enough.
         </p>
       </div>
 
-      <Field label="Maximum COI" htmlFor="maxCoi" hint="How closely related the parents are.">
+      <Field
+        label="How Related the Parents Are"
+        htmlFor="maxCoi"
+        hint="Closely related parents raise the odds of inherited problems."
+      >
         <Select
           id="maxCoi"
           inputSize="sm"
@@ -129,13 +132,13 @@ export function LitterFilters() {
           onChange={(e) => set('maxCoi', e.target.value)}
         >
           <option value="">Any</option>
-          <option value="0.0625">Under 6.25% (unrelated to first cousins)</option>
-          <option value="0.125">Under 12.5%</option>
-          <option value="0.25">Under 25%</option>
+          <option value="0.0625">No closer than first cousins</option>
+          <option value="0.125">No closer than half-siblings</option>
+          <option value="0.25">No closer than siblings</option>
         </Select>
       </Field>
 
-      <Field label="Maximum price" htmlFor="maxPriceCents">
+      <Field label="Maximum Price" htmlFor="maxPriceCents">
         <Select
           id="maxPriceCents"
           inputSize="sm"
@@ -153,21 +156,21 @@ export function LitterFilters() {
       <Checkbox
         checked={params.get('requireNoConflicts') === 'true'}
         onChange={(e) => set('requireNoConflicts', e.target.checked ? 'true' : null)}
-        label="Hide litters with an unresolved conflict"
+        label="Hide Disputed Results"
       />
 
-      <Field label="Sort by" htmlFor="sort" className={cn('border-t border-bone-200 pt-4')}>
+      <Field label="Sort By" htmlFor="sort" className={cn('border-t border-bone-200 pt-4')}>
         <Select
           id="sort"
           inputSize="sm"
           value={params.get('sort') ?? 'RELEVANCE'}
           onChange={(e) => set('sort', e.target.value === 'RELEVANCE' ? null : e.target.value)}
         >
-          <option value="RELEVANCE">Most verified first</option>
-          <option value="SOONEST">Ready soonest</option>
-          <option value="PRICE_ASC">Price, low to high</option>
-          <option value="PRICE_DESC">Price, high to low</option>
-          <option value="COI">Lowest COI</option>
+          <option value="RELEVANCE">Most Verified First</option>
+          <option value="SOONEST">Ready Soonest</option>
+          <option value="PRICE_ASC">Price, Low to High</option>
+          <option value="PRICE_DESC">Price, High to Low</option>
+          <option value="COI">Least Related Parents</option>
         </Select>
       </Field>
     </aside>

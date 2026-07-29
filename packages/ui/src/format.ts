@@ -105,11 +105,23 @@ export function pluralize(n: number, singular: string, plural?: string): string 
   return `${n} ${n === 1 ? singular : (plural ?? `${singular}s`)}`;
 }
 
+/** Words that stay lowercase inside a title, but not at either end. */
+const MINOR = new Set([
+  'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'for', 'on', 'at', 'to', 'from',
+  'by', 'of', 'in', 'with', 'as', 'per', 'into', 'over', 'up', 'off',
+]);
+
+/**
+ * An enum or phrase as a person would write it: PICK_OF_LITTER → "Pick of
+ * Litter". Every status chip in the app renders through this, which is why the
+ * minor-word rule lives here rather than at each call site.
+ */
 export function titleCase(s: string): string {
-  return s
-    .toLowerCase()
-    .split(/[\s_]+/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+  const words = s.toLowerCase().split(/[\s_]+/).filter(Boolean);
+  return words
+    .map((w, i) =>
+      i > 0 && i < words.length - 1 && MINOR.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1),
+    )
     .join(' ');
 }
 

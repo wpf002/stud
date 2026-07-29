@@ -1,14 +1,5 @@
 import { AlertTriangle, Heart, PawPrint } from 'lucide-react';
-import {
-  Alert,
-  Badge,
-  Card,
-  CardContent,
-  EmptyState,
-  Stat,
-  formatDate,
-  formatDogAge,
-} from '@stud/ui';
+import { Alert, Badge, Card, CardContent, EmptyState, Stat, formatDate, formatDogAge, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { PlacedDogsResponse } from '@/lib/types';
@@ -108,11 +99,11 @@ export default async function PlacedDogsPage() {
                                 </span>
                                 <span className="text-ink-800">{e.title}</span>
                                 <Badge tone="neutral" size="sm">
-                                  {e.kind.replace(/_/g, ' ').toLowerCase()}
+                                  {titleCase(e.kind)}
                                 </Badge>
                                 {e.guaranteeRelevant && (
                                   <Badge tone="warning" size="sm">
-                                    <Heart /> guarantee
+                                    <Heart /> Guarantee
                                   </Badge>
                                 )}
                                 {e.detail && (

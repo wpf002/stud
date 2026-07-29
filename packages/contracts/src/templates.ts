@@ -32,7 +32,7 @@ export interface ContractTemplate {
 export const TEMPLATES: ContractTemplate[] = [
   {
     id: 'STUD_SERVICE',
-    name: 'Stud service — deposit and balance',
+    name: 'Stud Service — Deposit and Balance',
     description:
       'The standard arrangement: a deposit on signing, the balance on confirmed pregnancy, and a repeat service if no live litter results.',
     requiresLegalReview: true,
@@ -52,7 +52,7 @@ export const TEMPLATES: ContractTemplate[] = [
   },
   {
     id: 'STUD_SERVICE_PICK_OF_LITTER',
-    name: 'Stud service — pick of litter',
+    name: 'Stud Service — Pick of Litter',
     description:
       'The stud owner takes a puppy instead of, or as well as, a cash fee. Needs a firm selection deadline.',
     requiresLegalReview: true,
@@ -82,7 +82,7 @@ export const TEMPLATES: ContractTemplate[] = [
   },
   {
     id: 'REPEAT_BREEDING_ONLY',
-    name: 'Repeat service agreement',
+    name: 'Repeat Service Agreement',
     description: 'A short agreement covering a repeat service under an earlier contract.',
     requiresLegalReview: true,
     clauseIds: ['parties.stud_service', 'service.method', 'health.brucellosis', 'general.entire_agreement'],
@@ -90,7 +90,7 @@ export const TEMPLATES: ContractTemplate[] = [
   },
   {
     id: 'PUPPY_SALE',
-    name: 'Puppy sale',
+    name: 'Puppy Sale',
     description:
       'A pet-home sale: deposit and balance, a health guarantee, limited registration, spay/neuter, and a take-back for the life of the dog.',
     requiresLegalReview: true,

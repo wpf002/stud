@@ -10,7 +10,7 @@ export default async function ConflictQueuePage() {
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="Verification conflicts"
+        title="Verification Conflicts"
         description="A source changed its mind. Someone has to decide which record stands."
         wide
       >

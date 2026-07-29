@@ -3,22 +3,7 @@
 import { CalendarHeart, Plus, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  Field,
-  Input,
-  Select,
-  cn,
-  formatDate,
-  relativeTime,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState, Field, Input, Select, cn, formatDate, relativeTime, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { HeatsResponse } from '@/lib/types';
 
@@ -106,14 +91,14 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
                         </p>
                       </div>
                       <div>
-                        <p className="text-2xs uppercase tracking-widest text-ink-400">Breeding windows</p>
+                        <p className="text-2xs uppercase tracking-widest text-ink-400">Breeding Windows</p>
                         <ul className="mt-0.5 space-y-0.5 text-2xs">
                           {(['NATURAL', 'CHILLED', 'FROZEN'] as const).map((t) => {
                             const w = interpretation.breedingWindows[t];
                             if (!w) return null;
                             return (
                               <li key={t} className="flex justify-between gap-2">
-                                <span className="text-ink-500">{t.toLowerCase()}</span>
+                                <span className="text-ink-500">{titleCase(t)}</span>
                                 <span className="font-mono text-ink-800">
                                   {formatDate(w.from, 'short')} – {formatDate(w.to, 'short')}
                                 </span>
@@ -159,7 +144,7 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
         <Card>
           <CardHeader>
             <CardTitle as="h4" className="text-md">
-              Cycle history
+              Cycle History
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -195,7 +180,7 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
                         )}
                         {c.breedings.length > 0 && (
                           <Badge tone="brand" size="sm">
-                            bred
+                            Bred
                           </Badge>
                         )}
                         {interval !== null && (
@@ -210,7 +195,7 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
 
             <form onSubmit={logHeat} className="mt-5 flex flex-wrap items-end gap-3 border-t border-bone-200 pt-4">
               <Field
-                label="First day of the heat"
+                label="First Day of the Heat"
                 htmlFor="startedOn"
                 hint="The first day of visible discharge — the one date that has to be right."
                 className="min-w-48"
@@ -224,7 +209,7 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
                 />
               </Field>
               <Button type="submit" loading={busy}>
-                <Plus /> Log a heat
+                <Plus /> Log a Heat
               </Button>
             </form>
           </CardContent>
@@ -251,7 +236,7 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
             <div className="mt-4 space-y-2 border-t border-bone-200 pt-3 text-xs">
               <Row
                 label="Confidence"
-                value={prediction.confidence.toLowerCase()}
+                value={titleCase(prediction.confidence)}
                 tone={
                   prediction.confidence === 'HIGH'
                     ? 'good'
@@ -363,7 +348,7 @@ function ProgesteroneForm({
         <Input id="lab" name="lab" maxLength={120} />
       </Field>
       <Button type="submit" loading={busy}>
-        Add reading
+        Add Reading
       </Button>
     </form>
   );

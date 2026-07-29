@@ -1,6 +1,6 @@
 import { FileSignature, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { Badge, Button, Card, EmptyState, formatDateTime, formatMoney } from '@stud/ui';
+import { Badge, Button, Card, EmptyState, formatDateTime, formatMoney, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { ContractRow } from '@/lib/types';
@@ -68,7 +68,7 @@ export default async function ContractsPage() {
                           tone={c.status === 'SIGNED' || c.status === 'COMPLETED' ? 'brand' : 'neutral'}
                           size="sm"
                         >
-                          {c.status.replace(/_/g, ' ').toLowerCase()}
+                          {titleCase(c.status)}
                         </Badge>
                       </div>
                     </div>

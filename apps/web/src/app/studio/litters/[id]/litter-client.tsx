@@ -3,36 +3,7 @@
 import { AlertTriangle, Check, Plus, Scale, Stethoscope } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  EmptyState,
-  Field,
-  GrowthChart,
-  Input,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Textarea,
-  WeightSparkline,
-  cn,
-  formatDate,
-  formatDateTime,
-  relativeTime,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, EmptyState, Field, GrowthChart, Input, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, WeightSparkline, cn, formatDate, formatDateTime, relativeTime, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { GrowthAssessmentDto, LitterDetailResponse, PuppyDto } from '@/lib/types';
 import { ListingPanel } from './listing-panel';
@@ -111,14 +82,14 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
               <Card>
                 <CardHeader className="flex-row items-center justify-between">
                   <CardTitle as="h4" className="text-md">
-                    In the box
+                    In the Box
                   </CardTitle>
                   <AddPuppyDialog litterId={litter.id} nextOrder={litter.puppies.length + 1} onDone={refresh} />
                 </CardHeader>
                 <CardContent>
                   {litter.puppies.length === 0 ? (
                     <EmptyState
-                      title="No puppies logged"
+                      title="No Puppies Logged"
                       description="Log each one as it arrives. Sex is the only thing you have to enter — weight, markings and collar colour can wait until you have a free hand."
                     />
                   ) : (
@@ -145,7 +116,7 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
               <Card>
                 <CardHeader>
                   <CardTitle as="h4" className="text-md">
-                    Weight against the reference band
+                    Weight Against the Reference Band
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -215,7 +186,7 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
                 {litter.dam.callName} × {litter.sire.callName}
               </p>
               <dl className="mt-4 space-y-2 border-t border-bone-200 pt-3 text-sm">
-                <Row label="Status" value={litter.status.replace(/_/g, ' ').toLowerCase()} />
+                <Row label="Status" value={titleCase(litter.status)} />
                 {litter.whelpedOn ? (
                   <>
                     <Row label="Whelped" value={formatDate(litter.whelpedOn)} />
@@ -242,7 +213,7 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
             <Card>
               <CardHeader>
                 <CardTitle as="h4" className="text-md">
-                  What happens next
+                  What Happens Next
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -322,7 +293,7 @@ function WhelpDatePrompt({
   return (
     <Card className="border-brand-200 bg-brand-50/50">
       <CardContent className="pt-5">
-        <p className="font-display text-lg text-ink-900">Not whelped yet</p>
+        <p className="font-display text-lg text-ink-900">Not Whelped Yet</p>
         <p className="mt-1 text-sm leading-relaxed text-ink-600">
           {expectedOn
             ? `Due ${formatDate(expectedOn)} — ${relativeTime(expectedOn)}.`
@@ -337,7 +308,7 @@ function WhelpDatePrompt({
             if (v) record(String(v));
           }}
         >
-          <Field label="Whelp date" htmlFor="whelpedOn" className="min-w-48">
+          <Field label="Whelp Date" htmlFor="whelpedOn" className="min-w-48">
             <Input
               id="whelpedOn"
               name="whelpedOn"
@@ -347,7 +318,7 @@ function WhelpDatePrompt({
             />
           </Field>
           <Button type="submit" loading={busy}>
-            Record whelp
+            Record Whelp
           </Button>
         </form>
       </CardContent>
@@ -403,7 +374,7 @@ function AddPuppyDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm">
-          <Plus /> Log a puppy
+          <Plus /> Log a Puppy
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -435,7 +406,7 @@ function AddPuppyDialog({
               </div>
             </Field>
 
-            <Field label="Birth weight (grams)" htmlFor="birthWeightGrams">
+            <Field label="Birth Weight (grams)" htmlFor="birthWeightGrams">
               <Input
                 id="birthWeightGrams"
                 name="birthWeightGrams"
@@ -449,11 +420,11 @@ function AddPuppyDialog({
               />
             </Field>
 
-            <Field label="Collar colour" htmlFor="collarColor" hint="What you'll call it until it has a name.">
+            <Field label="Collar Colour" htmlFor="collarColor" hint="What you'll call it until it has a name.">
               <Input id="collarColor" name="collarColor" inputSize="tap" placeholder="Green" />
             </Field>
 
-            <Field label="Colour / markings" htmlFor="colorPattern">
+            <Field label="Colour / Markings" htmlFor="colorPattern">
               <Input id="colorPattern" name="colorPattern" inputSize="tap" placeholder="Liver roan" />
             </Field>
             <Input name="markings" placeholder="White blaze, ticked legs…" inputSize="tap" />
@@ -463,7 +434,7 @@ function AddPuppyDialog({
               Cancel
             </Button>
             <Button type="submit" loading={busy} size="tap">
-              Log puppy
+              Log Puppy
             </Button>
           </DialogFooter>
         </form>
@@ -525,12 +496,12 @@ function PuppyRow({
             </Badge>
             {puppy.status !== 'AVAILABLE' && (
               <Badge tone="neutral" size="sm">
-                {puppy.status.toLowerCase()}
+                {titleCase(puppy.status)}
               </Badge>
             )}
             {urgent && (
               <Badge tone="danger" size="sm">
-                <AlertTriangle /> needs attention
+                <AlertTriangle /> Needs Attention
               </Badge>
             )}
           </p>
@@ -640,7 +611,7 @@ function CareSchedule({
             action={
               whelped ? (
                 <Button size="sm" onClick={generate} loading={busy === 'gen'}>
-                  Generate schedule
+                  Generate Schedule
                 </Button>
               ) : undefined
             }
@@ -685,12 +656,12 @@ function CareSchedule({
                     </span>
                     {t.required && t.status === 'PENDING' && (
                       <Badge tone="neutral" size="sm">
-                        required
+                        Required
                       </Badge>
                     )}
                     {overdue && (
                       <Badge tone="warning" size="sm">
-                        overdue
+                        Overdue
                       </Badge>
                     )}
                   </p>

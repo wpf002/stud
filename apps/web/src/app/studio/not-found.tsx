@@ -18,7 +18,7 @@ export default function StudioNotFound() {
       <StudioPage title="This page isn't here" description="The link may be old, or the record may have been merged or removed.">
         <Button asChild>
           <Link href="/studio">
-            Back to the dashboard <ArrowRight />
+            Back to the Dashboard <ArrowRight />
           </Link>
         </Button>
       </StudioPage>

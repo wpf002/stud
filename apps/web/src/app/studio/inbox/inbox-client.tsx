@@ -4,18 +4,7 @@ import { AlertTriangle, Check, Inbox as InboxIcon, ShieldCheck, X } from 'lucide
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  EmptyState,
-  Textarea,
-  cn,
-  formatCoi,
-  formatDateTime,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, EmptyState, Textarea, cn, formatCoi, formatDateTime, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { StudInquiryDto } from '@/lib/types';
 
@@ -103,12 +92,12 @@ function InquiryCard({
               </span>
               {isNew && (
                 <Badge tone="brand" size="sm">
-                  new
+                  New
                 </Badge>
               )}
               {inquiry.status !== 'NEW' && (
                 <Badge tone="neutral" size="sm">
-                  {inquiry.status.toLowerCase()}
+                  {titleCase(inquiry.status)}
                 </Badge>
               )}
             </p>
@@ -205,7 +194,7 @@ function InquiryCard({
 
         {inquiry.replyMessage && (
           <div className="mt-4 rounded-md border-l-2 border-brand-400 bg-brand-50/50 px-3 py-2">
-            <p className="text-2xs uppercase tracking-widest text-ink-400">Your reply</p>
+            <p className="text-2xs uppercase tracking-widest text-ink-400">Your Reply</p>
             <p className="mt-1 whitespace-pre-line text-sm text-ink-700">{inquiry.replyMessage}</p>
           </div>
         )}
@@ -215,7 +204,7 @@ function InquiryCard({
             <Textarea name="replyMessage" rows={4} required placeholder="Your reply…" autoFocus />
             <div className="flex gap-2">
               <Button type="submit" size="sm" loading={busy}>
-                Send reply
+                Send Reply
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={() => setReplying(false)}>
                 Cancel
@@ -235,7 +224,7 @@ function InquiryCard({
             </Button>
             {isNew && (
               <Button size="sm" variant="ghost" onClick={() => onUpdate(inquiry.id, { status: 'READ' })}>
-                Mark read
+                Mark Read
               </Button>
             )}
           </div>

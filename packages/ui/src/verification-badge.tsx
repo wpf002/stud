@@ -89,7 +89,7 @@ const STATE_META: Record<
     meaning: 'We\u2019re checking this with the registry right now.',
   },
   STALE: {
-    label: 'Needs recheck',
+    label: 'Needs Recheck',
     Icon: CircleDashed,
     chip: 'bg-verify-staleBg text-verify-stale ring-1 ring-inset ring-verify-stale/25',
     dot: 'bg-verify-stale',
@@ -105,7 +105,7 @@ const STATE_META: Record<
       'The registry now shows something different. Our team is reviewing it, so hold off on relying on this one.',
   },
   UNVERIFIED: {
-    label: 'Not verified',
+    label: 'Not Verified',
     Icon: CircleSlash,
     chip: 'bg-verify-unverifiedBg text-verify-unverified ring-1 ring-inset ring-verify-unverified/25',
     dot: 'bg-verify-unverified',

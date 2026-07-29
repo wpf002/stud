@@ -156,7 +156,7 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
 
       {kennel.about && (
         <section className="mt-8 max-w-3xl">
-          <h2 className="font-display text-2xl text-ink-900">About the program</h2>
+          <h2 className="font-display text-2xl text-ink-900">About the Program</h2>
           <p className="mt-2 whitespace-pre-line text-md leading-relaxed text-ink-700">
             {kennel.about}
           </p>
@@ -206,7 +206,7 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
       )}
 
       <section className="mt-10">
-        <h2 className="font-display text-2xl text-ink-900">The dogs</h2>
+        <h2 className="font-display text-2xl text-ink-900">The Dogs</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {dogs.map((d) => (
             <li key={d.id}>

@@ -13,30 +13,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Checkbox,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Field,
-  Input,
-  Textarea,
-  cn,
-  formatDate,
-  formatDateTime,
-  formatMoney,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, Input, Textarea, cn, formatDate, formatDateTime, formatMoney, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { ContractDetailResponse, PaymentsResponse, RepeatClaimDto } from '@/lib/types';
 
@@ -194,7 +171,7 @@ export function ContractClient({
                     <div>
                       <p className="text-sm font-medium text-ink-800">{p.legalName}</p>
                       <p className="text-2xs text-ink-400">
-                        {p.role.replace(/_/g, ' ').toLowerCase()} · {p.email}
+                        {titleCase(p.role)} · {p.email}
                       </p>
                       {sig && (
                         <p className="mt-1 font-mono text-2xs text-ink-400">
@@ -205,11 +182,11 @@ export function ContractClient({
                     </div>
                     {sig ? (
                       <Badge tone="brand" size="sm">
-                        <Check /> signed
+                        <Check /> Signed
                       </Badge>
                     ) : (
                       <Badge tone="neutral" size="sm">
-                        awaiting
+                        Awaiting
                       </Badge>
                     )}
                   </li>
@@ -284,12 +261,12 @@ function BreedingLink({
   return (
     <Card>
       <CardContent className="pt-5">
-        <p className="text-2xs uppercase tracking-widest text-ink-400">Linked breeding</p>
+        <p className="text-2xs uppercase tracking-widest text-ink-400">Linked Breeding</p>
         <Link
           href={`/studio/breedings/${breeding.id}`}
           className="mt-1 block font-display text-lg text-ink-900 hover:text-brand-600"
         >
-          {breeding.status.replace(/_/g, ' ').toLowerCase()}
+          {titleCase(breeding.status)}
         </Link>
         {breeding.litter ? (
           <Link
@@ -366,7 +343,7 @@ function RepeatClaimCard({
     return (
       <Card>
         <CardContent className="pt-5">
-          <p className="text-2xs uppercase tracking-widest text-ink-400">Repeat breeding</p>
+          <p className="text-2xs uppercase tracking-widest text-ink-400">Repeat Breeding</p>
           <p className="mt-1.5 text-xs leading-relaxed text-ink-500">
             This contract has no repeat-breeding clause, so there is no right to claim under it. A
             repeat can still be agreed between the parties — it just is not something this agreement
@@ -380,7 +357,7 @@ function RepeatClaimCard({
   return (
     <Card>
       <CardContent className="pt-5">
-        <p className="text-2xs uppercase tracking-widest text-ink-400">Repeat breeding</p>
+        <p className="text-2xs uppercase tracking-widest text-ink-400">Repeat Breeding</p>
 
         {error && (
           <Alert tone="danger" className="mt-2">
@@ -403,7 +380,7 @@ function RepeatClaimCard({
                     }
                     size="sm"
                   >
-                    {c.status.replace(/_/g, ' ').toLowerCase()}
+                    {titleCase(c.status)}
                   </Badge>
                   <span className="text-2xs text-ink-400">{formatDate(c.createdAt)}</span>
                 </div>
@@ -435,17 +412,17 @@ function RepeatClaimCard({
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button variant="secondary" size="sm" block className="mt-3">
-                Claim a repeat service
+                Claim a Repeat Service
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Claim a repeat service</DialogTitle>
+                <DialogTitle>Claim a Repeat Service</DialogTitle>
               </DialogHeader>
               <form onSubmit={submit}>
                 <DialogBody>
                   <Field
-                    label="What happened"
+                    label="What Happened"
                     htmlFor="reason"
                     required
                     hint="Dates, what was observed, and any veterinary findings. This is the record the other party responds to."
@@ -463,7 +440,7 @@ function RepeatClaimCard({
                     Cancel
                   </Button>
                   <Button type="submit" loading={busy}>
-                    Submit claim
+                    Submit Claim
                   </Button>
                 </DialogFooter>
               </form>
@@ -486,7 +463,7 @@ function StatusBadge({ status }: { status: string }) {
           : 'neutral';
   return (
     <Badge tone={tone as 'brand'} size="sm">
-      {status.replace(/_/g, ' ').toLowerCase()}
+      {titleCase(status)}
     </Badge>
   );
 }
@@ -538,7 +515,7 @@ function SignCard({
   return (
     <Card className="border-brand-300">
       <CardContent className="pt-5">
-        <p className="font-display text-lg text-ink-900">Your signature is needed</p>
+        <p className="font-display text-lg text-ink-900">Your Signature Is Needed</p>
         <p className="mt-1 text-xs leading-relaxed text-ink-600">
           Read the whole agreement first. Once both parties sign, the terms are fixed and the
           deposit falls due.
@@ -547,7 +524,7 @@ function SignCard({
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button block className="mt-3">
-              <FileSignature /> Review and sign
+              <FileSignature /> Review and Sign
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -569,7 +546,7 @@ function SignCard({
                 />
 
                 <Field
-                  label="Type your full name"
+                  label="Type Your Full Name"
                   htmlFor="typedName"
                   required
                   hint="Must match the name on your account."
@@ -642,7 +619,7 @@ function PaymentsCard({
       <CardHeader>
         <CardTitle as="h4" className="text-md">
           <span className="flex items-center gap-2">
-            <Scale className="h-4 w-4 text-ink-400" /> Stud fee
+            <Scale className="h-4 w-4 text-ink-400" /> Stud Fee
           </span>
         </CardTitle>
       </CardHeader>
@@ -669,7 +646,7 @@ function PaymentsCard({
                     ? `paid ${i.paidAt ? formatDateTime(i.paidAt) : ''}`
                     : i.status === 'DUE'
                       ? 'due now'
-                      : `on ${i.trigger.replace(/^ON_/, '').replace(/_/g, ' ').toLowerCase()}`}
+                      : `On ${titleCase(i.trigger.replace(/^ON_/, ''))}`}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -691,7 +668,7 @@ function PaymentsCard({
           <div className="mt-4 rounded-md bg-bone-100 px-3 py-3">
             <p className="flex items-center justify-between gap-2 text-sm">
               <span className="flex items-center gap-1.5 text-ink-600">
-                <ShieldCheck className="h-3.5 w-3.5" /> Held in escrow
+                <ShieldCheck className="h-3.5 w-3.5" /> Held in Escrow
               </span>
               <span className="font-mono tabular-nums text-ink-900">
                 {formatMoney(schedule.escrow.heldCents)}

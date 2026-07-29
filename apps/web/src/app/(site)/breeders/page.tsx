@@ -73,7 +73,7 @@ export default async function BreedersPage({
       {breeders.length === 0 ? (
         <EmptyState
           className="mt-8"
-          title="No published programs match"
+          title="No Published Programs Match"
           description="Breeders appear here once their program page is published and their dogs are on the platform."
         />
       ) : (
@@ -142,7 +142,7 @@ export default async function BreedersPage({
                         {b.reviewSummary.count === 1 ? 'review' : 'reviews'}
                       </span>
                     ) : (
-                      <span className="text-2xs text-ink-400">no reviews yet</span>
+                      <span className="text-2xs text-ink-400">No Reviews Yet</span>
                     )}
                   </div>
                   </div>

@@ -72,7 +72,7 @@ export default async function PedigreePage({
           <>
             <Button variant="ghost" size="sm" asChild>
               <Link href={`/studio/dogs/${slug}`}>
-                <ArrowLeft /> Back to dog
+                <ArrowLeft /> Back to Dog
               </Link>
             </Button>
             <div className="flex rounded-md border border-bone-400 bg-bone-50 p-0.5">
@@ -121,7 +121,7 @@ export default async function PedigreePage({
             <Card>
               <CardHeader>
                 <CardTitle as="h4" className="text-md">
-                  What is driving it
+                  What Is Driving It
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -166,7 +166,7 @@ export default async function PedigreePage({
             <Card>
               <CardHeader>
                 <CardTitle as="h4" className="text-md">
-                  Coverage by generation
+                  Coverage by Generation
                 </CardTitle>
               </CardHeader>
               <CardContent>

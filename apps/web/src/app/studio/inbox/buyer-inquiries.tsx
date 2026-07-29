@@ -4,17 +4,7 @@ import { Baby, Check, Dog, Home, Mail, Phone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  EmptyState,
-  Field,
-  Textarea,
-  relativeTime,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, EmptyState, Field, Textarea, relativeTime, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { LitterInquiryDto } from '@/lib/types';
 
@@ -110,7 +100,7 @@ function InquiryCard({
                 <>
                   {' — asked about '}
                   <span className="text-ink-600">
-                    {i.puppy.name ?? i.puppy.collarColor} ({i.puppy.sex.toLowerCase()})
+                    {i.puppy.name ?? i.puppy.collarColor} ({titleCase(i.puppy.sex)})
                   </span>
                 </>
               )}
@@ -120,7 +110,7 @@ function InquiryCard({
             tone={i.status === 'NEW' ? 'brand' : i.status === 'REPLIED' ? 'neutral' : 'neutral'}
             size="sm"
           >
-            {i.status.toLowerCase()}
+            {titleCase(i.status)}
           </Badge>
         </div>
 
@@ -129,7 +119,7 @@ function InquiryCard({
         {/* The answers that would otherwise cost a round trip. */}
         {(i.homeType || i.hasOtherDogs != null || i.hasChildren != null || i.householdNotes) && (
           <div className="mt-3 rounded-md bg-bone-100 px-3 py-2.5">
-            <p className="text-2xs uppercase tracking-widest text-ink-400">Their household</p>
+            <p className="text-2xs uppercase tracking-widest text-ink-400">Their Household</p>
             <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-600">
               {i.homeType && (
                 <span className="flex items-center gap-1.5">
@@ -162,7 +152,7 @@ function InquiryCard({
           </div>
         ) : replying ? (
           <form onSubmit={submit} className="mt-3 space-y-2">
-            <Field label="Your reply" htmlFor={`reply-${i.id}`}>
+            <Field label="Your Reply" htmlFor={`reply-${i.id}`}>
               <Textarea id={`reply-${i.id}`} name="replyMessage" rows={4} required autoFocus />
             </Field>
             <div className="flex justify-end gap-2">
@@ -170,7 +160,7 @@ function InquiryCard({
                 Cancel
               </Button>
               <Button type="submit" size="sm" loading={busy}>
-                Send reply
+                Send Reply
               </Button>
             </div>
           </form>

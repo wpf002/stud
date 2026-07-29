@@ -311,10 +311,10 @@ function ChartLegend({
   return (
     <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-bone-200 pt-3 text-xs">
       <span className="flex items-center gap-1.5 text-ink-500">
-        <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Sire line
+        <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Sire Line
       </span>
       <span className="flex items-center gap-1.5 text-ink-500">
-        <span className="h-1.5 w-1.5 rounded-full bg-clay-400" /> Dam line
+        <span className="h-1.5 w-1.5 rounded-full bg-clay-400" /> Dam Line
       </span>
 
       <span className="font-mono tabular-nums text-ink-500">
@@ -419,7 +419,7 @@ export function CoiReadout({
 
       <div className="mt-4 space-y-2 border-t border-bone-200 pt-3">
         <div className="flex items-center justify-between gap-3 text-xs">
-          <span className="text-ink-500">Pedigree complete</span>
+          <span className="text-ink-500">Pedigree Complete</span>
           <span className="font-mono tabular-nums text-ink-700">
             {(completeness.ratio * 100).toFixed(0)}%
           </span>

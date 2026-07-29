@@ -55,7 +55,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
             </Button>
             <Button size="sm" asChild>
               <Link href={`/studio/pedigrees/pairing?sireId=${dog.sex === 'MALE' ? dog.id : ''}&damId=${dog.sex === 'FEMALE' ? dog.id : ''}`}>
-                Trial pairing
+                Trial Pairing
               </Link>
             </Button>
           </>
@@ -178,7 +178,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
                 </div>
 
                 <Button asChild variant="outline" size="sm" block className="mt-4">
-                  <Link href={`/studio/dogs/${slug}/pedigree`}>Open full pedigree</Link>
+                  <Link href={`/studio/dogs/${slug}/pedigree`}>Open Full Pedigree</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -228,7 +228,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
                   </p>
                 )}
                 <Button asChild variant="outline" size="sm" block className="mt-4">
-                  <Link href={`/studio/dogs/${slug}/verification`}>Open verification</Link>
+                  <Link href={`/studio/dogs/${slug}/verification`}>Open Verification</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -240,7 +240,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
           <CardHeader>
             <CardTitle>
               <span className="flex items-center gap-2">
-                <PawPrint className="h-4 w-4 text-ink-400" /> Offspring on record
+                <PawPrint className="h-4 w-4 text-ink-400" /> Offspring on Record
               </span>
             </CardTitle>
           </CardHeader>

@@ -28,7 +28,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
         actions={
           <Button variant="ghost" size="sm" asChild>
             <Link href="/studio/contracts">
-              <ArrowLeft /> All contracts
+              <ArrowLeft /> All Contracts
             </Link>
           </Button>
         }

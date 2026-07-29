@@ -155,7 +155,7 @@ function Result({ result }: { result: PairingEvaluateResponse }) {
         <CardHeader>
           <CardTitle>
             <span className="flex items-center gap-2">
-              <Dna className="h-4 w-4 text-ink-400" /> Genetic risk
+              <Dna className="h-4 w-4 text-ink-400" /> Genetic Risk
             </span>
           </CardTitle>
         </CardHeader>
@@ -185,7 +185,7 @@ function Result({ result }: { result: PairingEvaluateResponse }) {
         <Card>
           <CardHeader>
             <CardTitle as="h4" className="text-md">
-              The two dogs
+              The Two Dogs
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -227,7 +227,7 @@ function Result({ result }: { result: PairingEvaluateResponse }) {
         <CardHeader>
           <CardTitle>
             <span className="flex items-center gap-2">
-              <Repeat className="h-4 w-4 text-ink-400" /> Shared ancestors
+              <Repeat className="h-4 w-4 text-ink-400" /> Shared Ancestors
             </span>
           </CardTitle>
         </CardHeader>
@@ -251,8 +251,8 @@ function Result({ result }: { result: PairingEvaluateResponse }) {
                   <thead>
                     <tr className="border-b border-bone-300 text-left text-2xs uppercase tracking-widest text-ink-400">
                       <th className="py-2 pr-3 font-semibold">Ancestor</th>
-                      <th className="py-2 pr-3 font-semibold">Via sire</th>
-                      <th className="py-2 pr-3 font-semibold">Via dam</th>
+                      <th className="py-2 pr-3 font-semibold">Via Sire</th>
+                      <th className="py-2 pr-3 font-semibold">Via Dam</th>
                       <th className="py-2 pr-3 font-semibold">Paths</th>
                       <th className="py-2 text-right font-semibold">Adds to COI</th>
                     </tr>
@@ -307,7 +307,7 @@ function Result({ result }: { result: PairingEvaluateResponse }) {
       <Card>
         <CardHeader>
           <CardTitle as="h4" className="text-md">
-            Health, side by side
+            Health, Side by Side
           </CardTitle>
         </CardHeader>
         <CardContent>

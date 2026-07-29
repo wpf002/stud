@@ -38,13 +38,13 @@ export default function NotFound() {
 
         <Button asChild size="lg" className="mt-7">
           <Link href="/">
-            Back to the homepage <ArrowRight />
+            Back to the Homepage <ArrowRight />
           </Link>
         </Button>
 
         <div className="mt-16 border-t border-bone-300 pt-8">
           <h2 className="text-2xs font-semibold uppercase tracking-widest text-ink-400">
-            Or start here
+            Or Start Here
           </h2>
           <ul className="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2">
             {ELSEWHERE.map((l) => (

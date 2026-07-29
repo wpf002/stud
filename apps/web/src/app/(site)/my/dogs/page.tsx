@@ -18,7 +18,7 @@ export default async function MyDogsPage() {
     return (
       <div className="mx-auto max-w-3xl px-5 py-16 lg:px-8">
         <EmptyState
-          title="Sign in to see your dogs"
+          title="Sign In to See Your Dogs"
           description="Every dog you have bought through Stud, with its pedigree, its parents' health testing and everything your contract asks of either side."
           action={
             <Link href="/login" className="text-sm text-brand-600 underline">
@@ -34,7 +34,7 @@ export default async function MyDogsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-10 lg:px-8">
-      <h1 className="font-display text-3xl leading-tight tracking-tight text-ink-900">Your dogs</h1>
+      <h1 className="font-display text-3xl leading-tight tracking-tight text-ink-900">Your Dogs</h1>
 
       {dogs.length === 0 ? (
         <EmptyState

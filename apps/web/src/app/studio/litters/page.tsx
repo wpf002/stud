@@ -1,6 +1,6 @@
 import { PawPrint } from 'lucide-react';
 import Link from 'next/link';
-import { Badge, Card, EmptyState, formatDate, relativeTime } from '@stud/ui';
+import { Badge, Card, EmptyState, formatDate, relativeTime, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { DogRef, LitterMilestonesDto } from '@/lib/types';
@@ -54,7 +54,7 @@ export default async function LittersPage() {
                       {l.letter ? `${l.letter} Litter` : (l.name ?? 'Litter')}
                     </p>
                     <Badge tone={l.status === 'ON_THE_GROUND' ? 'brand' : 'neutral'} size="sm">
-                      {l.status.replace(/_/g, ' ').toLowerCase()}
+                      {titleCase(l.status)}
                     </Badge>
                   </div>
                   <p className="mt-1 text-sm text-ink-500">

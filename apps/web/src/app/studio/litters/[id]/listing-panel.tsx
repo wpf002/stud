@@ -120,7 +120,7 @@ export function ListingPanel({
                   </>
                 ) : (
                   <>
-                    <EyeOff className="h-4 w-4 text-ink-400" /> Not published
+                    <EyeOff className="h-4 w-4 text-ink-400" /> Not Published
                   </>
                 )}
               </p>
@@ -133,7 +133,7 @@ export function ListingPanel({
             {listing?.slug && isLive && (
               <Button variant="secondary" size="sm" asChild>
                 <a href={`${webUrl}/puppies/${listing.slug}`} target="_blank" rel="noreferrer">
-                  <Eye /> View public page <ExternalLink />
+                  <Eye /> View Public Page <ExternalLink />
                 </a>
               </Button>
             )}
@@ -178,7 +178,7 @@ export function ListingPanel({
 
       <Card>
         <CardContent className="space-y-4 pt-5">
-          <p className="text-2xs uppercase tracking-widest text-ink-400">The listing</p>
+          <p className="text-2xs uppercase tracking-widest text-ink-400">The Listing</p>
 
           <Field label="Headline" htmlFor="headline" hint="Shown as the page title in search results.">
             <Input
@@ -191,7 +191,7 @@ export function ListingPanel({
           </Field>
 
           <Field
-            label="About this litter"
+            label="About This Litter"
             htmlFor="description"
             hint="How they are raised, what you are breeding for, anything a buyer should know before they ask."
           >
@@ -199,10 +199,10 @@ export function ListingPanel({
           </Field>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <Field label="Price from" htmlFor="priceCentsFrom">
+            <Field label="Price From" htmlFor="priceCentsFrom">
               <MoneyInput id="priceCentsFrom" name="priceCentsFrom" cents={listing?.priceCentsFrom} />
             </Field>
-            <Field label="Price to" htmlFor="priceCentsTo">
+            <Field label="Price To" htmlFor="priceCentsTo">
               <MoneyInput id="priceCentsTo" name="priceCentsTo" cents={listing?.priceCentsTo} />
             </Field>
             <Field label="Deposit" htmlFor="depositCents">
@@ -211,7 +211,7 @@ export function ListingPanel({
           </div>
 
           <Field
-            label="Notes on price"
+            label="Notes on Price"
             htmlFor="priceNotes"
             hint="Why the range is a range. Buyers assume the cheap one is the flawed one unless you say otherwise."
           >
@@ -219,7 +219,7 @@ export function ListingPanel({
           </Field>
 
           <Field
-            label="Ready to go home from"
+            label="Ready to Go Home From"
             htmlFor="goHomeFrom"
             hint={
               earliestGoHome
@@ -236,7 +236,7 @@ export function ListingPanel({
             />
           </Field>
 
-          <Field label="What is included" htmlFor="includedInPrice">
+          <Field label="What Is Included" htmlFor="includedInPrice">
             <Textarea
               id="includedInPrice"
               name="includedInPrice"
@@ -247,7 +247,7 @@ export function ListingPanel({
           </Field>
 
           <Field
-            label="What you ask of a buyer"
+            label="What You Ask of a Buyer"
             htmlFor="buyerRequirements"
             hint="Stated up front, this filters out the enquiries you would decline anyway."
           >

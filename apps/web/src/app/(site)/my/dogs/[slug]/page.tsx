@@ -12,23 +12,7 @@ import {
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  Alert,
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  ClaimPanel,
-  EmptyState,
-  Stat,
-  VerificationDensity,
-  cn,
-  formatCoi,
-  formatDate,
-  formatDogAge,
-  formatWeight,
-} from '@stud/ui';
+import { Alert, Badge, Card, CardContent, CardHeader, CardTitle, ClaimPanel, EmptyState, Stat, VerificationDensity, cn, formatCoi, formatDate, formatDogAge, formatWeight, titleCase } from '@stud/ui';
 import { EventLogger } from '@/components/event-logger';
 import { ownerGet, type Obligation, type OwnedDogResponse, type ParentSummary } from '@/lib/owner';
 
@@ -50,7 +34,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
     return (
       <div className="mx-auto max-w-3xl px-5 py-16 lg:px-8">
         <EmptyState
-          title="Sign in to see this dog"
+          title="Sign In to See This Dog"
           description="Your dog's record is private to you."
           action={
             <Link href="/login" className="text-sm text-brand-600 underline">
@@ -75,7 +59,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
         href="/my/dogs"
         className="mb-6 inline-flex items-center gap-1.5 text-2xs text-ink-400 hover:text-brand-600"
       >
-        <ArrowLeft className="h-3 w-3" /> Your dogs
+        <ArrowLeft className="h-3 w-3" /> Your Dogs
       </Link>
 
       <header>
@@ -134,7 +118,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
           {/* ── What the contract asks ────────────────────────────── */}
           {obligations.length > 0 && (
             <section>
-              <h2 className="font-display text-2xl text-ink-900">What your contract says</h2>
+              <h2 className="font-display text-2xl text-ink-900">What Your Contract Says</h2>
               <p className="mt-1 text-sm leading-relaxed text-ink-500">
                 The important parts of your contract, as actual dates.
               </p>
@@ -189,7 +173,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
           <section>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="font-display text-2xl text-ink-900">Health log</h2>
+                <h2 className="font-display text-2xl text-ink-900">Health Log</h2>
                 <p className="mt-1 text-sm text-ink-500">
                   Vet visits, vaccinations, anything worth remembering.
                 </p>
@@ -218,11 +202,11 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
                           </div>
                           <div className="flex shrink-0 gap-1.5">
                             <Badge tone="neutral" size="sm">
-                              {e.kind.replace(/_/g, ' ').toLowerCase()}
+                              {titleCase(e.kind)}
                             </Badge>
                             {e.sharedWithBreeder && (
                               <Badge tone="brand" size="sm">
-                                shared
+                                Shared
                               </Badge>
                             )}
                           </div>
@@ -263,7 +247,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
                   }
                   size="sm"
                 >
-                  {pedigree.band.toLowerCase()}
+                  {titleCase(pedigree.band)}
                 </Badge>
                 <p className="mt-2 text-2xs leading-relaxed text-ink-500">
                   {pedigree.confidenceNote}
@@ -356,7 +340,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
             <Card>
               <CardContent className="pt-5">
                 <p className="flex items-center gap-2 text-2xs uppercase tracking-widest text-ink-400">
-                  <FileSignature className="h-3 w-3" /> Your contract
+                  <FileSignature className="h-3 w-3" /> Your Contract
                 </p>
                 <p className="mt-1 text-sm text-ink-800">{contract.title}</p>
                 {contract.signedAt && (
@@ -380,7 +364,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
           {breeder && (
             <Card>
               <CardContent className="pt-5">
-                <p className="text-2xs uppercase tracking-widest text-ink-400">Your breeder</p>
+                <p className="text-2xs uppercase tracking-widest text-ink-400">Your Breeder</p>
                 <Link
                   href={`/breeders/${breeder.slug}`}
                   className="mt-1 block font-display text-lg text-ink-900 hover:text-brand-600"

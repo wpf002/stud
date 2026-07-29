@@ -87,7 +87,7 @@ export function EventLogger({ slug, dogName }: { slug: string; dogName: string }
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="secondary">
-          <Plus /> Log something
+          <Plus /> Log Something
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -99,7 +99,7 @@ export function EventLogger({ slug, dogName }: { slug: string; dogName: string }
             {error && <Alert tone="danger">{error}</Alert>}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="What kind" htmlFor="kind" required>
+              <Field label="What Kind" htmlFor="kind" required>
                 <Select id="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
                   {KINDS.map((k) => (
                     <option key={k.value} value={k.value}>
@@ -120,7 +120,7 @@ export function EventLogger({ slug, dogName }: { slug: string; dogName: string }
               </Field>
             </div>
 
-            <Field label="In a few words" htmlFor="title" required>
+            <Field label="In a Few Words" htmlFor="title" required>
               <Input id="title" name="title" required placeholder="Second DHPP" />
             </Field>
 
@@ -130,11 +130,11 @@ export function EventLogger({ slug, dogName }: { slug: string; dogName: string }
               </Field>
             )}
 
-            <Field label="Your vet" htmlFor="vetName">
+            <Field label="Your Vet" htmlFor="vetName">
               <Input id="vetName" name="vetName" />
             </Field>
 
-            <Field label="Anything else" htmlFor="detail">
+            <Field label="Anything Else" htmlFor="detail">
               <Textarea id="detail" name="detail" rows={3} />
             </Field>
 

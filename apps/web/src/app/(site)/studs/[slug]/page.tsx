@@ -2,18 +2,7 @@ import { MapPin, PawPrint, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  ClaimPanel,
-  VerificationDensity,
-  formatCoi,
-  formatDate,
-  formatDogAge,
-  formatMoney,
-} from '@stud/ui';
+import { Card, CardContent, CardHeader, CardTitle, ClaimPanel, VerificationDensity, formatCoi, formatDate, formatDogAge, formatMoney, titleCase } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -99,7 +88,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
             <CardHeader>
               <CardTitle>
                 <span className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-brand-600" /> Health &amp; titles
+                  <ShieldCheck className="h-4 w-4 text-brand-600" /> Health &amp; Titles
                 </span>
               </CardTitle>
             </CardHeader>
@@ -117,7 +106,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
             <CardHeader>
               <CardTitle>
                 <span className="flex items-center gap-2">
-                  <PawPrint className="h-4 w-4 text-ink-400" /> What he has produced
+                  <PawPrint className="h-4 w-4 text-ink-400" /> What He Has Produced
                 </span>
               </CardTitle>
             </CardHeader>
@@ -181,7 +170,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
             <Card>
               <CardContent className="pt-5">
                 <p className="text-2xs font-semibold uppercase tracking-widest text-ink-400">
-                  Stud fee
+                  Stud Fee
                 </p>
                 <p className="mt-1 font-display text-3xl text-ink-900">
                   {listing.studFeeCents != null ? formatMoney(listing.studFeeCents, { compact: true }) : 'On enquiry'}
@@ -192,10 +181,10 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
                 {listing.feeNotes && <p className="mt-2 text-xs text-ink-500">{listing.feeNotes}</p>}
 
                 <dl className="mt-4 space-y-2 border-t border-bone-200 pt-3 text-sm">
-                  <Row label="Availability" value={listing.availability.toLowerCase()} />
+                  <Row label="Availability" value={titleCase(listing.availability)} />
                   <Row
                     label="Semen"
-                    value={listing.semenTypes.length ? listing.semenTypes.join(', ').toLowerCase() : 'natural'}
+                    value={listing.semenTypes.length ? listing.semenTypes.map(titleCase).join(", ") : 'Natural'}
                   />
                   <Row label="Ships" value={listing.shipsSemen ? 'yes' : 'no'} />
                   {listing.travelRadiusMiles != null && (

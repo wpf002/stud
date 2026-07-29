@@ -2,13 +2,13 @@ import { Check, Clock, FileSignature, PawPrint } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import { Alert, Badge, Card, CardContent, EmptyState, cn, formatDate, formatMoney } from '@stud/ui';
+import { Alert, Badge, Card, CardContent, EmptyState, cn, formatDate, formatMoney, titleCase } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Your applications',
+  title: 'Your Applications',
   robots: { index: false, follow: false },
 };
 
@@ -68,7 +68,7 @@ const STAGE_COPY: Record<string, { label: string; detail: string; tone: 'brand' 
     tone: 'neutral',
   },
   DEPOSIT_PAID: {
-    label: 'In the pick order',
+    label: 'In the Pick Order',
     detail: 'Your deposit is held. You choose when it is your turn.',
     tone: 'brand',
   },
@@ -102,7 +102,7 @@ export default async function MyApplicationsPage() {
     return (
       <div className="mx-auto max-w-3xl px-5 py-16 lg:px-8">
         <EmptyState
-          title="Sign in to see your applications"
+          title="Sign In to See Your Applications"
           description="Your applications, your place in each breeder's pick order, and your contracts all live here."
           action={
             <Link
@@ -123,7 +123,7 @@ export default async function MyApplicationsPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-10 lg:px-8">
       <h1 className="font-display text-3xl leading-tight tracking-tight text-ink-900">
-        Your applications
+        Your Applications
       </h1>
 
       {applications.length === 0 ? (
@@ -142,7 +142,7 @@ export default async function MyApplicationsPage() {
         <ul className="mt-6 space-y-4">
           {applications.map((a) => {
             const copy = STAGE_COPY[a.stage] ?? {
-              label: a.stage.toLowerCase(),
+              label: titleCase(a.stage),
               detail: '',
               tone: 'neutral' as const,
             };
@@ -192,7 +192,7 @@ export default async function MyApplicationsPage() {
                           {a.matchedPuppy.name ?? a.matchedPuppy.collarColor}
                         </span>
                         <span className="text-ink-400">
-                          {a.matchedPuppy.sex.toLowerCase()}
+                          {titleCase(a.matchedPuppy.sex)}
                           {a.matchedAt ? ` · matched ${formatDate(a.matchedAt)}` : ''}
                         </span>
                       </p>

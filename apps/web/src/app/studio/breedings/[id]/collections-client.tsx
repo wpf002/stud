@@ -3,25 +3,7 @@
 import { FlaskConical, Plus, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Field,
-  Input,
-  Select,
-  Textarea,
-  formatDate,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, Input, Select, Textarea, formatDate, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { CollectionRecordDto } from '@/lib/types';
 
@@ -100,7 +82,7 @@ export function CollectionsClient({
       <CardContent className="pt-5">
         <div className="flex items-center justify-between gap-3">
           <h3 className="flex items-center gap-2 font-display text-md text-ink-900">
-            <FlaskConical className="h-4 w-4 text-ink-400" /> Collection and shipment
+            <FlaskConical className="h-4 w-4 text-ink-400" /> Collection and Shipment
           </h3>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -110,7 +92,7 @@ export function CollectionsClient({
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Collection record</DialogTitle>
+                <DialogTitle>Collection Record</DialogTitle>
               </DialogHeader>
               <form onSubmit={submit}>
                 <DialogBody>
@@ -118,10 +100,10 @@ export function CollectionsClient({
 
                   <p className="text-2xs uppercase tracking-widest text-ink-400">Collection</p>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <Field label="Collected on" htmlFor="collectedOn" required>
+                    <Field label="Collected On" htmlFor="collectedOn" required>
                       <Input id="collectedOn" name="collectedOn" type="date" required />
                     </Field>
-                    <Field label="Collected by" htmlFor="collectedBy">
+                    <Field label="Collected By" htmlFor="collectedBy">
                       <Input id="collectedBy" name="collectedBy" placeholder="Dr. Vance" />
                     </Field>
                     <Field label="Clinic" htmlFor="clinic">
@@ -139,20 +121,20 @@ export function CollectionsClient({
                     <Field label="Concentration (M/ml)" htmlFor="concentrationMkml">
                       <Input id="concentrationMkml" name="concentrationMkml" type="number" step="1" min="0" />
                     </Field>
-                    <Field label="Total motile (M)" htmlFor="totalMotileMillions">
+                    <Field label="Total Motile (M)" htmlFor="totalMotileMillions">
                       <Input id="totalMotileMillions" name="totalMotileMillions" type="number" step="1" min="0" />
                     </Field>
                     <Field label="Motility %" htmlFor="motilityPercent">
                       <Input id="motilityPercent" name="motilityPercent" type="number" min="0" max="100" />
                     </Field>
-                    <Field label="Normal morphology %" htmlFor="morphologyPercent">
+                    <Field label="Normal Morphology %" htmlFor="morphologyPercent">
                       <Input id="morphologyPercent" name="morphologyPercent" type="number" min="0" max="100" />
                     </Field>
                   </div>
 
                   <p className="text-2xs uppercase tracking-widest text-ink-400">Shipment</p>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <Field label="Shipped on" htmlFor="shippedOn">
+                    <Field label="Shipped On" htmlFor="shippedOn">
                       <Input id="shippedOn" name="shippedOn" type="date" />
                     </Field>
                     <Field label="Carrier" htmlFor="shippingCarrier">
@@ -161,11 +143,11 @@ export function CollectionsClient({
                     <Field label="Tracking" htmlFor="trackingNumber">
                       <Input id="trackingNumber" name="trackingNumber" />
                     </Field>
-                    <Field label="Received on" htmlFor="receivedOn">
+                    <Field label="Received On" htmlFor="receivedOn">
                       <Input id="receivedOn" name="receivedOn" type="date" />
                     </Field>
                     <Field
-                      label="Condition on arrival"
+                      label="Condition on Arrival"
                       htmlFor="receivedCondition"
                       className="sm:col-span-2"
                       hint="Write what was observed, not a verdict. This is the sentence that gets quoted in a dispute."
@@ -176,7 +158,7 @@ export function CollectionsClient({
 
                   <p className="text-2xs uppercase tracking-widest text-ink-400">Insemination</p>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <Field label="Inseminated on" htmlFor="inseminatedOn">
+                    <Field label="Inseminated On" htmlFor="inseminatedOn">
                       <Input id="inseminatedOn" name="inseminatedOn" type="date" />
                     </Field>
                     <Field label="By" htmlFor="inseminatedBy">
@@ -201,7 +183,7 @@ export function CollectionsClient({
                     Cancel
                   </Button>
                   <Button type="submit" loading={busy}>
-                    Save record
+                    Save Record
                   </Button>
                 </DialogFooter>
               </form>
@@ -226,7 +208,7 @@ export function CollectionsClient({
                   </p>
                   {c.method && (
                     <Badge tone="neutral" size="sm">
-                      {c.method.toLowerCase()}
+                      {titleCase(c.method)}
                     </Badge>
                   )}
                 </div>
@@ -255,13 +237,13 @@ export function CollectionsClient({
                     )}
                     {c.morphologyPercent !== null && (
                       <div>
-                        <dt className="inline uppercase tracking-widest">Normal forms </dt>
+                        <dt className="inline uppercase tracking-widest">Normal Forms </dt>
                         <dd className="inline font-mono text-ink-700">{c.morphologyPercent}%</dd>
                       </div>
                     )}
                     {c.totalMotileMillions !== null && (
                       <div>
-                        <dt className="inline uppercase tracking-widest">Total motile </dt>
+                        <dt className="inline uppercase tracking-widest">Total Motile </dt>
                         <dd className="inline font-mono text-ink-700">{c.totalMotileMillions} M</dd>
                       </div>
                     )}

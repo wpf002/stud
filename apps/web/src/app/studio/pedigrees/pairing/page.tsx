@@ -16,7 +16,7 @@ export default async function PairingPage({
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="Trial pairing"
+        title="Trial Pairing"
         description="Model a litter before you commit to it. No breeding, no contract, no dog required."
         wide
       >

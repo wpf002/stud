@@ -97,7 +97,7 @@ export function InquiryForm({
         <form onSubmit={submit} className="mt-4 space-y-3">
           {error && <Alert tone="danger">{error}</Alert>}
 
-          <Field label="Your name" htmlFor="name" required>
+          <Field label="Your Name" htmlFor="name" required>
             <Input id="name" name="name" required inputSize="sm" autoComplete="name" />
           </Field>
           <Field label="Email" htmlFor="email" required>
@@ -117,17 +117,17 @@ export function InquiryForm({
           {puppies.length > 0 && (
             <Field label="A puppy in particular?" htmlFor="puppyId">
               <Select id="puppyId" name="puppyId" inputSize="sm" defaultValue="">
-                <option value="">No preference yet</option>
+                <option value="">No Preference Yet</option>
                 {puppies.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.label} ({p.sex === 'MALE' ? 'male' : 'female'})
+                    {p.label} ({p.sex === 'MALE' ? 'Male' : 'Female'})
                   </option>
                 ))}
               </Select>
             </Field>
           )}
 
-          <Field label="Your message" htmlFor="message" required>
+          <Field label="Your Message" htmlFor="message" required>
             <Textarea id="message" name="message" rows={4} required minLength={10} />
           </Field>
 
@@ -137,11 +137,11 @@ export function InquiryForm({
             </p>
             <Field label="Home" htmlFor="homeType">
               <Select id="homeType" name="homeType" inputSize="sm" defaultValue="">
-                <option value="">Prefer not to say</option>
-                <option value="House with fenced yard">House with fenced yard</option>
-                <option value="House without fenced yard">House without fenced yard</option>
-                <option value="Apartment or condo">Apartment or condo</option>
-                <option value="Farm or acreage">Farm or acreage</option>
+                <option value="">Prefer Not to Say</option>
+                <option value="House with fenced yard">House with Fenced Yard</option>
+                <option value="House without fenced yard">House Without Fenced Yard</option>
+                <option value="Apartment or condo">Apartment or Condo</option>
+                <option value="Farm or acreage">Farm or Acreage</option>
               </Select>
             </Field>
             <Checkbox
@@ -154,7 +154,7 @@ export function InquiryForm({
               onChange={(e) => setHasChildren(e.target.checked)}
               label="We have children at home"
             />
-            <Field label="Anything else worth knowing" htmlFor="householdNotes">
+            <Field label="Anything Else Worth Knowing" htmlFor="householdNotes">
               <Textarea id="householdNotes" name="householdNotes" rows={2} />
             </Field>
           </div>

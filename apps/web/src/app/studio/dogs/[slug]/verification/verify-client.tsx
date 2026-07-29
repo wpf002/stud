@@ -38,10 +38,10 @@ const REPORTABLE = [
   { value: 'CARDIAC', label: 'Cardiac' },
   { value: 'THYROID', label: 'Thyroid' },
   { value: 'PATELLA', label: 'Patellas' },
-  { value: 'DNA_MARKER', label: 'Genetic marker' },
+  { value: 'DNA_MARKER', label: 'Genetic Marker' },
   { value: 'TITLE_CONFORMATION', label: 'Conformation title' },
-  { value: 'TITLE_FIELD', label: 'Field trial title' },
-  { value: 'TITLE_HUNT_TEST', label: 'Hunt test title' },
+  { value: 'TITLE_FIELD', label: 'Field Trial Title' },
+  { value: 'TITLE_HUNT_TEST', label: 'Hunt Test Title' },
 ];
 
 export function VerifyClient({ initial, dogId }: { initial: VerificationResponse; dogId: string }) {
@@ -110,7 +110,7 @@ export function VerifyClient({ initial, dogId }: { initial: VerificationResponse
         <Card>
           <CardHeader>
             <CardTitle as="h4" className="text-md">
-              Lookup history
+              Lookup History
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -148,7 +148,7 @@ export function VerifyClient({ initial, dogId }: { initial: VerificationResponse
         <Card>
           <CardContent className="space-y-3 pt-5">
             <Button block loading={busy} onClick={runVerification} disabled={!hasRegistration}>
-              <RefreshCw /> Run verification
+              <RefreshCw /> Run Verification
             </Button>
             {lastRun && (
               <p className="text-2xs text-ink-500">
@@ -249,12 +249,12 @@ function ReportClaimCard({ dogId, onDone }: { dogId: string; onDone: () => void 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" block className="mt-3">
-              <Plus /> Add a reported claim
+              <Plus /> Add a Reported Claim
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add a reported claim</DialogTitle>
+              <DialogTitle>Add a Reported Claim</DialogTitle>
             </DialogHeader>
             <form onSubmit={submit}>
               <DialogBody>
@@ -265,7 +265,7 @@ function ReportClaimCard({ dogId, onDone }: { dogId: string; onDone: () => void 
                   run a verification instead — it carries far more weight.
                 </Alert>
 
-                <Field label="What is being claimed" htmlFor="claimType" required>
+                <Field label="What Is Being Claimed" htmlFor="claimType" required>
                   <Select id="claimType" value={claimType} onChange={(e) => setClaimType(e.target.value)}>
                     {REPORTABLE.map((r) => (
                       <option key={r.value} value={r.value}>
@@ -276,16 +276,16 @@ function ReportClaimCard({ dogId, onDone }: { dogId: string; onDone: () => void 
                 </Field>
 
                 {claimType === 'DNA_MARKER' && (
-                  <Field label="Marker name" htmlFor="markerName" required>
+                  <Field label="Marker Name" htmlFor="markerName" required>
                     <Input id="markerName" name="markerName" placeholder="prcd-PRA" maxLength={120} />
                   </Field>
                 )}
 
-                <Field label="Result, in your words" htmlFor="statedResult" required>
+                <Field label="Result, in Your Words" htmlFor="statedResult" required>
                   <Input id="statedResult" name="statedResult" required maxLength={200} />
                 </Field>
 
-                <Field label="Test date" htmlFor="statedTestedAt">
+                <Field label="Test Date" htmlFor="statedTestedAt">
                   <Input id="statedTestedAt" name="statedTestedAt" type="date" />
                 </Field>
 
@@ -298,7 +298,7 @@ function ReportClaimCard({ dogId, onDone }: { dogId: string; onDone: () => void 
                   Cancel
                 </Button>
                 <Button type="submit" loading={busy}>
-                  Save as reported
+                  Save as Reported
                 </Button>
               </DialogFooter>
             </form>
@@ -334,7 +334,7 @@ export function ConflictQueue({ initial }: { initial: ConflictClaim[] }) {
     return (
       <div className="rounded-card border border-dashed border-bone-400 bg-bone-100/60 px-6 py-14 text-center">
         <Check className="mx-auto h-6 w-6 text-brand-600" />
-        <p className="mt-3 font-display text-lg text-ink-800">No conflicts open</p>
+        <p className="mt-3 font-display text-lg text-ink-800">No Conflicts Open</p>
         <p className="mt-1 text-sm text-ink-500">
           Every verified claim currently agrees with its source.
         </p>
@@ -362,7 +362,7 @@ export function ConflictQueue({ initial }: { initial: ConflictClaim[] }) {
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-md border-2 border-bone-400 bg-bone-100 p-3">
-                <p className="text-2xs uppercase tracking-widest text-ink-400">What we recorded</p>
+                <p className="text-2xs uppercase tracking-widest text-ink-400">What We Recorded</p>
                 <p className="mt-1 font-mono text-lg text-ink-900">{claim.rawResult ?? '—'}</p>
                 <p className="mt-1 text-2xs text-ink-400">
                   {claim.claimType}
@@ -390,13 +390,13 @@ export function ConflictQueue({ initial }: { initial: ConflictClaim[] }) {
 
             <div className="mt-4 flex flex-wrap gap-2 border-t border-bone-200 pt-4">
               <Button size="sm" loading={busyId === claim.id} onClick={() => resolve(claim.id, 'ACCEPT_SOURCE')}>
-                Accept the source
+                Accept the Source
               </Button>
               <Button size="sm" variant="outline" disabled={busyId === claim.id} onClick={() => resolve(claim.id, 'KEEP_RECORD')}>
-                Keep what we recorded
+                Keep What We Recorded
               </Button>
               <Button size="sm" variant="ghost" disabled={busyId === claim.id} onClick={() => resolve(claim.id, 'REVOKE')}>
-                <X /> Revoke the claim
+                <X /> Revoke the Claim
               </Button>
             </div>
             <p className="mt-2 text-2xs leading-relaxed text-ink-400">

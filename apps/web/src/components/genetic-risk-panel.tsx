@@ -78,12 +78,12 @@ function MarkerRow({ marker }: { marker: MarkerRiskDto }) {
             <span className="text-sm font-medium text-ink-800">{marker.markerName}</span>
             {marker.level === 'AT_RISK' && (
               <Badge tone="danger" size="sm">
-                <AlertTriangle /> at risk
+                <AlertTriangle /> at Risk
               </Badge>
             )}
             {marker.level === 'CARRIERS_PRODUCED' && (
               <Badge tone="neutral" size="sm">
-                carriers produced
+                Carriers Produced
               </Badge>
             )}
           </p>
@@ -194,7 +194,7 @@ function ResultCell({
 }) {
   if (!value) {
     // Absence renders. It is never a blank cell.
-    return <span className="text-2xs text-ink-300">Not verified</span>;
+    return <span className="text-2xs text-ink-300">Not Verified</span>;
   }
   const good = value.outcome === 'NORMAL';
   return (

@@ -8,19 +8,7 @@ import {
   Upload,
 } from 'lucide-react';
 import Link from 'next/link';
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  Stat,
-  cn,
-  formatDate,
-  relativeTime,
-} from '@stud/ui';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, EmptyState, Stat, cn, formatDate, relativeTime, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { DashboardResponse } from '@/lib/types';
@@ -42,7 +30,7 @@ export default async function DashboardPage() {
       <StudioShell>
         <StudioPage title="Today">
           <EmptyState
-            title="Sign in to see your program"
+            title="Sign In to See Your Program"
             description="The dashboard pulls from your dogs, breedings and litters."
           />
         </StudioPage>
@@ -64,12 +52,12 @@ export default async function DashboardPage() {
           <>
             <Button variant="outline" size="sm" asChild>
               <Link href="/studio/pedigrees/import">
-                <Upload /> Import pedigree
+                <Upload /> Import Pedigree
               </Link>
             </Button>
             <Button size="sm" asChild>
               <Link href="/studio/dogs/new">
-                <Plus /> Add a dog
+                <Plus /> Add a Dog
               </Link>
             </Button>
           </>
@@ -83,10 +71,10 @@ export default async function DashboardPage() {
             action={
               <div className="flex gap-2">
                 <Button asChild size="sm" variant="outline">
-                  <Link href="/studio/pedigrees/import">Import a pedigree</Link>
+                  <Link href="/studio/pedigrees/import">Import a Pedigree</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link href="/studio/dogs/new">Add a dog</Link>
+                  <Link href="/studio/dogs/new">Add a Dog</Link>
                 </Button>
               </div>
             }
@@ -188,11 +176,11 @@ export default async function DashboardPage() {
                             <span className="flex shrink-0 items-center gap-2">
                               {l.milestones?.inCriticalWindow && (
                                 <Badge tone="warning" size="sm">
-                                  first fortnight
+                                  First Fortnight
                                 </Badge>
                               )}
                               <Badge tone={l.status === 'ON_THE_GROUND' ? 'brand' : 'neutral'} size="sm">
-                                {l.puppies.length > 0 ? `${l.puppies.length} pups` : l.status.replace(/_/g, ' ').toLowerCase()}
+                                {l.puppies.length > 0 ? `${l.puppies.length} pups` : titleCase(l.status)}
                               </Badge>
                             </span>
                           </Link>
@@ -207,7 +195,7 @@ export default async function DashboardPage() {
               <Card>
                 <CardHeader>
                   <CardTitle as="h4" className="text-md">
-                    Upcoming heats
+                    Upcoming Heats
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -259,7 +247,7 @@ export default async function DashboardPage() {
             {activeBreedings.length > 0 && (
               <Card className="mt-4">
                 <CardHeader>
-                  <CardTitle>Active breedings</CardTitle>
+                  <CardTitle>Active Breedings</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="divide-y divide-bone-200">
@@ -274,8 +262,8 @@ export default async function DashboardPage() {
                               {b.dam.callName} × {b.sire.callName}
                             </span>
                             <span className="mt-0.5 block text-2xs text-ink-400">
-                              {b.method.replace(/_/g, ' ').toLowerCase()} ·{' '}
-                              {b.status.replace(/_/g, ' ').toLowerCase()}
+                              {titleCase(b.method)} ·{' '}
+                              {titleCase(b.status)}
                               {b.forecast.gestationDay !== null && b.forecast.gestationDay >= 0
                                 ? ` · day ${b.forecast.gestationDay}`
                                 : ''}

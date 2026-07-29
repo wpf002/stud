@@ -6,7 +6,6 @@ import {
   Badge,
   Card,
   EmptyState,
-  formatCoi,
   formatDate,
   formatMoney,
 } from '@stud/ui';
@@ -144,16 +143,16 @@ function LitterCard({ listing: l }: { listing: BrowseRow }) {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {verified > 0 && (
               <Badge tone="brand" size="sm">
-                <ShieldCheck /> health checked
+                <ShieldCheck /> Health Checked
               </Badge>
             )}
             <span className="text-2xs text-ink-400">
               {AVAILABILITY_LABEL[l.availability] ?? l.availability}
-              {l.goHomeFrom ? ` · home from ${formatDate(l.goHomeFrom)}` : ''}
+              {l.goHomeFrom ? ` · Home from ${formatDate(l.goHomeFrom)}` : ''}
             </span>
             {l.cachedCoi != null && l.cachedCoi > 0.125 && (
               <Badge tone="danger" size="sm">
-                {formatCoi(l.cachedCoi)} COI
+                Closely Related Parents
               </Badge>
             )}
           </div>

@@ -38,7 +38,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
         href={`/puppies/${listing.slug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-2xs text-ink-400 hover:text-brand-600"
       >
-        <ArrowLeft className="h-3 w-3" /> Back to the litter
+        <ArrowLeft className="h-3 w-3" /> Back to the Litter
       </Link>
 
       <header className="mb-6">

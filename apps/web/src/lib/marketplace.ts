@@ -241,7 +241,7 @@ export interface KennelPage {
 export const AVAILABILITY_LABEL: Record<string, string> = {
   PLANNED: 'Planned',
   EXPECTING: 'Expecting',
-  AVAILABLE: 'Puppies available',
-  FULLY_RESERVED: 'Fully reserved',
-  PAST: 'Past litter',
+  AVAILABLE: 'Puppies Available',
+  FULLY_RESERVED: 'Fully Reserved',
+  PAST: 'Past Litter',
 };

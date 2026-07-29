@@ -1,13 +1,6 @@
 import { Users } from 'lucide-react';
 import Link from 'next/link';
-import {
-  Badge,
-  Card,
-  EmptyState,
-  cn,
-  formatMoney,
-  relativeTime,
-} from '@stud/ui';
+import { Badge, Card, EmptyState, cn, formatMoney, relativeTime, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { ApplicationDto, PipelineResponse } from '@/lib/types';
@@ -24,9 +17,9 @@ export const dynamic = 'force-dynamic';
  * litter, and the reason you gave is worth keeping.
  */
 const COLUMNS: { stages: ApplicationDto['stage'][]; title: string; hint: string }[] = [
-  { stages: ['SUBMITTED', 'IN_REVIEW'], title: 'To review', hint: 'Waiting on you.' },
+  { stages: ['SUBMITTED', 'IN_REVIEW'], title: 'To Review', hint: 'Waiting on you.' },
   { stages: ['APPROVED', 'WAITLISTED'], title: 'Approved', hint: 'Cleared, no deposit yet.' },
-  { stages: ['DEPOSIT_PAID'], title: 'In the pick order', hint: 'Deposit down, choosing soon.' },
+  { stages: ['DEPOSIT_PAID'], title: 'In the Pick Order', hint: 'Deposit down, choosing soon.' },
   { stages: ['MATCHED', 'PAID_IN_FULL'], title: 'Matched', hint: 'Has a puppy.' },
   { stages: ['COMPLETED'], title: 'Home', hint: 'Collected.' },
   { stages: ['DECLINED', 'WITHDRAWN'], title: 'Closed', hint: 'Kept for the record.' },
@@ -118,7 +111,7 @@ function ApplicationCard({ application: a }: { application: ApplicationDto }) {
         {a.matchedPuppy && (
           <p className="mt-2 text-2xs text-ink-600">
             {a.matchedPuppy.name ?? a.matchedPuppy.collarColor} ·{' '}
-            {a.matchedPuppy.sex.toLowerCase()}
+            {titleCase(a.matchedPuppy.sex)}
           </p>
         )}
 

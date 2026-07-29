@@ -153,19 +153,19 @@ export function ApplyClient({
 
       <Card>
         <CardContent className="space-y-4 pt-5">
-          <p className="text-2xs uppercase tracking-widest text-ink-400">Your home</p>
+          <p className="text-2xs uppercase tracking-widest text-ink-400">Your Home</p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="What kind of home" htmlFor="homeType">
+            <Field label="What Kind of Home" htmlFor="homeType">
               <Select id="homeType" name="homeType" defaultValue="">
                 <option value="">Choose…</option>
-                <option value="House with fenced yard">House with fenced yard</option>
-                <option value="House without fenced yard">House without fenced yard</option>
-                <option value="Apartment or condo">Apartment or condo</option>
-                <option value="Farm or acreage">Farm or acreage</option>
+                <option value="House with fenced yard">House with Fenced Yard</option>
+                <option value="House without fenced yard">House Without Fenced Yard</option>
+                <option value="Apartment or condo">Apartment or Condo</option>
+                <option value="Farm or acreage">Farm or Acreage</option>
               </Select>
             </Field>
             <Field
-              label="Hours alone on a normal weekday"
+              label="Hours Alone on a Normal Weekday"
               htmlFor="hoursAloneDaily"
               hint="An honest number is more useful than a flattering one."
             >
@@ -185,7 +185,7 @@ export function ApplyClient({
               label="There are children at home"
             />
             {hasChildren && (
-              <Field label="Their ages" htmlFor="childrenAges">
+              <Field label="Their Ages" htmlFor="childrenAges">
                 <Input id="childrenAges" name="childrenAges" placeholder="6 and 9" />
               </Field>
             )}
@@ -195,7 +195,7 @@ export function ApplyClient({
               label="We have other pets"
             />
             {hasOtherPets && (
-              <Field label="Tell them about your other pets" htmlFor="otherPetsDetail">
+              <Field label="Tell Them About Your Other Pets" htmlFor="otherPetsDetail">
                 <Input
                   id="otherPetsDetail"
                   name="otherPetsDetail"
@@ -209,29 +209,29 @@ export function ApplyClient({
 
       <Card>
         <CardContent className="space-y-4 pt-5">
-          <p className="text-2xs uppercase tracking-widest text-ink-400">The dog</p>
+          <p className="text-2xs uppercase tracking-widest text-ink-400">The Dog</p>
 
           <Field label="What are you hoping for from this dog" htmlFor="intendedHome">
             <Select id="intendedHome" name="intendedHome" defaultValue="">
               <option value="">Choose…</option>
-              <option value="Family companion">Family companion</option>
-              <option value="Companion and sport">Companion and sport</option>
-              <option value="Hunting or field work">Hunting or field work</option>
-              <option value="Conformation">Conformation showing</option>
-              <option value="Service or therapy prospect">Service or therapy prospect</option>
-              <option value="Breeding prospect">Breeding prospect</option>
+              <option value="Family companion">Family Companion</option>
+              <option value="Companion and sport">Companion and Sport</option>
+              <option value="Hunting or field work">Hunting or Field Work</option>
+              <option value="Conformation">Conformation Showing</option>
+              <option value="Service or therapy prospect">Service or Therapy Prospect</option>
+              <option value="Breeding prospect">Breeding Prospect</option>
             </Select>
           </Field>
 
           <Field
-            label="Dogs you have had"
+            label="Dogs You Have Had"
             htmlFor="previousDogs"
             hint="Including any you no longer have, and what happened. Breeders are far more interested in honesty here than in a perfect record."
           >
             <Textarea id="previousDogs" name="previousDogs" rows={3} />
           </Field>
 
-          <Field label="What this dog's life will look like" htmlFor="activityPlans">
+          <Field label="What This Dog's Life Will Look Like" htmlFor="activityPlans">
             <Textarea
               id="activityPlans"
               name="activityPlans"
@@ -241,33 +241,33 @@ export function ApplyClient({
           </Field>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Your vet" htmlFor="vetName">
+            <Field label="Your Vet" htmlFor="vetName">
               <Input id="vetName" name="vetName" />
             </Field>
-            <Field label="Their phone" htmlFor="vetPhone">
+            <Field label="Their Phone" htmlFor="vetPhone">
               <Input id="vetPhone" name="vetPhone" type="tel" />
             </Field>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
-              label="Sex you would prefer"
+              label="Sex You Would Prefer"
               htmlFor="preferredSex"
               hint="A preference, not a promise — a good breeder matches on temperament."
             >
               <Select id="preferredSex" name="preferredSex" defaultValue="EITHER">
-                <option value="EITHER">No preference</option>
+                <option value="EITHER">No Preference</option>
                 <option value="FEMALE">Female</option>
                 <option value="MALE">Male</option>
               </Select>
             </Field>
-            <Field label="Colour or markings" htmlFor="preferredColor">
+            <Field label="Colour or Markings" htmlFor="preferredColor">
               <Input id="preferredColor" name="preferredColor" placeholder="No preference" />
             </Field>
           </div>
 
           <Field
-            label="Anything you want to say"
+            label="Anything You Want to Say"
             htmlFor="message"
             hint="This is the part they will read first."
           >

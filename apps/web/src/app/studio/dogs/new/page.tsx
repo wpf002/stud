@@ -14,7 +14,7 @@ export default async function NewDogPage() {
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="Add a dog"
+        title="Add a Dog"
         description="Identity first. Health results and titles get verified in Phase 2 — they are never typed in here."
       >
         <div className="max-w-3xl">

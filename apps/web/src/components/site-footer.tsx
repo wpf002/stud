@@ -11,7 +11,7 @@ import { Logo } from './logo';
  */
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   {
-    title: 'Find a dog',
+    title: 'Find a Dog',
     links: [
       { href: '/puppies', label: 'Available Puppies' },
       { href: '/puppies?verified=1', label: 'Verified-Health Litters' },

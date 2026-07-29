@@ -158,7 +158,7 @@ async function main() {
     {
       slug: 'blackwaters-ranger-of-the-marsh',
       callName: 'Ranger',
-      registeredName: "Blackwater's Ranger Of The Marsh",
+      registeredName: "Blackwater's Ranger of the Marsh",
       breed: 'German Shorthaired Pointer',
       sex: 'MALE',
       dateOfBirth: new Date('2022-03-14'),
@@ -228,7 +228,7 @@ async function main() {
     {
       slug: 'lindqvists-jack-of-tulsa',
       callName: 'Jack',
-      registeredName: "Lindqvist's Jack Of Tulsa",
+      registeredName: "Lindqvist's Jack of Tulsa",
       breed: 'German Shorthaired Pointer',
       sex: 'MALE',
       dateOfBirth: new Date('2021-11-30'),
@@ -957,7 +957,7 @@ async function main() {
       // The title is part of the hashed document, and the API recomputes the
       // hash from the stored `contract.title` — so render under the title this
       // contract will actually be stored with, not the template's.
-      const CONTRACT_TITLE = 'Stud service agreement — Ranger × Marigold';
+      const CONTRACT_TITLE = 'Stud Service Agreement — Ranger × Marigold';
       const rendered = renderContract({ ...draft, title: CONTRACT_TITLE, healthSchedule });
 
       let contract = await db.contract.findFirst({
@@ -1144,7 +1144,7 @@ async function main() {
           data: {
             kind: 'STUD_SERVICE',
             status: 'DRAFT',
-            title: 'Stud service agreement — Atlas × Juniper',
+            title: 'Stud Service Agreement — Atlas × Juniper',
             kennelId: blackwater.id,
             sireId: atlasForDraft.id,
             damId: juniperForDraft.id,
@@ -1332,7 +1332,7 @@ async function main() {
           priceCentsFrom: 250_000,
           priceCentsTo: 250_000,
           depositCents: 50_000,
-          headline: 'German Shorthaired Pointers — Juniper × Ranger',
+          headline: 'German Shorthaired Pointers, out of our foundation bitch',
           description:
             "Juniper's first litter and one we were pleased with. All seven placed into hunting and companion homes, and we are still in touch with every one of them.\n\nBoth parents are OFA tested and NAVHDA titled, and every result on this page was checked against the issuing body rather than typed in by us.",
           includedInPrice:
@@ -1370,7 +1370,7 @@ async function main() {
           puppyDescription: 'a female German Shorthaired Pointer puppy, rust collar',
           dateOfBirth: pastWhelp.toISOString().slice(0, 10),
           damName: "Blackwater's Juniper Wind",
-          sireName: "Blackwater's Ranger Of The Marsh",
+          sireName: "Blackwater's Ranger of the Marsh",
         },
         'fee.purchase_price': {
           priceTotal: 250_000,
@@ -1415,7 +1415,7 @@ async function main() {
         }
       }
 
-      const saleTitle = 'Puppy sale agreement — Rust to Sam Ortiz';
+      const saleTitle = 'Puppy Sale Agreement — Rust to Sam Ortiz';
       const saleRendered = renderContract({ ...saleDraft, title: saleTitle, healthSchedule: saleHealth });
 
       const saleContract = await db.contract.create({
@@ -1805,7 +1805,24 @@ async function main() {
   });
   await db.litterListing.updateMany({
     where: { slug: 'german-shorthaired-pointer-juniper-x-ranger-a' },
-    data: { photoUrls: [PHOTOS.gspPuppyPatio, PHOTOS.gspAutumnRun] },
+    data: {
+      photoUrls: [PHOTOS.gspPuppyPatio, PHOTOS.gspAutumnRun],
+      // Unconditional, like the photos above: the listing itself is only
+      // created on a first run, so copy edits would never reach a database
+      // that already has it.
+      headline: 'German Shorthaired Pointers, out of our foundation bitch',
+    },
+  });
+
+  // Dogs are only created on a first run, so a corrected name would never
+  // reach a database that already has them.
+  await db.dog.updateMany({
+    where: { slug: 'blackwaters-ranger-of-the-marsh' },
+    data: { registeredName: "Blackwater's Ranger of the Marsh" },
+  });
+  await db.dog.updateMany({
+    where: { slug: 'lindqvists-jack-of-tulsa' },
+    data: { registeredName: "Lindqvist's Jack of Tulsa" },
   });
 
   await db.kennel.updateMany({

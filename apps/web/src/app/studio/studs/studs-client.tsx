@@ -3,23 +3,7 @@
 import { AlertTriangle, Bookmark, MapPin, Search, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Checkbox,
-  EmptyState,
-  Field,
-  Input,
-  Select,
-  cn,
-  formatCoi,
-  formatDistance,
-  formatMoney,
-  formatDogAge,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, Checkbox, EmptyState, Field, Input, Select, cn, formatCoi, formatDistance, formatDogAge, formatMoney, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { DogSummary, StudSearchResponse, StudRow } from '@/lib/types';
 
@@ -32,8 +16,8 @@ const HEALTH_FILTERS = [
 ];
 
 const TITLE_FILTERS = [
-  { value: 'TITLE_HUNT_TEST', label: 'Hunt test' },
-  { value: 'TITLE_FIELD', label: 'Field trial' },
+  { value: 'TITLE_HUNT_TEST', label: 'Hunt Test' },
+  { value: 'TITLE_FIELD', label: 'Field Trial' },
   { value: 'TITLE_CONFORMATION', label: 'Conformation' },
   { value: 'NAVHDA_UT', label: 'NAVHDA UT' },
 ];
@@ -120,12 +104,12 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
 
             {/* The differentiating filter. */}
             <Field
-              label="Match against"
+              label="Match Against"
               htmlFor="damId"
               hint="Pick a bitch and every stud is scored for the litter it would produce with her."
             >
               <Select id="damId" value={damId} onChange={(e) => setDamId(e.target.value)}>
-                <option value="">No bitch selected</option>
+                <option value="">No Bitch Selected</option>
                 {dams.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.callName}
@@ -135,7 +119,7 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
             </Field>
 
             {damId && (
-              <Field label="Max projected COI (%)" htmlFor="maxCoi">
+              <Field label="Max Projected COI (%)" htmlFor="maxCoi">
                 <Input
                   id="maxCoi"
                   type="number"
@@ -152,7 +136,7 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
 
             <fieldset>
               <legend className="flex items-center gap-1.5 text-sm font-medium text-ink-700">
-                <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> Verified normal
+                <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> Verified Normal
               </legend>
               <p className="mb-2 mt-0.5 text-2xs leading-relaxed text-ink-400">
                 Checked against the source, not typed in by the owner.
@@ -169,13 +153,13 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
                 <Checkbox
                   checked={requireChic}
                   onChange={(e) => setRequireChic(e.target.checked)}
-                  label="CHIC number"
+                  label="CHIC Number"
                 />
               </div>
             </fieldset>
 
             <fieldset>
-              <legend className="text-sm font-medium text-ink-700">Verified titles</legend>
+              <legend className="text-sm font-medium text-ink-700">Verified Titles</legend>
               <div className="mt-2 space-y-1.5">
                 {TITLE_FILTERS.map((t) => (
                   <Checkbox
@@ -191,14 +175,14 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
             <Field label="Semen" htmlFor="semenType">
               <Select id="semenType" value={semenType} onChange={(e) => setSemenType(e.target.value)}>
                 <option value="">Any</option>
-                <option value="NATURAL">Natural only</option>
+                <option value="NATURAL">Natural Only</option>
                 <option value="FRESH">Fresh</option>
-                <option value="CHILLED">Ships chilled</option>
-                <option value="FROZEN">Ships frozen</option>
+                <option value="CHILLED">Ships Chilled</option>
+                <option value="FROZEN">Ships Frozen</option>
               </Select>
             </Field>
 
-            <Field label="Max fee ($)" htmlFor="maxFee">
+            <Field label="Max Fee ($)" htmlFor="maxFee">
               <Input
                 id="maxFee"
                 type="number"
@@ -242,10 +226,10 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
               }}
               className="w-44"
             >
-              <option value="RELEVANCE">Most verified</option>
-              {damId && <option value="COI">Lowest projected COI</option>}
-              <option value="FEE_ASC">Fee: low to high</option>
-              <option value="FEE_DESC">Fee: high to low</option>
+              <option value="RELEVANCE">Most Verified</option>
+              {damId && <option value="COI">Lowest Projected COI</option>}
+              <option value="FEE_ASC">Fee: Low to High</option>
+              <option value="FEE_DESC">Fee: High to Low</option>
               <option value="DISTANCE">Nearest</option>
             </Select>
           </div>
@@ -315,8 +299,8 @@ function StudCard({ stud, damId }: { stud: StudRow; damId: string | null }) {
                   {stud.distanceMiles != null ? ` · ${formatDistance(stud.distanceMiles)}` : ''}
                 </span>
               )}
-              {stud.semenTypes.length > 0 && <span>{stud.semenTypes.join(', ').toLowerCase()}</span>}
-              {stud.shipsSemen && <span>ships</span>}
+              {stud.semenTypes.length > 0 && <span>{stud.semenTypes.map(titleCase).join(", ")}</span>}
+              {stud.shipsSemen && <span>Ships</span>}
             </p>
           </div>
 
@@ -325,7 +309,7 @@ function StudCard({ stud, damId }: { stud: StudRow; damId: string | null }) {
               {stud.studFeeCents != null ? formatMoney(stud.studFeeCents, { compact: true }) : '—'}
             </p>
             <Badge tone={stud.availability === 'AVAILABLE' ? 'brand' : 'neutral'} size="sm">
-              {stud.availability.toLowerCase()}
+              {titleCase(stud.availability)}
             </Badge>
           </div>
         </div>
@@ -377,12 +361,12 @@ function StudCard({ stud, damId }: { stud: StudRow; damId: string | null }) {
 
       <div className="flex items-center gap-2 border-t border-bone-200 bg-bone-100 px-4 py-2">
         <Button asChild variant="ghost" size="sm">
-          <Link href={`/studs/${dog.slug}`}>View profile</Link>
+          <Link href={`/studs/${dog.slug}`}>View Profile</Link>
         </Button>
         {damId && (
           <>
             <Button asChild variant="ghost" size="sm">
-              <Link href={`/studio/pedigrees/pairing?sireId=${dog.id}&damId=${damId}`}>Trial pairing</Link>
+              <Link href={`/studio/pedigrees/pairing?sireId=${dog.id}&damId=${damId}`}>Trial Pairing</Link>
             </Button>
             <Button variant="ghost" size="sm" onClick={shortlist} loading={saving} disabled={saved}>
               <Bookmark /> {saved ? 'Shortlisted' : 'Shortlist'}

@@ -1,16 +1,7 @@
 import { ArrowLeft, CalendarHeart, Check, FileSignature, PawPrint } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Stat,
-  cn,
-  formatDate,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, Stat, cn, formatDate, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { BreedingDetailResponse } from '@/lib/types';
@@ -29,14 +20,12 @@ export default async function BreedingPage({ params }: { params: Promise<{ id: s
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
         title={`${breeding.dam.callName} × ${breeding.sire.callName}`}
-        description={`${breeding.method.replace(/_/g, ' ').toLowerCase()} · ${breeding.status
-          .replace(/_/g, ' ')
-          .toLowerCase()}`}
+        description={`${titleCase(breeding.method)} · ${titleCase(breeding.status)}`}
         wide
         actions={
           <Button variant="ghost" size="sm" asChild>
             <Link href="/studio/breedings">
-              <ArrowLeft /> All breedings
+              <ArrowLeft /> All Breedings
             </Link>
           </Button>
         }
@@ -67,8 +56,8 @@ export default async function BreedingPage({ params }: { params: Promise<{ id: s
                   />
                   <Stat
                     label="Basis"
-                    value={forecast.basis.replace(/_/g, ' ').toLowerCase()}
-                    sub={forecast.confidence.toLowerCase() + ' confidence'}
+                    value={titleCase(forecast.basis)}
+                    sub={titleCase(forecast.confidence) + ' confidence'}
                   />
                 </div>
                 {/*
@@ -87,7 +76,7 @@ export default async function BreedingPage({ params }: { params: Promise<{ id: s
               <Card>
                 <CardContent className="pt-5">
                   <h3 className="flex items-center gap-2 font-display text-md text-ink-900">
-                    <CalendarHeart className="h-4 w-4 text-ink-400" /> Gestation calendar
+                    <CalendarHeart className="h-4 w-4 text-ink-400" /> Gestation Calendar
                   </h3>
                   <p className="mt-1 text-2xs text-ink-400">
                     Anchored on {milestoneAnchor === 'OVULATION' ? 'ovulation' : 'the breeding date'}
@@ -166,13 +155,13 @@ export default async function BreedingPage({ params }: { params: Promise<{ id: s
             {breeding.events.length > 0 && (
               <Card>
                 <CardContent className="pt-5">
-                  <p className="text-2xs uppercase tracking-widest text-ink-400">Breeding dates</p>
+                  <p className="text-2xs uppercase tracking-widest text-ink-400">Breeding Dates</p>
                   <ul className="mt-2 space-y-1.5">
                     {breeding.events.map((e) => (
                       <li key={e.id} className="text-sm text-ink-700">
                         {formatDate(e.occurredOn)}
                         <span className="ml-2 text-2xs text-ink-400">
-                          {e.method.replace(/_/g, ' ').toLowerCase()}
+                          {titleCase(e.method)}
                           {e.tieMinutes !== null ? ` · ${e.tieMinutes} min tie` : ''}
                         </span>
                       </li>
@@ -201,7 +190,7 @@ export default async function BreedingPage({ params }: { params: Promise<{ id: s
                               tone={c.status === 'SIGNED' || c.status === 'COMPLETED' ? 'brand' : 'neutral'}
                               size="sm"
                             >
-                              {c.status.replace(/_/g, ' ').toLowerCase()}
+                              {titleCase(c.status)}
                             </Badge>
                           </span>
                         </Link>

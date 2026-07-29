@@ -1,14 +1,6 @@
 import { Copy, GitBranch, Upload } from 'lucide-react';
 import Link from 'next/link';
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
-  formatDateTime,
-} from '@stud/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, EmptyState, formatDateTime, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 
@@ -56,7 +48,7 @@ export default async function PedigreesPage() {
           <Card interactive>
             <Link href="/studio/pedigrees/pairing" className="block p-5">
               <GitBranch className="h-5 w-5 text-brand-600" />
-              <p className="mt-3 font-display text-lg text-ink-900">Trial pairing</p>
+              <p className="mt-3 font-display text-lg text-ink-900">Trial Pairing</p>
               <p className="mt-1 text-sm leading-relaxed text-ink-500">
                 Pick a dam and a prospective sire and get the projected litter COI, the shared
                 ancestors, and how much to trust the number — for a litter that does not exist yet.
@@ -85,7 +77,7 @@ export default async function PedigreesPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Import history</CardTitle>
+            <CardTitle>Import History</CardTitle>
           </CardHeader>
           <CardContent>
             {!imports || imports.imports.length === 0 ? (
@@ -95,7 +87,7 @@ export default async function PedigreesPage() {
                 description="Paste a pedigree off a registry page and we will build the graph, match ancestors you already have, and show the COI before anything is saved."
                 action={
                   <Button asChild size="sm">
-                    <Link href="/studio/pedigrees/import">Import a pedigree</Link>
+                    <Link href="/studio/pedigrees/import">Import a Pedigree</Link>
                   </Button>
                 }
               />
@@ -114,7 +106,7 @@ export default async function PedigreesPage() {
                         )}
                       </p>
                       <p className="mt-0.5 text-2xs text-ink-400">
-                        {im.kind.replace('_', ' ').toLowerCase()} · {formatDateTime(im.createdAt)}
+                        {titleCase(im.kind)} · {formatDateTime(im.createdAt)}
                       </p>
                     </div>
                     <p className="shrink-0 text-right font-mono text-2xs tabular-nums text-ink-500">

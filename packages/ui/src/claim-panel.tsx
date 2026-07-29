@@ -74,7 +74,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   HEALTH: 'Health',
   GENETIC: 'Genetic',
   TITLE: 'Titles',
-  PERFORMANCE: 'Field & performance',
+  PERFORMANCE: 'Field & Performance',
   REGISTRATION: 'Registration',
 };
 
@@ -136,7 +136,7 @@ export function ClaimPanel({
         <section key={cat}>
           <h3 className="flex items-center gap-2 text-2xs font-semibold uppercase tracking-widest text-ink-400">
             <ShieldCheck className="h-3.5 w-3.5 text-brand-600" />
-            {CATEGORY_LABEL[cat] ?? cat} — verified
+            {CATEGORY_LABEL[cat] ?? cat} — Verified
           </h3>
           <ul className="mt-2.5 divide-y divide-bone-200 rounded-md border border-bone-300 bg-bone-50">
             {byCategory.get(cat)!.map((claim) => (
@@ -151,7 +151,7 @@ export function ClaimPanel({
         <section>
           <h3 className="flex items-center gap-2 text-2xs font-semibold uppercase tracking-widest text-ink-400">
             <FileText className="h-3.5 w-3.5 text-verify-reported" />
-            Reported by the owner — not verified
+            Reported by the Owner — Not Verified
           </h3>
           <ul className="mt-2.5 divide-y divide-bone-300 rounded-md border border-dashed border-bone-400 bg-bone-100/60">
             {reported.map((claim) => (
@@ -181,7 +181,7 @@ export function ClaimPanel({
       {missing.length > 0 && (
         <section>
           <h3 className="text-2xs font-semibold uppercase tracking-widest text-ink-400">
-            Not submitted
+            Not Submitted
           </h3>
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {missing.map((t) => (
@@ -343,7 +343,7 @@ export function VerificationDensity({
         <Stat label="Health normal" value={summary.healthNormalCount} />
         <Stat label="Verified titles" value={summary.verifiedTitleCount} />
         <Stat label="Owner-reported" value={summary.reportedCount} muted />
-        <Stat label="Needs recheck" value={summary.staleCount} muted />
+        <Stat label="Needs Recheck" value={summary.staleCount} muted />
         {/* Concerning findings are counted, never hidden. */}
         {summary.concerningCount > 0 && (
           <Stat label="Concerning" value={summary.concerningCount} tone="danger" />

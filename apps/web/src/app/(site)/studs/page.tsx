@@ -2,7 +2,7 @@ import { MapPin, PawPrint, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Badge, Card, EmptyState, formatCoi, formatMoney } from '@stud/ui';
+import { Badge, Card, EmptyState, formatCoi, formatMoney, titleCase } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 
 export const metadata: Metadata = {
@@ -133,7 +133,7 @@ export default async function StudsPage({
                           tone={s.availability === 'AVAILABLE' ? 'brand' : 'neutral'}
                           size="sm"
                         >
-                          {s.availability.toLowerCase()}
+                          {titleCase(s.availability)}
                         </Badge>
                       </div>
                     </div>
@@ -157,7 +157,7 @@ export default async function StudsPage({
                           {formatCoi(s.dog.pedigreeStats.coi)} COI
                         </span>
                       )}
-                      {s.shipsSemen && <span className="text-2xs text-ink-400">ships</span>}
+                      {s.shipsSemen && <span className="text-2xs text-ink-400">Ships</span>}
                     </div>
                     </div>
                   </Link>

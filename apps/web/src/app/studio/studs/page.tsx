@@ -12,7 +12,7 @@ export default async function StudsPage() {
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="Stud directory"
+        title="Stud Directory"
         description="Filter by what has been verified, not by what has been claimed."
         wide
       >

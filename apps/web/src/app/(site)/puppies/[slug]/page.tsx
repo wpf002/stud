@@ -3,22 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  ClaimPanel,
-  VerificationDensity,
-  cn,
-  formatCoi,
-  formatDate,
-  formatDogAge,
-  formatMoney,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle, ClaimPanel, VerificationDensity, cn, formatCoi, formatDate, formatDogAge, formatMoney, titleCase } from '@stud/ui';
 import { RELATIONSHIP_COPY } from '@stud/pedigree';
 import { FunnelBeacon } from '@/components/funnel-beacon';
 import { InquiryForm } from '@/components/inquiry-form';
@@ -187,7 +172,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {listing.description && (
             <section>
-              <h2 className="sr-only">About this litter</h2>
+              <h2 className="sr-only">About This Litter</h2>
               <div className="space-y-3 whitespace-pre-line text-md leading-relaxed text-ink-700">
                 {listing.description}
               </div>
@@ -257,7 +242,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
                       coi.band === 'LOW' ? 'brand' : coi.band === 'MODERATE' ? 'warning' : 'danger'
                     }
                   >
-                    {coi.band.toLowerCase()}
+                    {titleCase(coi.band)}
                   </Badge>
                 </div>
 
@@ -289,7 +274,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
                 <p className="mt-3 text-xs leading-relaxed text-ink-500">{coi.confidenceNote}</p>
                 <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 border-t border-bone-200 pt-3 text-2xs text-ink-500">
                   <div>
-                    <dt className="inline uppercase tracking-widest">Pedigree known </dt>
+                    <dt className="inline uppercase tracking-widest">Pedigree Known </dt>
                     <dd className="inline font-mono text-ink-700">
                       {Math.round(coi.sireCompleteness * 100)}% sire ·{' '}
                       {Math.round(coi.damCompleteness * 100)}% dam
@@ -335,7 +320,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
                           </p>
                         </div>
                         <Badge tone={spoken ? 'neutral' : 'brand'} size="sm">
-                          {p.status.toLowerCase()}
+                          {titleCase(p.status)}
                         </Badge>
                       </div>
                       {p.priceCents != null && !spoken && (
@@ -402,7 +387,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
                   )}
                 </>
               ) : (
-                <p className="font-display text-2xl text-ink-500">Price on enquiry</p>
+                <p className="font-display text-2xl text-ink-500">Price on Enquiry</p>
               )}
 
               {listing.priceNotes && (

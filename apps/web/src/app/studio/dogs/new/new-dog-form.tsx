@@ -68,10 +68,10 @@ export function NewDogForm({ dogs, kennelId }: { dogs: DogSummary[]; kennelId?: 
         <CardContent className="space-y-4 pt-5">
           <p className="text-2xs font-semibold uppercase tracking-widest text-ink-400">Identity</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Call name" htmlFor="callName" required hint="What you actually shout across a field.">
+            <Field label="Call Name" htmlFor="callName" required hint="What you actually shout across a field.">
               <Input id="callName" name="callName" required maxLength={80} placeholder="Ranger" />
             </Field>
-            <Field label="Registered name" htmlFor="registeredName">
+            <Field label="Registered Name" htmlFor="registeredName">
               <Input
                 id="registeredName"
                 name="registeredName"
@@ -88,7 +88,7 @@ export function NewDogForm({ dogs, kennelId }: { dogs: DogSummary[]; kennelId?: 
                 <option value="FEMALE">Female</option>
               </Select>
             </Field>
-            <Field label="Date of birth" htmlFor="dateOfBirth">
+            <Field label="Date of Birth" htmlFor="dateOfBirth">
               <Input id="dateOfBirth" name="dateOfBirth" type="date" />
             </Field>
             <Field label="Microchip" htmlFor="microchip">
@@ -158,7 +158,7 @@ export function NewDogForm({ dogs, kennelId }: { dogs: DogSummary[]; kennelId?: 
             Physical &amp; temperament
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Colour / pattern" htmlFor="colorPattern">
+            <Field label="Colour / Pattern" htmlFor="colorPattern">
               <Input id="colorPattern" name="colorPattern" maxLength={120} placeholder="Liver roan" />
             </Field>
             <Field label="Markings" htmlFor="markings">
@@ -172,7 +172,7 @@ export function NewDogForm({ dogs, kennelId }: { dogs: DogSummary[]; kennelId?: 
             </Field>
           </div>
           <Field
-            label="Temperament notes"
+            label="Temperament Notes"
             htmlFor="temperamentNotes"
             hint="Self-reported. It renders as a Reported claim and is never presented as verified."
           >
@@ -183,7 +183,7 @@ export function NewDogForm({ dogs, kennelId }: { dogs: DogSummary[]; kennelId?: 
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending} size="lg">
-          Save dog
+          Save Dog
         </Button>
         <Button type="button" variant="ghost" size="lg" onClick={() => router.back()}>
           Cancel

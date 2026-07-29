@@ -209,7 +209,7 @@ export function NewContractClient({
               </Select>
             </Field>
             <Field
-              label="Counterparty email"
+              label="Counterparty Email"
               htmlFor="counterpartyEmail"
               required
               hint="They\u2019ll need a Stud account to sign."
@@ -225,7 +225,7 @@ export function NewContractClient({
             </Field>
             <Field label="Sire" htmlFor="sireId">
               <Select id="sireId" value={sireId} onChange={(e) => setSireId(e.target.value)}>
-                <option value="">Not from my kennel</option>
+                <option value="">Not from My Kennel</option>
                 {sires.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.callName}
@@ -235,7 +235,7 @@ export function NewContractClient({
             </Field>
             <Field label="Dam" htmlFor="damId">
               <Select id="damId" value={damId} onChange={(e) => setDamId(e.target.value)}>
-                <option value="">Not from my kennel</option>
+                <option value="">Not from My Kennel</option>
                 {dams.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.callName}
@@ -264,12 +264,12 @@ export function NewContractClient({
                   <h3 className="font-display text-md text-ink-900">{clause.title}</h3>
                   {clause.effects?.definesNoLitterRemedy && (
                     <Badge tone="brand" size="sm">
-                      sets the refund position
+                      Sets the Refund Position
                     </Badge>
                   )}
                   {clause.effects?.definesBalanceTrigger && (
                     <Badge tone="brand" size="sm">
-                      sets when the balance falls due
+                      Sets When the Balance Falls Due
                     </Badge>
                   )}
                 </div>
@@ -358,7 +358,7 @@ export function NewContractClient({
       <div className="flex items-center justify-end gap-3">
         <p className="text-2xs text-ink-400">You can keep editing until it is sent.</p>
         <Button type="submit" loading={busy} disabled={!counterpartyEmail}>
-          Create draft <ArrowRight />
+          Create Draft <ArrowRight />
         </Button>
       </div>
     </form>

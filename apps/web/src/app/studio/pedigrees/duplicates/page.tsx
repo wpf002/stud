@@ -10,7 +10,7 @@ export default async function DuplicatesPage() {
 
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
-      <StudioPage title="Duplicate ancestors" description="Keep the graph clean, keep the COI honest." wide>
+      <StudioPage title="Duplicate Ancestors" description="Keep the graph clean, keep the COI honest." wide>
         <DuplicatesClient initial={data?.candidates ?? []} />
       </StudioPage>
     </StudioShell>

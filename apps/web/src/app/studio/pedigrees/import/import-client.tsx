@@ -101,7 +101,7 @@ export function ImportClient({ kennelId }: { kennelId?: string }) {
           <CardHeader>
             <CardTitle>
               <span className="flex items-center gap-2">
-                <Upload className="h-4 w-4 text-ink-400" /> Paste or upload
+                <Upload className="h-4 w-4 text-ink-400" /> Paste or Upload
               </span>
             </CardTitle>
           </CardHeader>
@@ -116,8 +116,8 @@ export function ImportClient({ kennelId }: { kennelId?: string }) {
                     setPreview(null);
                   }}
                 >
-                  <option value="REGISTRY_TEXT">Pedigree text (indented)</option>
-                  <option value="CSV">CSV / spreadsheet export</option>
+                  <option value="REGISTRY_TEXT">Pedigree Text (indented)</option>
+                  <option value="CSV">CSV / Spreadsheet Export</option>
                 </Select>
               </Field>
               <Field label="Breed" htmlFor="breed" hint="Applied to any ancestor with none of its own.">
@@ -149,11 +149,11 @@ export function ImportClient({ kennelId }: { kennelId?: string }) {
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={runPreview} loading={busy} disabled={!input.trim()}>
-                Preview import <ArrowRight />
+                Preview Import <ArrowRight />
               </Button>
               {kind === 'REGISTRY_TEXT' && !input && (
                 <Button variant="ghost" onClick={() => setInput(SAMPLE)}>
-                  Use a sample
+                  Use a Sample
                 </Button>
               )}
             </div>
@@ -225,7 +225,7 @@ export function ImportClient({ kennelId }: { kennelId?: string }) {
             <Card>
               <CardHeader>
                 <CardTitle as="h4" className="text-md">
-                  What will happen
+                  What Will Happen
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -352,7 +352,7 @@ function ParsedRow({
                 {dog.registryBody} {dog.registrationNumber}
               </span>
             ) : (
-              <span className="text-warning-fg">no registration number</span>
+              <span className="text-warning-fg">No Registration Number</span>
             )}
             {dog.titlesPrefix && <span>titles: {dog.titlesPrefix}</span>}
             {dog.titlesSuffix && <span>{dog.titlesSuffix}</span>}

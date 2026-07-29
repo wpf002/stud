@@ -27,7 +27,7 @@ export default async function DogVerificationPage({
         actions={
           <Button variant="ghost" size="sm" asChild>
             <Link href={`/studio/dogs/${slug}`}>
-              <ArrowLeft /> Back to dog
+              <ArrowLeft /> Back to Dog
             </Link>
           </Button>
         }

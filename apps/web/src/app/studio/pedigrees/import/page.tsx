@@ -10,7 +10,7 @@ export default async function ImportPage() {
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="Import a pedigree"
+        title="Import a Pedigree"
         description="Paste it off a registry page or drop in a spreadsheet. Nothing is written until you commit."
         wide
       >

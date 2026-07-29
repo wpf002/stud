@@ -17,32 +17,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Checkbox,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Field,
-  Input,
-  Select,
-  Textarea,
-  cn,
-  formatDate,
-  formatDateTime,
-  formatMoney,
-  relativeTime,
-} from '@stud/ui';
+import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, Input, Select, Textarea, cn, formatDate, formatDateTime, formatMoney, relativeTime, titleCase } from '@stud/ui';
 import { api, ApiError } from '@/lib/api';
 import type { ApplicationDetailResponse, ApplicationStage } from '@/lib/types';
 
@@ -111,7 +86,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
         <Card>
           <CardHeader>
             <CardTitle as="h4" className="text-md">
-              The household
+              The Household
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -158,7 +133,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
               <Block label="What they hope for">
                 {[
                   a.preferredSex && a.preferredSex !== 'EITHER'
-                    ? `${a.preferredSex.toLowerCase()}`
+                    ? `${titleCase(a.preferredSex)}`
                     : 'no preference on sex',
                   a.preferredColor,
                 ]
@@ -186,13 +161,13 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
                 <li key={e.id} className="flex gap-3 border-l-2 border-bone-300 py-2 pl-3">
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-ink-800">
-                      {e.toStage.replace(/_/g, ' ').toLowerCase()}
+                      {titleCase(e.toStage)}
                       <span className="text-2xs font-normal text-ink-400">
                         {formatDateTime(e.occurredAt)}
                       </span>
                       {e.automatic && (
                         <Badge tone="neutral" size="sm">
-                          automatic
+                          Automatic
                         </Badge>
                       )}
                     </p>
@@ -217,7 +192,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
           <CardContent className="pt-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Badge tone={STAGE_TONE[a.stage] ?? 'neutral'}>
-                {a.stage.replace(/_/g, ' ').toLowerCase()}
+                {titleCase(a.stage)}
               </Badge>
               {pick && (
                 <span className="text-2xs text-ink-400">
@@ -250,7 +225,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
         {/* Actions, in the order the process runs. Only what is next. */}
         <Card className="border-brand-300">
           <CardContent className="space-y-3 pt-5">
-            <p className="text-2xs uppercase tracking-widest text-ink-400">What happens next</p>
+            <p className="text-2xs uppercase tracking-widest text-ink-400">What Happens Next</p>
 
             {(a.stage === 'SUBMITTED' || a.stage === 'IN_REVIEW') && (
               <>
@@ -274,7 +249,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
 
             {a.stage === 'WAITLISTED' && (
               <Button block loading={busy} onClick={() => setStage('APPROVED')}>
-                Move off the waitlist
+                Move off the Waitlist
               </Button>
             )}
 
@@ -366,7 +341,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
         {a.matchedPuppyId && a.stage !== 'COMPLETED' && (
           <Card>
             <CardContent className="pt-5">
-              <p className="text-2xs uppercase tracking-widest text-ink-400">Before it goes home</p>
+              <p className="text-2xs uppercase tracking-widest text-ink-400">Before It Goes Home</p>
               <ul className="mt-2 space-y-1.5">
                 {readiness.blockers.map((b) => (
                   <li key={b} className="flex gap-2 text-xs leading-relaxed text-danger-fg">
@@ -393,7 +368,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
         {pick && a.stage === 'DEPOSIT_PAID' && (
           <Card>
             <CardContent className="pt-5">
-              <p className="text-2xs uppercase tracking-widest text-ink-400">Pick order</p>
+              <p className="text-2xs uppercase tracking-widest text-ink-400">Pick Order</p>
               <p className="mt-1 font-display text-2xl text-ink-900">
                 #{pick.position}{' '}
                 <span className="font-sans text-sm font-normal text-ink-400">of {pick.of}</span>
@@ -468,7 +443,7 @@ function DeclineDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Decline this application</DialogTitle>
+          <DialogTitle>Decline This Application</DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(e) => {
@@ -516,11 +491,11 @@ function MatchDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button block>Match a puppy</Button>
+        <Button block>Match a Puppy</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Match a puppy</DialogTitle>
+          <DialogTitle>Match a Puppy</DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(e) => {
@@ -548,7 +523,7 @@ function MatchDialog({
                 </option>
                 {puppies.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name ?? p.collarColor} — {p.sex.toLowerCase()}
+                    {p.name ?? p.collarColor} — {titleCase(p.sex)}
                   </option>
                 ))}
               </Select>
@@ -586,12 +561,12 @@ function ContractDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button block>
-          <FileSignature /> Draw up the contract
+          <FileSignature /> Draw up the Contract
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Puppy sale agreement</DialogTitle>
+          <DialogTitle>Puppy Sale Agreement</DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(e) => {
@@ -615,10 +590,10 @@ function ContractDialog({
               You are setting the money; everything else is already known.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Purchase price" htmlFor="price" required>
+              <Field label="Purchase Price" htmlFor="price" required>
                 <Input id="price" name="price" defaultValue={(priceCents / 100).toFixed(2)} required />
               </Field>
-              <Field label="Deposit already paid" htmlFor="deposit" required>
+              <Field label="Deposit Already Paid" htmlFor="deposit" required>
                 <Input
                   id="deposit"
                   name="deposit"
@@ -633,7 +608,7 @@ function ContractDialog({
               Cancel
             </Button>
             <Button type="submit" loading={busy} disabled={!hasAccount}>
-              Create draft
+              Create Draft
             </Button>
           </DialogFooter>
         </form>
@@ -662,12 +637,12 @@ function HandoverDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button block>
-          <PawPrint /> Record the handover
+          <PawPrint /> Record the Handover
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Going home</DialogTitle>
+          <DialogTitle>Going Home</DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(e) => {
@@ -708,7 +683,7 @@ function HandoverDialog({
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Collected on" htmlFor="collectedOn" required>
+              <Field label="Collected On" htmlFor="collectedOn" required>
                 <Input
                   id="collectedOn"
                   name="collectedOn"
@@ -718,7 +693,7 @@ function HandoverDialog({
                   defaultValue={new Date().toISOString().slice(0, 10)}
                 />
               </Field>
-              <Field label="Collected by" htmlFor="collectedBy">
+              <Field label="Collected By" htmlFor="collectedBy">
                 <Input id="collectedBy" name="collectedBy" />
               </Field>
             </div>
@@ -728,7 +703,7 @@ function HandoverDialog({
               copy of the record in Phase 8, so it is captured here rather
               than reconstructed later from memory.
             */}
-            <p className="text-2xs uppercase tracking-widest text-ink-400">What goes with them</p>
+            <p className="text-2xs uppercase tracking-widest text-ink-400">What Goes with Them</p>
             <div className="space-y-1.5">
               <Checkbox name="microchipRegistered" label="Microchip registered to the new owner" />
               <Checkbox name="registrationPapers" label="Registration paperwork" />
@@ -737,13 +712,13 @@ function HandoverDialog({
               <Checkbox name="wormingRecord" label="Worming record" />
             </div>
 
-            <Field label="Microchip number" htmlFor="microchipNumber">
+            <Field label="Microchip Number" htmlFor="microchipNumber">
               <Input id="microchipNumber" name="microchipNumber" defaultValue={microchip} />
             </Field>
-            <Field label="Food sent with them" htmlFor="foodProvided">
+            <Field label="Food Sent with Them" htmlFor="foodProvided">
               <Input id="foodProvided" name="foodProvided" placeholder="Two weeks of what they are on" />
             </Field>
-            <Field label="Anything else that went with them" htmlFor="itemsProvided">
+            <Field label="Anything Else That Went with Them" htmlFor="itemsProvided">
               <Textarea id="itemsProvided" name="itemsProvided" rows={2} />
             </Field>
             <Field label="Notes" htmlFor="notes">
@@ -806,7 +781,7 @@ function PickPositionForm({
         onSet(raw === '' ? null : Number(raw));
       }}
     >
-      <Field label="Set position" htmlFor={`pos-${id}`} className="flex-1">
+      <Field label="Set Position" htmlFor={`pos-${id}`} className="flex-1">
         <Input
           id={`pos-${id}`}
           name="position"

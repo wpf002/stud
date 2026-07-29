@@ -1,6 +1,6 @@
 import { CalendarHeart } from 'lucide-react';
 import Link from 'next/link';
-import { Badge, Card, EmptyState, formatDate } from '@stud/ui';
+import { Badge, Card, EmptyState, formatDate, titleCase } from '@stud/ui';
 import { StudioPage, StudioShell } from '@/components/studio-shell';
 import { serverApiSafe } from '@/lib/server-api';
 import type { BreedingDto } from '@/lib/types';
@@ -44,13 +44,13 @@ export default async function BreedingsPage() {
                         {b.dam.callName} × {b.sire.callName}
                       </p>
                       <p className="mt-0.5 text-2xs uppercase tracking-widest text-ink-400">
-                        {b.method.replace(/_/g, ' ').toLowerCase()}
+                        {titleCase(b.method)}
                         {b.events.length > 0 &&
                           ` · bred ${formatDate(b.events[b.events.length - 1]!.occurredOn)}`}
                       </p>
                     </div>
                     <Badge tone={STATUS_TONE[b.status] ?? 'neutral'} size="sm">
-                      {b.status.replace(/_/g, ' ').toLowerCase()}
+                      {titleCase(b.status)}
                     </Badge>
                   </div>
 
@@ -68,7 +68,7 @@ export default async function BreedingsPage() {
                           ? ` · ${b.forecast.daysAway} days away`
                           : ''}
                         <span className="ml-2 text-2xs text-ink-400">
-                          from {b.forecast.basis.replace(/_/g, ' ').toLowerCase()}
+                          from {titleCase(b.forecast.basis)}
                         </span>
                       </>
                     ) : (

@@ -100,7 +100,7 @@ export function DuplicatesClient({ initial }: { initial: MergeCandidate[] }) {
           description="Nothing in your ancestry graph looks like the same dog entered twice. Rescan after any import."
           action={
             <Button size="sm" variant="outline" onClick={scan} loading={scanning}>
-              Rescan now
+              Rescan Now
             </Button>
           }
         />
@@ -185,7 +185,7 @@ function CandidateCard({
             Merge into {keep.callName}
           </Button>
           <Button size="sm" variant="ghost" disabled={busy} onClick={() => onDismiss(candidate)}>
-            <X /> Not a duplicate
+            <X /> Not a Duplicate
           </Button>
           <p className="text-2xs leading-relaxed text-ink-400">
             {offspring(drop)} descendant{offspring(drop) === 1 ? '' : 's'} will re-point to{' '}

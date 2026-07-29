@@ -25,7 +25,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
         actions={
           <Button variant="ghost" size="sm" asChild>
             <Link href="/studio/buyers">
-              <ArrowLeft /> All buyers
+              <ArrowLeft /> All Buyers
             </Link>
           </Button>
         }
