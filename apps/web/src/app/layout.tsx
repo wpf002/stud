@@ -1,10 +1,16 @@
 import type { Metadata } from 'next';
 import { TooltipProvider } from '@stud/ui';
-import { SiteHeader } from '@/components/site-header';
-import { SiteFooter } from '@/components/site-footer';
 import { fontVars } from '@/lib/fonts';
 import './globals.css';
 
+/**
+ * The root shell — html, fonts, providers, nothing else.
+ *
+ * Chrome lives one level down, because the two halves of the site wear
+ * different frames: `(site)` gets the marketing header and footer, `studio`
+ * gets the breeder rail. A child layout cannot remove a parent's chrome, so
+ * the split has to happen here.
+ */
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000'),
   title: {
@@ -27,17 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={fontVars}>
       <body className="min-h-dvh bg-bone-100 antialiased">
-        <TooltipProvider delayDuration={200}>
-          <a
-            href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-bone-50"
-          >
-            Skip to content
-          </a>
-          <SiteHeader />
-          <main id="main">{children}</main>
-          <SiteFooter />
-        </TooltipProvider>
+        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
       </body>
     </html>
   );

@@ -42,8 +42,9 @@ public standard.
 ```
 stud/
 ├── apps/
-│   ├── web            Next.js — buyer marketplace (public, SEO-critical)
-│   ├── studio         Next.js — breeder workspace (authed)
+│   ├── web            Next.js — the whole site:
+│   │                    (site)/  buyer marketplace (public, SEO-critical)
+│   │                    studio/  breeder workspace (authed, noindex)
 │   ├── mobile         Expo — breeder logging companion
 │   └── api            Fastify — REST + webhooks
 ├── packages/
@@ -100,7 +101,7 @@ pnpm dev
 | Surface | URL | What it is |
 |---|---|---|
 | `web` | http://localhost:3000 | Buyer marketplace |
-| `studio` | http://localhost:3001 | Breeder workspace |
+| `web` | http://localhost:3000/studio | Breeder workspace |
 | `api` | http://localhost:4000 | Fastify REST API |
 
 Seeded accounts (password `studdev1234`):
@@ -234,7 +235,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 
 | Phase | Scope | Gate |
 |---|---|---|
-| **0** ✅ | Foundations | `pnpm dev` boots web + studio + api against a seeded Postgres |
+| **0** ✅ | Foundations | `pnpm dev` boots web + api against a seeded Postgres |
 | **1** ✅ | Dog record & pedigree graph | Import a 5-generation pedigree, render it, compute Wright's COI against a hand-checked case |
 | **2** ✅ | Verification engine | Paste a registration number, get real OFA results with source attribution in < 5s |
 | **3** ✅ | Breeder workspace | Run an entire litter from heat to eight weeks without a spreadsheet |

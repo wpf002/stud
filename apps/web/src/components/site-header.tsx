@@ -106,9 +106,7 @@ export function SiteHeader() {
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
           <Button asChild variant="ghost" size="sm">
-            <a href={process.env.NEXT_PUBLIC_STUDIO_URL ?? 'http://localhost:3001'}>
-              For Breeders
-            </a>
+            <Link href="/studio">For Breeders</Link>
           </Button>
           {user ? (
             <>

@@ -10,7 +10,7 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   AUTH_SECRET: z.string().min(16, 'AUTH_SECRET must be at least 16 characters'),
   /** Comma-separated list of allowed browser origins. */
-  CORS_ORIGINS: z.string().default('http://localhost:3000,http://localhost:3001'),
+  CORS_ORIGINS: z.string().default('http://localhost:3000'),
   COOKIE_DOMAIN: z.string().optional(),
   SESSION_TTL_DAYS: z.coerce.number().default(30),
   LOG_LEVEL: z.string().default('info'),
