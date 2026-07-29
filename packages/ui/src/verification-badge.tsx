@@ -71,7 +71,7 @@ const STATE_META: Record<
     chip: 'bg-verify-verifiedBg text-verify-verified ring-1 ring-inset ring-verify-verified/25',
     dot: 'bg-verify-verified',
     meaning:
-      'A machine checked this against the issuing source and matched it. We show the source and the date it was checked.',
+      'Confirmed with the registry that issued it. The source and check date are shown below.',
   },
   REPORTED: {
     label: 'Reported',
@@ -79,14 +79,14 @@ const STATE_META: Record<
     chip: 'bg-verify-reportedBg text-verify-reported ring-1 ring-inset ring-verify-reported/25',
     dot: 'bg-verify-reported',
     meaning:
-      'Entered by the owner and not independently confirmed. Treat it as a claim, not a fact.',
+      'Entered by the owner. We haven\u2019t been able to confirm this one with a registry.',
   },
   PENDING: {
     label: 'Checking',
     Icon: Clock,
     chip: 'bg-verify-pendingBg text-verify-pending ring-1 ring-inset ring-verify-pending/25',
     dot: 'bg-verify-pending animate-pulse',
-    meaning: 'We are querying the source right now. This usually resolves in seconds.',
+    meaning: 'We\u2019re checking this with the registry right now.',
   },
   STALE: {
     label: 'Needs recheck',
@@ -94,7 +94,7 @@ const STATE_META: Record<
     chip: 'bg-verify-staleBg text-verify-stale ring-1 ring-inset ring-verify-stale/25',
     dot: 'bg-verify-stale',
     meaning:
-      'This was verified once, but the check is older than our freshness window. We are re-running it.',
+      'Verified previously — it\u2019s been a while, so we\u2019re re-checking it.',
   },
   CONFLICTED: {
     label: 'Conflict',
@@ -102,7 +102,7 @@ const STATE_META: Record<
     chip: 'bg-verify-conflictedBg text-verify-conflicted ring-1 ring-inset ring-verify-conflicted/30',
     dot: 'bg-verify-conflicted',
     meaning:
-      'The source now says something different from what we previously recorded. Under review — do not rely on this claim.',
+      'The registry now shows something different. Our team is reviewing it, so hold off on relying on this one.',
   },
   UNVERIFIED: {
     label: 'Not verified',

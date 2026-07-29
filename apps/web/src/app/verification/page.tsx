@@ -1,195 +1,168 @@
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
-import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { Button, Card, VerificationEvidencePanel, type VerificationState } from '@stud/ui';
+import { Button, VerificationBadge, VerificationEvidencePanel, type VerificationState } from '@stud/ui';
 
 export const metadata: Metadata = {
-  title: 'How verification works',
+  title: 'How Verification Works',
   description:
-    'What “verified” means on Stud: which sources we check, how often we re-check, and what every badge state actually tells you.',
+    'Every health result on Stud is checked with the registry that issued it. Here’s how that works, in plain terms.',
+  alternates: { canonical: '/verification' },
 };
 
-const STATES: { state: VerificationState; when: string }[] = [
-  { state: 'VERIFIED', when: 'We matched this result at the registry.' },
-  { state: 'REPORTED', when: 'The owner entered this and we haven\u2019t been able to confirm it yet.' },
-  { state: 'PENDING', when: 'We\u2019re checking this one right now.' },
-  { state: 'STALE', when: 'It\u2019s been a while since our last check, so we\u2019re re-running it.' },
-  { state: 'CONFLICTED', when: 'The registry now shows something different. We\u2019re reviewing it.' },
-  { state: 'UNVERIFIED', when: 'No result has been submitted for this test.' },
+/**
+ * The verification explainer.
+ *
+ * Structured like a page a company would publish, not a spec: the idea, one
+ * real example, a compact badge legend, and an FAQ. The full reference detail
+ * lives in the product itself, on every claim.
+ */
+const BADGE_LEGEND: { state: VerificationState; line: string }[] = [
+  { state: 'VERIFIED', line: 'We matched this result at the registry.' },
+  { state: 'REPORTED', line: 'The owner entered this. We haven’t confirmed it yet.' },
+  { state: 'PENDING', line: 'We’re checking it right now.' },
+  { state: 'STALE', line: 'Due for a re-check — it’s been a while since the last one.' },
+  { state: 'CONFLICTED', line: 'The registry now shows something different. Our team is on it.' },
+  { state: 'UNVERIFIED', line: 'No result submitted for this test.' },
 ];
 
-const SOURCES = [
+const FAQ: { q: string; a: string }[] = [
   {
-    name: 'OFA / CHIC',
-    covers: 'Hips, elbows, eyes (CAER), cardiac, patella, thyroid, breed-specific panels',
-    key: 'Registration number',
-    cadence: 'Every 30 days',
+    q: 'What if a test is missing?',
+    a: 'We say so. Each breed has a set of recommended tests, and a dog’s profile lists any that haven’t been done — labeled “not tested.” You can ask the breeder about them before you apply.',
   },
   {
-    name: 'AKC · UKC · CKC · FCI',
-    covers: 'Registration validity, registered name, conformation and performance titles',
-    key: 'Registration number',
-    cadence: 'Every 30 days',
+    q: 'What does “Reported” mean?',
+    a: 'The owner told us the result but we couldn’t confirm it with a registry — usually because that registry doesn’t offer online lookups. Reported results are always labeled and never counted as verified.',
   },
   {
-    name: 'NAVHDA · AFTCA · hunt tests',
-    covers: 'Natural Ability, Utility, field trial placements, hunt test legs',
-    key: 'Registration number or dog name + owner',
-    cadence: 'Every 60 days',
+    q: 'How often do you re-check?',
+    a: 'Most sources every 30 days, field and hunt-test records every 60. If a registry changes what it shows for a dog, the result gets flagged for review and drops out of search filters until it’s resolved.',
   },
   {
-    name: 'Embark · Wisdom · UC Davis · Paw Print',
-    covers: 'Genetic panels, carrier and at-risk status, genetic COI',
-    key: 'Uploaded certificate, OCR pre-filled, human-reviewed',
-    cadence: 'On upload, then on request',
+    q: 'Which registries do you check?',
+    a: 'OFA and CHIC for orthopedic, eye, and cardiac results; AKC, UKC, CKC, and FCI for registrations and titles; NAVHDA and AFTCA for field work; Embark, Wisdom Panel, UC Davis, and Paw Print for DNA panels.',
+  },
+  {
+    q: 'Can a breeder pay for a better badge or a higher ranking?',
+    a: 'No. Verification is free for every breeder, search ranking reads verified results and nothing else, and there are no ads or sponsored placements.',
+  },
+  {
+    q: 'Does “verified” mean the dog is healthy?',
+    a: 'It means the test happened and this is what it said. Reading the results — and deciding whether a pairing makes sense — is still a conversation to have with the breeder. The COI and pedigree tools can help.',
   },
 ];
 
 export default function VerificationPage() {
   return (
-    <div className="mx-auto max-w-content px-5 py-16 lg:px-8 lg:py-24">
-      <div className="max-w-2xl">
-        <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
-          How Verification Works
-        </p>
-        <h1 className="mt-3 font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          We check every health claim with the registry that issued it.
-        </h1>
-        <p className="mt-5 text-lg leading-relaxed text-ink-600">
-          When a breeder lists a test result on Stud, we pull the actual record from OFA, the
-          kennel club, or the testing lab. This page explains how that works and what the badges
-          mean.
-        </p>
-      </div>
-
-      {/* The whole idea, in three steps. */}
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
-        {[
-          ['Breeders add their dogs', 'Each dog is entered with its registered name and registration number.'],
-          ['We pull the records', 'Our system queries the registries on a regular schedule and matches results by registration number.'],
-          ['Results appear with their source', 'Every result shows where it came from and when we last checked. Untested categories are labeled too.'],
-        ].map(([title, body], i) => (
-          <div key={title} className="rounded-card bg-bone-50 p-5 ring-1 ring-inset ring-bone-300">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-clay-100 font-display text-md font-semibold text-clay-600">
-              {i + 1}
-            </span>
-            <p className="mt-3 font-display text-lg text-ink-900">{title}</p>
-            <p className="mt-1 text-sm leading-relaxed text-ink-500">{body}</p>
+    <div className="mx-auto max-w-content px-5 py-16 lg:px-8 lg:py-20">
+      {/* ── The idea ─────────────────────────────────────────────────── */}
+      <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <div>
+          <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
+            How Verification Works
+          </p>
+          <h1 className="mt-3 max-w-xl font-display text-4xl leading-[1.08] tracking-tight text-ink-900">
+            We check every health claim with the registry that issued it.
+          </h1>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
+            Breeders enter their dogs with registration numbers. We pull the actual records from
+            OFA, the kennel clubs, and the testing labs — and keep re-checking them. What you see
+            on a listing came from the source, not from a form.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/puppies">
+                See It on Real Litters <ArrowRight />
+              </Link>
+            </Button>
           </div>
-        ))}
+        </div>
+
+        {/* One real example, not six. */}
+        <div className="mx-auto w-full max-w-sm">
+          <div className="rounded-card bg-bone-50 p-5 shadow-lg ring-1 ring-black/5">
+            <div className="flex items-center gap-3">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full">
+                <Image
+                  src="https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?q=80&w=200&auto=format&fit=crop"
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="3rem"
+                />
+              </div>
+              <div>
+                <p className="font-display text-lg text-ink-900">Ranger</p>
+                <p className="text-2xs text-ink-400">German Shorthaired Pointer</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <VerificationEvidencePanel
+                state="VERIFIED"
+                claim="Hips"
+                evidence={{
+                  source: 'OFA',
+                  sourceUrl: 'https://ofa.org',
+                  result: 'Excellent',
+                  identifier: 'SR91234501',
+                  testedAt: '2023-04-18',
+                  checkedAt: '2026-07-21',
+                }}
+              />
+            </div>
+            <p className="mt-3 border-t border-bone-200 pt-2 text-2xs text-ink-400">
+              A real result card, exactly as it appears on a listing.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Sources */}
-      <section className="mt-16">
-        <h2 className="font-display text-2xl tracking-tight text-ink-900">Our Data Sources</h2>
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[46rem] border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-bone-400 text-left text-2xs uppercase tracking-widest text-ink-400">
-                <th className="py-3 pr-4 font-semibold">Source</th>
-                <th className="py-3 pr-4 font-semibold">What it covers</th>
-                <th className="py-3 pr-4 font-semibold">Matched on</th>
-                <th className="py-3 font-semibold">Re-checked</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SOURCES.map((s) => (
-                <tr key={s.name} className="border-b border-bone-200 align-top">
-                  <td className="py-4 pr-4 font-medium text-ink-900">{s.name}</td>
-                  <td className="py-4 pr-4 text-ink-600">{s.covers}</td>
-                  <td className="py-4 pr-4 font-mono text-xs text-ink-500">{s.key}</td>
-                  <td className="py-4 text-ink-600">{s.cadence}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* ── The badges ───────────────────────────────────────────────── */}
+      <section className="mt-20 max-w-3xl">
+        <h2 className="font-display text-2xl tracking-tight text-ink-900">The Badges</h2>
+        <p className="mt-2 text-md leading-relaxed text-ink-600">
+          Every result carries one of these, so you always know how much weight to give it.
+        </p>
+        <ul className="mt-6 divide-y divide-bone-200">
+          {BADGE_LEGEND.map(({ state, line }) => (
+            <li key={state} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3.5">
+              <span className="w-40 shrink-0">
+                <VerificationBadge state={state} />
+              </span>
+              <span className="text-sm leading-relaxed text-ink-600">{line}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* States */}
-      <section className="mt-16">
-        <h2 className="font-display text-2xl tracking-tight text-ink-900">What Every Badge Means</h2>
-        <p className="mt-3 max-w-2xl leading-relaxed text-ink-600">
-          Results get re-checked over time, so each one carries a status. Here are all six, with
-          examples of how they appear on a dog&rsquo;s profile.
-        </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {STATES.map(({ state, when }) => (
-            <Card key={state} className="p-5">
-              <VerificationEvidencePanel
-                state={state}
-                claim="Example: Hips"
-                evidence={
-                  state === 'VERIFIED' || state === 'STALE' || state === 'CONFLICTED'
-                    ? {
-                        source: 'OFA',
-                        sourceUrl: 'https://ofa.org',
-                        result: 'Excellent',
-                        identifier: 'SR91234501',
-                        testedAt: '2023-04-18',
-                        checkedAt: state === 'STALE' ? '2025-11-02' : '2026-07-21',
-                        conflictNote:
-                          state === 'CONFLICTED'
-                            ? 'OFA now returns “Fair” for this registration. Previously recorded as “Good”. Under admin review.'
-                            : null,
-                      }
-                    : null
-                }
-              />
-              <p className="mt-4 border-t border-bone-200 pt-3 text-xs leading-relaxed text-ink-500">
-                {when}
-              </p>
-            </Card>
+      {/* ── FAQ ──────────────────────────────────────────────────────── */}
+      <section className="mt-20 max-w-3xl">
+        <h2 className="font-display text-2xl tracking-tight text-ink-900">Common Questions</h2>
+        <div className="mt-6 space-y-8">
+          {FAQ.map(({ q, a }) => (
+            <div key={q}>
+              <h3 className="font-display text-lg text-ink-900">{q}</h3>
+              <p className="mt-2 text-md leading-relaxed text-ink-600">{a}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Commitments */}
-      <section className="mt-16 grid gap-6 lg:grid-cols-2">
-        <Card className="p-7">
-          <h2 className="font-display text-xl text-ink-900">Our Commitments</h2>
-          <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-600">
-            <li>
-              <span className="font-medium text-ink-800">Owner-entered results stay labeled.</span>{' '}
-              We never mix them in with registry-confirmed ones.
-            </li>
-            <li>
-              <span className="font-medium text-ink-800">Missing tests are shown.</span> If a dog
-              hasn&rsquo;t been tested for something common in its breed, the profile says so.
-            </li>
-            <li>
-              <span className="font-medium text-ink-800">Verification is free.</span> It&rsquo;s
-              included for every breeder, and that&rsquo;s not going to change.
-            </li>
-            <li>
-              <span className="font-medium text-ink-800">No ads on listings.</span> Placement on
-              Stud can&rsquo;t be bought.
-            </li>
-          </ul>
-        </Card>
-
-        <Card className="p-7">
-          <h2 className="font-display text-xl text-ink-900">Good to Know</h2>
-          <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-600">
-            <li>
-              We show what the registry shows. If the registry has an error in its records,
-              you&rsquo;ll see that same error here until they correct it.
-            </li>
-            <li>
-              Some registries don&rsquo;t offer online lookups. Results from those stay marked{' '}
-              <span className="font-medium">Reported</span> until our team reviews the paperwork.
-            </li>
-            <li>
-              Verification confirms that a test happened and what the result was. For questions
-              about whether a particular pairing makes sense, check out the pedigree and COI tools.
-            </li>
-          </ul>
-          <Button asChild variant="outline" size="sm" className="mt-6">
-            <Link href="/tools/coi">
-              Try the COI Calculator <ArrowRight />
+      {/* ── CTA ──────────────────────────────────────────────────────── */}
+      <section className="mt-20">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-brand-50 px-6 py-5 ring-1 ring-inset ring-brand-100">
+          <p className="flex items-center gap-3 text-md text-ink-700">
+            <ShieldCheck className="h-5 w-5 shrink-0 text-brand-600" />
+            Every litter on Stud shows this for both parents.
+          </p>
+          <Button asChild>
+            <Link href="/puppies">
+              Find a Puppy <ArrowRight />
             </Link>
           </Button>
-        </Card>
+        </div>
       </section>
     </div>
   );
