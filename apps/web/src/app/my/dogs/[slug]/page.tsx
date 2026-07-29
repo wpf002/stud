@@ -110,8 +110,8 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
               Came home {formatDate(handover.collectedOn)}
               {breeder ? ` from ${breeder.name}` : ''}.
             </span>{' '}
-            Everything below — the pedigree, both parents&rsquo; health testing, the growth chart
-            from the whelping box — came with {dog.callName}. You did not have to type any of it.
+            The pedigree, both parents&rsquo; health testing, and the growth chart from the
+            whelping box all transferred over with {dog.callName}.
           </p>
         </div>
       )}
@@ -136,7 +136,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
             <section>
               <h2 className="font-display text-2xl text-ink-900">What your contract says</h2>
               <p className="mt-1 text-sm leading-relaxed text-ink-500">
-                Read once at the kitchen table and then filed. Here it is as dates.
+                The important parts of your contract, as actual dates.
               </p>
 
               <div className="mt-4 space-y-3">
@@ -170,9 +170,9 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
                 <VerificationDensity summary={dog.verificationSummary} className="mb-4" />
                 {dog.verifiedClaims.length === 0 && dog.reportedClaims.length === 0 ? (
                   <p className="text-sm leading-relaxed text-ink-500">
-                    Nothing on {dog.callName}&rsquo;s own record yet — which is exactly right for a
-                    young dog. When you have hips or elbows done, add the result here and we will
-                    check it against the registry rather than take your word for it.
+                    Nothing here yet, which is normal for a young dog. When {dog.callName} has
+                    hips or elbows done, add the result and we&rsquo;ll confirm it with the
+                    registry.
                   </p>
                 ) : (
                   <ClaimPanel

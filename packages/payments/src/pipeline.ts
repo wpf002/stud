@@ -77,7 +77,7 @@ export function canAdvance(from: ApplicationStage, to: ApplicationStage): StageT
     return {
       allowed: false,
       reason:
-        'A deposit cannot be taken before the application is approved. Approve it first — money that arrives from someone you have not accepted has to go back.',
+        'The application needs to be approved before a deposit can be taken.',
     };
   }
   if (to === 'MATCHED' && from !== 'DEPOSIT_PAID') {

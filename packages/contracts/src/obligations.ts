@@ -222,7 +222,7 @@ export function deriveObligations(ctx: ObligationContext): Obligation[] {
                 windowDays ? `, due within ${v.paperworkWindow} of the balance being paid` : ''
               }.${
                 type === 'LIMITED'
-                  ? ' Limited registration means any puppies this dog produces cannot be registered. It is the normal arrangement for a pet home and is not a comment on the dog.'
+                  ? ' Limited registration means any puppies this dog produces can\u2019t be registered. This is standard for pet homes.'
                   : ''
               }`,
         dueOn,
@@ -242,7 +242,7 @@ export function deriveObligations(ctx: ObligationContext): Obligation[] {
           party: 'BUYER',
           title: 'This dog is not to be bred',
           detail:
-            'Limited registration, and your contract asks you not to breed from this dog. If your plans change, that is a conversation to have with your breeder rather than a decision to make alone.',
+            'This dog is on limited registration and your contract rules out breeding. If your plans change, talk to your breeder first.',
           dueOn: null,
           expiresOn: null,
           active: true,
@@ -259,7 +259,7 @@ export function deriveObligations(ctx: ObligationContext): Obligation[] {
         party: 'BOTH',
         title: 'If you ever cannot keep this dog',
         detail:
-          'Your contract says the dog comes back to the breeder rather than to a shelter, a rescue or a new home found on your own — and the breeder has committed to taking it back at any age, for any reason. This is not a penalty clause; it is the reason dogs from good programs do not end up in shelters. Contact them first, whatever has happened.',
+          'If circumstances ever change, your breeder has committed to taking this dog back — at any age, for any reason. Contact them before rehoming, surrendering, or anything else. They want the call.',
         dueOn: null,
         expiresOn: null,
         active: true,

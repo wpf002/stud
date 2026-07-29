@@ -110,7 +110,7 @@ const STATE_META: Record<
     chip: 'bg-verify-unverifiedBg text-verify-unverified ring-1 ring-inset ring-verify-unverified/25',
     dot: 'bg-verify-unverified',
     meaning:
-      'Nothing has been submitted for this claim. Absence of a result is not a passing result.',
+      'No result has been submitted for this test yet.',
   },
 };
 

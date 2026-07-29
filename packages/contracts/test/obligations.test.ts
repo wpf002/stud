@@ -128,13 +128,13 @@ describe('obligations from a signed puppy contract', () => {
     expect(back.expiresOn).toBeNull();
     expect(back.active).toBe(true);
     expect(back.party).toBe('BOTH');
-    expect(back.detail).toMatch(/not a penalty/i);
+    expect(back.detail).toMatch(/taking this dog back/i);
   });
 
   it('explains limited registration rather than just stating it', () => {
     const list = deriveObligations(base);
     expect(byKind(list, 'NO_BREEDING')).toBeDefined();
-    expect(byKind(list, 'REGISTRATION_PAPERS')!.detail).toMatch(/not a comment on the dog/i);
+    expect(byKind(list, 'REGISTRATION_PAPERS')!.detail).toMatch(/standard for pet homes/i);
   });
 
   it('does not raise a breeding prohibition on full registration', () => {

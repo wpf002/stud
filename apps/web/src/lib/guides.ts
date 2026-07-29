@@ -64,7 +64,7 @@ export const GUIDES: Guide[] = [
       {
         heading: 'How to check it yourself',
         list: [
-          'Ask for both parents\' registration numbers. Hesitation here answers a bigger question.',
+          'Ask for both parents\' registration numbers. Good breeders share these without hesitation.',
           'Look them up — OFA\'s database is public and free.',
           'Check the dates. A "prelim" hip score isn\'t a final. An old eye exam is old.',
           '"Champion bloodlines" with no titles on the actual parents means the titles belong to a great-grandparent.',
@@ -155,7 +155,7 @@ export const GUIDES: Guide[] = [
       },
       {
         paragraphs: [
-          'One caution: be wary of a breeder who hands out full registration without asking why you want it. Careless there usually means careless elsewhere.',
+          'One caution: if a breeder offers full registration without asking why you want it, that\'s worth a second look.',
         ],
       },
     ],
@@ -186,14 +186,14 @@ export const GUIDES: Guide[] = [
       },
       {
         paragraphs: [
-          'Higher COI is linked to smaller litters, shorter lives, and doubled-up recessives — the bad ones along with the good. It\'s a risk dial, not a verdict on any single puppy.',
+          'Higher COI is linked to smaller litters, shorter lifespans, and a higher chance of inherited conditions. It measures risk across a litter, not the fate of any one puppy.',
         ],
       },
       {
         heading: 'The catch',
         paragraphs: [
           'COI is only as good as the pedigree behind it. A 2% figure over three known generations and a 2% over eight complete ones are very different claims — hidden shared ancestry doesn\'t show up in the math.',
-          'That\'s why Stud shows pedigree completeness next to every COI, and prints a high one in red instead of hiding it. You have more right to that number than anyone.',
+          'That\'s why Stud shows pedigree completeness next to every COI, and flags high ones in red instead of hiding them.',
         ],
       },
     ],

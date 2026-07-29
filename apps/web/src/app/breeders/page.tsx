@@ -154,7 +154,7 @@ export default async function BreedersPage({
       )}
 
       <p className="mt-8 max-w-2xl text-2xs leading-relaxed text-ink-400">
-        Reviews come only from verified purchases — fewer than elsewhere, and worth more.
+        Reviews can only be left by people who bought a dog through Stud.
       </p>
     </div>
   );

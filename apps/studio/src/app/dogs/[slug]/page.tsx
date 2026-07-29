@@ -223,7 +223,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
                   </>
                 ) : (
                   <p className="text-xs leading-relaxed text-ink-500">
-                    Nothing verified yet. Absence of a result is not a passing result — run a
+                    Nothing verified yet. Untested still displays as untested — run a
                     verification to check this dog against the sources.
                   </p>
                 )}

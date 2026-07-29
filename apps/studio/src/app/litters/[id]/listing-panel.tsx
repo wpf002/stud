@@ -139,11 +139,7 @@ export function ListingPanel({
             )}
           </div>
 
-          {/*
-            The reason this form is short. Said out loud, because a breeder who
-            has typed health results into six other websites will assume they
-            have to do it again here.
-          */}
+          {/* Why this form is short — breeders expect to retype results here. */}
           <div className="mt-4 flex gap-3 rounded-md bg-brand-50 px-3 py-3 ring-1 ring-inset ring-brand-100">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
             <p className="text-xs leading-relaxed text-ink-700">

@@ -239,7 +239,7 @@ function Result({ result }: { result: PairingEvaluateResponse }) {
               </p>
               {pairing.confidence !== 'HIGH' && (
                 <Alert tone="warning" icon={<Info className="h-4 w-4" />}>
-                  That is not the same as unrelated. With gaps in these pedigrees, shared ancestry
+                  They may still be related. With gaps in these pedigrees, shared ancestry
                   above the known generations cannot be seen from here.
                 </Alert>
               )}

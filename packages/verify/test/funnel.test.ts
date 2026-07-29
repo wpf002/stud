@@ -216,13 +216,13 @@ describe('review summaries', () => {
 
   it('says when there are too few to average', () => {
     const s = summariseReviews([review(), review()]);
-    expect(s.note).toMatch(/too few to average/i);
+    expect(s.note).toMatch(/only 2 reviews/i);
   });
 
   it('points out when nothing has been written after a year', () => {
     const s = summariseReviews(Array.from({ length: 6 }, () => review({ daysAfterPlacement: 20 })));
     expect(s.longTermCount).toBe(0);
-    expect(s.note).toMatch(/measures excitement/i);
+    expect(s.note).toMatch(/within the first year/i);
   });
 
   it('stops warning once long-term reviews exist', () => {

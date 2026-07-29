@@ -101,7 +101,7 @@ export default async function trustRoutes(app: FastifyInstance) {
 
     if (!application && !contract) {
       throw forbidden(
-        'Only somebody who completed a purchase or a signed breeding with this breeder can review them. That restriction is the reason these reviews are worth reading.',
+        'Reviews can only be left by people who completed a purchase or a signed breeding with this breeder.',
       );
     }
 

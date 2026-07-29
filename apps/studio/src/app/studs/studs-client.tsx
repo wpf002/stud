@@ -259,7 +259,7 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
             title="No studs match those filters"
             description={
               health.length > 0 || titles.length > 0 || requireChic
-                ? 'The health and title filters only match claims verified against a source. A dog whose owner says the hips are good but has never submitted the registration number will not appear here — which is the point, but it does mean the directory is smaller than a classified board.'
+                ? 'Health and title filters only match registry-confirmed results, so dogs with unverified claims won\u2019t show up here.'
                 : 'Try widening the filters.'
             }
           />

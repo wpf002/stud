@@ -233,13 +233,9 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
                       </li>
                     ))}
                   </ul>
-                  {/*
-                    Said plainly. An untested marker is not a clear one, and a
-                    marketplace that lets silence read as "fine" is doing the
-                    single most harmful thing it could do here.
-                  */}
                   <p className="mt-3 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
-                    Not a problem — just untested. Worth asking the breeder about.
+                    This just means the test hasn&rsquo;t been done. Feel free to ask the breeder
+                    about it.
                   </p>
                 </CardContent>
               </Card>

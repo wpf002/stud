@@ -10,12 +10,12 @@ export const metadata: Metadata = {
 };
 
 const STATES: { state: VerificationState; when: string }[] = [
-  { state: 'VERIFIED', when: 'A source confirmed the claim and we recorded where and when.' },
-  { state: 'REPORTED', when: 'The owner entered it. No source confirms it yet.' },
-  { state: 'PENDING', when: 'A lookup is in flight right now.' },
-  { state: 'STALE', when: 'The last successful check is older than our freshness window.' },
-  { state: 'CONFLICTED', when: 'The source changed and no longer agrees with what we held.' },
-  { state: 'UNVERIFIED', when: 'Nothing has been submitted for this claim at all.' },
+  { state: 'VERIFIED', when: 'We matched this result at the registry.' },
+  { state: 'REPORTED', when: 'The owner entered this and we haven\u2019t been able to confirm it yet.' },
+  { state: 'PENDING', when: 'We\u2019re checking this one right now.' },
+  { state: 'STALE', when: 'It\u2019s been a while since our last check, so we\u2019re re-running it.' },
+  { state: 'CONFLICTED', when: 'The registry now shows something different. We\u2019re reviewing it.' },
+  { state: 'UNVERIFIED', when: 'No result has been submitted for this test.' },
 ];
 
 const SOURCES = [
@@ -53,22 +53,21 @@ export default function VerificationPage() {
           How Verification Works
         </p>
         <h1 className="mt-3 font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          Anyone can say &ldquo;health tested.&rdquo;
-          <br />
-          We go check.
+          We check every health claim with the registry that issued it.
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-ink-600">
-          Every health result on Stud is looked up at the registry that issued it. Here&rsquo;s
-          exactly how — and what every badge means when you see one.
+          When a breeder lists a test result on Stud, we pull the actual record from OFA, the
+          kennel club, or the testing lab. This page explains how that works and what the badges
+          mean.
         </p>
       </div>
 
       {/* The whole idea, in three steps. */}
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
-          ['The breeder adds their dog', 'Name and registration number — the same ones on the paperwork.'],
-          ['We look the results up', 'Straight from OFA, the kennel clubs and the testing labs. On a schedule, not once.'],
-          ['You see the receipt', 'The result, the source, and the date we checked. Or "not tested" — we show that too.'],
+          ['Breeders add their dogs', 'Each dog is entered with its registered name and registration number.'],
+          ['We pull the records', 'Our system queries the registries on a regular schedule and matches results by registration number.'],
+          ['Results appear with their source', 'Every result shows where it came from and when we last checked. Untested categories are labeled too.'],
         ].map(([title, body], i) => (
           <div key={title} className="rounded-card bg-bone-50 p-5 ring-1 ring-inset ring-bone-300">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-clay-100 font-display text-md font-semibold text-clay-600">
@@ -82,7 +81,7 @@ export default function VerificationPage() {
 
       {/* Sources */}
       <section className="mt-16">
-        <h2 className="font-display text-2xl tracking-tight text-ink-900">Where We Check</h2>
+        <h2 className="font-display text-2xl tracking-tight text-ink-900">Our Data Sources</h2>
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <thead>
@@ -111,8 +110,8 @@ export default function VerificationPage() {
       <section className="mt-16">
         <h2 className="font-display text-2xl tracking-tight text-ink-900">What Every Badge Means</h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-ink-600">
-          A result isn&rsquo;t a one-time checkbox — it moves through these states over its life,
-          and you always see which one you&rsquo;re looking at.
+          Results get re-checked over time, so each one carries a status. Here are all six, with
+          examples of how they appear on a dog&rsquo;s profile.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STATES.map(({ state, when }) => (
@@ -138,7 +137,6 @@ export default function VerificationPage() {
                 }
               />
               <p className="mt-4 border-t border-bone-200 pt-3 text-xs leading-relaxed text-ink-500">
-                <span className="font-semibold text-ink-700">You see this when: </span>
                 {when}
               </p>
             </Card>
@@ -149,41 +147,41 @@ export default function VerificationPage() {
       {/* Commitments */}
       <section className="mt-16 grid gap-6 lg:grid-cols-2">
         <Card className="p-7">
-          <h2 className="font-display text-xl text-ink-900">What We&rsquo;ll Never Do</h2>
+          <h2 className="font-display text-xl text-ink-900">Our Commitments</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-600">
             <li>
-              <span className="font-medium text-ink-800">Merge reported and verified data.</span>{' '}
-              They live in separate columns and render differently. Always.
+              <span className="font-medium text-ink-800">Owner-entered results stay labeled.</span>{' '}
+              We never mix them in with registry-confirmed ones.
             </li>
             <li>
-              <span className="font-medium text-ink-800">Hide an absent result.</span> &ldquo;Not
-              verified&rdquo; renders as a visible state. A blank space is not a passing grade.
+              <span className="font-medium text-ink-800">Missing tests are shown.</span> If a dog
+              hasn&rsquo;t been tested for something common in its breed, the profile says so.
             </li>
             <li>
-              <span className="font-medium text-ink-800">Charge for verification.</span> The moment
-              it sits behind a paywall it stops being a trust signal.
+              <span className="font-medium text-ink-800">Verification is free.</span> It&rsquo;s
+              included for every breeder, and that&rsquo;s not going to change.
             </li>
             <li>
-              <span className="font-medium text-ink-800">Run third-party ads on buyer pages.</span>{' '}
-              Nothing on a litter page is there because someone paid for it to be.
+              <span className="font-medium text-ink-800">No ads on listings.</span> Placement on
+              Stud can&rsquo;t be bought.
             </li>
           </ul>
         </Card>
 
         <Card className="p-7">
-          <h2 className="font-display text-xl text-ink-900">Where This Stops</h2>
+          <h2 className="font-display text-xl text-ink-900">Good to Know</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink-600">
             <li>
-              We reproduce what the source says. If OFA has a data-entry error, we will faithfully
-              show that error — and flag it the moment the source changes.
+              We show what the registry shows. If the registry has an error in its records,
+              you&rsquo;ll see that same error here until they correct it.
             </li>
             <li>
-              Not every registry publishes machine-readable records. Where a source is closed, the
-              claim stays <span className="font-medium">Reported</span> until a document is reviewed.
+              Some registries don&rsquo;t offer online lookups. Results from those stay marked{' '}
+              <span className="font-medium">Reported</span> until our team reviews the paperwork.
             </li>
             <li>
-              Verification says a test was done and what it returned. It does not say a dog is a good
-              breeding decision. That is what the pedigree and COI tools are for.
+              Verification confirms that a test happened and what the result was. For questions
+              about whether a particular pairing makes sense, check out the pedigree and COI tools.
             </li>
           </ul>
           <Button asChild variant="outline" size="sm" className="mt-6">

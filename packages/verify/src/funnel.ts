@@ -356,10 +356,9 @@ export function summariseReviews(reviews: readonly ReviewInput[]): ReviewSummary
   if (count === 0) {
     note = 'No reviews yet. Only somebody who completed a purchase through Stud can leave one.';
   } else if (count < 5) {
-    note = `Based on ${count} review${count === 1 ? '' : 's'} — too few to average meaningfully. Read them rather than the number.`;
+    note = `Based on only ${count} review${count === 1 ? '' : 's'} so far.`;
   } else if (longTermCount === 0) {
-    note =
-      'Every review here was written within a year of collection. A review left on pickup day measures excitement; one left at three years measures the breeder.';
+    note = 'All of these reviews were written within the first year of ownership.';
   }
 
   return {

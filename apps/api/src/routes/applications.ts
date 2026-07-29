@@ -110,7 +110,7 @@ export default async function applicationRoutes(app: FastifyInstance) {
     });
     if (existing) {
       throw conflict(
-        'You already have an application open on this litter. The breeder can see it — adding a second one will not move it along any faster.',
+        'You already have an open application for this litter. The breeder can see it.',
       );
     }
 

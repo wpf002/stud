@@ -207,7 +207,7 @@ export function ClaimPanel({
             ))}
           </div>
           <p className="mt-2 text-2xs leading-relaxed text-ink-400">
-            Nothing has been submitted for these. Absence of a result is not a passing result.
+            No results on file for these tests — untested, not passed.
           </p>
         </section>
       )}
