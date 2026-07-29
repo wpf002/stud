@@ -1760,6 +1760,61 @@ async function main() {
     console.info('  ✓ sixty days of funnel history, honest about its sample sizes');
   }
 
+  // ── Photos ───────────────────────────────────────────────────────────────
+  //
+  // Unconditional upserts, so a reseed always leaves every listing, dog and
+  // kennel with pictures. A dog marketplace without photographs is a
+  // spreadsheet, whatever else it gets right.
+  const U = (id: string, w = 1200) =>
+    `https://images.unsplash.com/photo-${id}?q=80&w=${w}&auto=format&fit=crop`;
+
+  const PHOTOS = {
+    goldenPupTulip: U('1552053831-71594a27632d'),
+    goldenAdult: U('1633722715463-d30f4f325e24'),
+    goldenPupCollar: U('1591160690555-5debfba289f0'),
+    goldenPupRed: U('1507146426996-ef05306b995a'),
+    creamRetrieverField: U('1605897472359-85e4b94d685d'),
+    tollerBeach: U('1530281700549-e82e7bf110d6'),
+    pointerCity: U('1477884213360-7e9d7dcc1e48'),
+    liverTongue: U('1518717758536-85ae29035b6d'),
+    brownWhiteField: U('1587300003388-59208cc962cb'),
+    terrierFace: U('1561037404-61cd46aa615b'),
+  } as const;
+
+  const dogPhotos: [string, string][] = [
+    ['blackwaters-ranger-of-the-marsh', PHOTOS.pointerCity],
+    ['blackwaters-juniper', PHOTOS.liverTongue],
+    ['cedar-run-atlas', PHOTOS.goldenAdult],
+    ['cedar-run-marigold', PHOTOS.creamRetrieverField],
+    ['lindqvists-jack-of-tulsa', PHOTOS.terrierFace],
+  ];
+  for (const [slug, url] of dogPhotos) {
+    const dog = await db.dog.findUnique({ where: { slug }, select: { id: true } });
+    if (!dog) continue;
+    const existing = await db.dogMedia.findFirst({ where: { dogId: dog.id, isPrimary: true } });
+    if (existing) await db.dogMedia.update({ where: { id: existing.id }, data: { url } });
+    else await db.dogMedia.create({ data: { dogId: dog.id, url, isPrimary: true, position: 0 } });
+  }
+
+  await db.litterListing.updateMany({
+    where: { slug: 'golden-retriever-marigold-x-atlas-a' },
+    data: { photoUrls: [PHOTOS.goldenPupCollar, PHOTOS.goldenPupTulip, PHOTOS.goldenPupRed] },
+  });
+  await db.litterListing.updateMany({
+    where: { slug: 'german-shorthaired-pointer-juniper-x-ranger-a' },
+    data: { photoUrls: [PHOTOS.brownWhiteField, PHOTOS.pointerCity] },
+  });
+
+  await db.kennel.updateMany({
+    where: { slug: 'blackwater-kennels' },
+    data: { coverUrl: PHOTOS.brownWhiteField, logoUrl: PHOTOS.pointerCity },
+  });
+  await db.kennel.updateMany({
+    where: { slug: 'cedar-run-retrievers' },
+    data: { coverUrl: PHOTOS.tollerBeach, logoUrl: PHOTOS.goldenAdult },
+  });
+  console.info('  ✓ photos on dogs, listings and kennels');
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);

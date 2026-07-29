@@ -1,5 +1,6 @@
 import { MapPin, PawPrint, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -102,6 +103,19 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
           }).replace(/</g, '\\u003c'),
         }}
       />
+
+      {kennel.coverUrl && (
+        <div className="relative mb-8 aspect-[3/1] overflow-hidden rounded-card">
+          <Image
+            src={kennel.coverUrl}
+            alt=""
+            fill
+            priority
+            className="object-cover"
+            sizes="(min-width: 1024px) 70rem, 100vw"
+          />
+        </div>
+      )}
 
       <header className="max-w-3xl">
         <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
@@ -246,8 +260,7 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
           )}
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-ink-500">
-          Only somebody who completed a purchase or a signed breeding through Stud can write one.
-          Fewer reviews than elsewhere — and worth reading, for the same reason.
+          From verified purchases only.
         </p>
 
         {/* The honesty note from the scorer, shown verbatim. */}

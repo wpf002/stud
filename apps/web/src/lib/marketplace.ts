@@ -22,6 +22,7 @@ export type VerificationSummary = NonNullable<Parameters<typeof VerificationDens
 export interface PublicParent {
   id: string;
   slug: string;
+  media?: { url: string }[];
   callName: string;
   registeredName: string | null;
   breed: string;
@@ -43,6 +44,8 @@ export interface PublicKennel {
   slug: string;
   name: string;
   prefix: string | null;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
   about: string | null;
   websiteUrl: string | null;
   city: string | null;

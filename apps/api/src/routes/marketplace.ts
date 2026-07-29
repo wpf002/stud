@@ -700,6 +700,7 @@ export default async function marketplaceRoutes(app: FastifyInstance) {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const parentInclude = {
+  media: { where: { isPrimary: true }, take: 1 },
   registrations: { orderBy: { isPrimary: 'desc' as const } },
   verifiedClaims: {
     where: { state: { in: ['VERIFIED', 'STALE', 'CONFLICTED'] as VerificationState[] } },

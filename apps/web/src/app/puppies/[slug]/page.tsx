@@ -1,5 +1,6 @@
 import { AlertTriangle, Dog, MapPin, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -136,6 +137,39 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
             </p>
           </header>
 
+          {/* The puppies, before any data. */}
+          {listing.photoUrls.length > 0 && (
+            <div
+              className={`grid gap-2 overflow-hidden rounded-card ${
+                listing.photoUrls.length >= 3 ? 'grid-cols-[2fr_1fr]' : 'grid-cols-2'
+              }`}
+            >
+              <div className="relative aspect-[4/3]">
+                <Image
+                  src={listing.photoUrls[0]!}
+                  alt={`${dam.breed} puppies`}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 40rem, 100vw"
+                />
+              </div>
+              {listing.photoUrls.length >= 3 ? (
+                <div className="grid grid-rows-2 gap-2">
+                  {listing.photoUrls.slice(1, 3).map((src, i) => (
+                    <div key={i} className="relative">
+                      <Image src={src} alt="" fill className="object-cover" sizes="20rem" />
+                    </div>
+                  ))}
+                </div>
+              ) : listing.photoUrls[1] ? (
+                <div className="relative aspect-[4/3]">
+                  <Image src={listing.photoUrls[1]} alt="" fill className="object-cover" sizes="20rem" />
+                </div>
+              ) : null}
+            </div>
+          )}
+
           {/*
             The headline claim, and the one a classified board cannot make.
             It counts results that were checked, not results that were typed.
@@ -144,11 +178,10 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
             <ShieldCheck className="h-5 w-5 shrink-0 text-brand-600" />
             <p className="text-sm leading-relaxed text-ink-700">
               <span className="font-semibold text-ink-900">
-                {parentVerified} verified {parentVerified === 1 ? 'result' : 'results'} across both
-                parents.
+                Mom and dad&rsquo;s health tests are checked with the registry
               </span>{' '}
-              Every one was checked against the issuing source. Anything the breeder stated but we
-              could not check is shown separately, marked as reported.
+              — {parentVerified} {parentVerified === 1 ? 'result' : 'results'}, shown below with
+              anything still missing.
             </p>
           </div>
 
@@ -163,14 +196,14 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {/* ── The parents ────────────────────────────────────────── */}
           <section className="space-y-4">
-            <h2 className="font-display text-2xl text-ink-900">The parents</h2>
+            <h2 className="font-display text-2xl text-ink-900">Meet the parents</h2>
             <ParentCard dog={dam} role="Dam" />
             <ParentCard dog={sire} role="Sire" />
           </section>
 
           {/* ── Genetics ───────────────────────────────────────────── */}
           <section className="space-y-3">
-            <h2 className="font-display text-2xl text-ink-900">What the pairing means</h2>
+            <h2 className="font-display text-2xl text-ink-900">Health &amp; genetics</h2>
 
             {geneticRisk.atRisk.length > 0 ? (
               <Alert tone="danger" icon={<AlertTriangle className="h-4 w-4" />}>
@@ -206,9 +239,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
                     single most harmful thing it could do here.
                   */}
                   <p className="mt-3 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
-                    A marker tested on only one side cannot be cleared. This is not a claim that
-                    anything is wrong — it is a statement that nobody knows, which is different from
-                    a clear result and is worth asking the breeder about.
+                    Not a problem — just untested. Worth asking the breeder about.
                   </p>
                 </CardContent>
               </Card>
@@ -331,9 +362,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
               {(litter.totalBorn ?? 0) > 0 && (
                 <p className="text-2xs leading-relaxed text-ink-400">
                   {litter.totalBorn} born, {litter.liveBorn ?? 0} live
-                  {litter.neonatalDeaths > 0
-                    ? `, ${litter.neonatalDeaths} lost after birth — recorded because a litter's real history is worth more than a flattering one.`
-                    : '.'}
+                  {litter.neonatalDeaths > 0 ? `, ${litter.neonatalDeaths} lost after birth.` : '.'}
                 </p>
               )}
             </section>
@@ -341,7 +370,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {listing.includedInPrice && (
             <section>
-              <h2 className="font-display text-2xl text-ink-900">What is included</h2>
+              <h2 className="font-display text-2xl text-ink-900">What comes with your puppy</h2>
               <p className="mt-2 whitespace-pre-line text-md leading-relaxed text-ink-700">
                 {listing.includedInPrice}
               </p>
@@ -350,7 +379,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {listing.buyerRequirements && (
             <section>
-              <h2 className="font-display text-2xl text-ink-900">What this breeder asks of you</h2>
+              <h2 className="font-display text-2xl text-ink-900">What the breeder asks</h2>
               <p className="mt-2 whitespace-pre-line text-md leading-relaxed text-ink-700">
                 {listing.buyerRequirements}
               </p>
@@ -471,11 +500,20 @@ function Row({ label, value }: { label: string; value: string }) {
  * never knew what was supposed to be there.
  */
 function ParentCard({ dog, role }: { dog: PublicParent; role: 'Sire' | 'Dam' }) {
+  const photo = dog.media?.[0]?.url;
   return (
     <Card>
       <CardHeader className="flex-row items-start justify-between gap-3">
-        <div>
-          <p className="text-2xs uppercase tracking-widest text-ink-400">{role}</p>
+        <div className="flex items-start gap-3">
+          {photo && (
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+              <Image src={photo} alt={dog.callName} fill className="object-cover" sizes="4rem" />
+            </div>
+          )}
+          <div>
+          <p className="text-2xs uppercase tracking-widest text-ink-400">
+            {role === 'Dam' ? 'Mom' : 'Dad'}
+          </p>
           <CardTitle as="h3">
             <Link href={`/studs/${dog.slug}`} className="hover:text-brand-600">
               {dog.registeredName ?? dog.callName}
@@ -490,6 +528,7 @@ function ParentCard({ dog, role }: { dog: PublicParent; role: 'Sire' | 'Dam' }) 
               {dog.registrations.map((r) => `${r.body} ${r.number}`).join(' · ')}
             </p>
           )}
+          </div>
         </div>
         <Dog className="h-5 w-5 shrink-0 text-ink-300" />
       </CardHeader>

@@ -1,6 +1,7 @@
 import { AlertTriangle, MapPin, ShieldCheck, Star } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Badge, Card, EmptyState } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 
@@ -15,6 +16,8 @@ interface DirectoryRow {
   id: string;
   slug: string;
   name: string;
+  coverUrl: string | null;
+  logoUrl: string | null;
   tagline: string | null;
   city: string | null;
   region: string | null;
@@ -60,12 +63,10 @@ export default async function BreedersPage({
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          Breeders who show their work
+          Meet the breeders
         </h1>
-        <p className="mt-3 text-md leading-relaxed text-ink-600">
-          Ranked by verified evidence — health results and titles checked against the bodies that
-          issued them. There is no way to buy a higher place on this page, because the ranking does
-          not read anything money can change.
+        <p className="mt-2 text-md leading-relaxed text-ink-600">
+          Ranked by checked health testing — nobody can buy a higher spot.
         </p>
       </header>
 
@@ -79,8 +80,20 @@ export default async function BreedersPage({
         <ul className="mt-8 grid gap-4 md:grid-cols-2">
           {breeders.map((b) => (
             <li key={b.id}>
-              <Card interactive className="h-full">
-                <Link href={`/breeders/${b.slug}`} className="block p-5">
+              <Card interactive className="h-full overflow-hidden">
+                <Link href={`/breeders/${b.slug}`} className="block">
+                  {b.coverUrl && (
+                    <div className="relative aspect-[5/2] overflow-hidden">
+                      <Image
+                        src={b.coverUrl}
+                        alt=""
+                        fill
+                        className="object-cover transition-transform duration-500 hover:scale-105"
+                        sizes="(min-width: 768px) 34rem, 100vw"
+                      />
+                    </div>
+                  )}
+                  <div className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
@@ -132,6 +145,7 @@ export default async function BreedersPage({
                       <span className="text-2xs text-ink-400">no reviews yet</span>
                     )}
                   </div>
+                  </div>
                 </Link>
               </Card>
             </li>
@@ -140,9 +154,7 @@ export default async function BreedersPage({
       )}
 
       <p className="mt-8 max-w-2xl text-2xs leading-relaxed text-ink-400">
-        Reviews on Stud can only be written by somebody who completed a purchase or a signed
-        breeding through the platform — which is why there are fewer of them here than elsewhere,
-        and why they are worth reading.
+        Reviews come only from verified purchases — fewer than elsewhere, and worth more.
       </p>
     </div>
   );

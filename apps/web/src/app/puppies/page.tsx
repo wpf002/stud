@@ -1,4 +1,5 @@
 import { PawPrint, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
@@ -44,12 +45,10 @@ export default async function LittersPage({
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          Puppies, with the receipts attached
+          Find your puppy
         </h1>
-        <p className="mt-3 text-md leading-relaxed text-ink-600">
-          Every health result on these pages was checked against the body that issued it. Where a
-          test is missing, the page says so — which is the part no classified board can do, because
-          it never knew what was supposed to be there.
+        <p className="mt-2 text-md leading-relaxed text-ink-600">
+          From breeders who health-test their dogs — every result checked with the registry.
         </p>
       </header>
 
@@ -74,7 +73,7 @@ export default async function LittersPage({
               className="mt-6"
               icon={<PawPrint className="h-5 w-5" />}
               title="Nothing matches that yet"
-              description="Stud only lists litters where the parents' records are on the platform, so this directory is smaller than a classified board with the same number of breeders. That is the trade — fewer results, and you can check every one of them."
+              description="Try fewer filters — only litters with checkable records are listed here."
             />
           ) : (
             <ul className="mt-5 space-y-4">
@@ -94,52 +93,70 @@ export default async function LittersPage({
 function LitterCard({ listing: l }: { listing: BrowseRow }) {
   const verified = l.cachedSireVerified + l.cachedDamVerified;
   const kennel = l.litter.dam.kennel;
+  const photos = l.photoUrls.slice(0, 2);
 
   return (
-    <Card interactive>
-      <Link href={`/puppies/${l.slug}`} className="block p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
-              {l.cachedBreed} · {AVAILABILITY_LABEL[l.availability] ?? l.availability}
-            </p>
-            <p className="mt-1 font-display text-2xl leading-tight text-ink-900">
-              {l.headline ?? `${l.litter.dam.callName} × ${l.litter.sire.callName}`}
-            </p>
-            <p className="mt-1 text-sm text-ink-500">
-              {kennel ? `${kennel.name}` : 'Independent breeder'}
-              {kennel?.city ? ` · ${kennel.city}, ${kennel.region}` : ''}
-              {l.distanceMiles != null ? ` · ${l.distanceMiles} mi` : ''}
-            </p>
+    <Card interactive className="overflow-hidden">
+      <Link href={`/puppies/${l.slug}`} className="block">
+        {/* Photos first. The card IS the photos. */}
+        {photos.length > 0 && (
+          <div className={`grid gap-1 p-1.5 pb-0 ${photos.length > 1 ? 'grid-cols-2' : ''}`}>
+            {photos.map((src, i) => (
+              <div key={i} className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  className="object-cover transition-transform duration-500 hover:scale-105"
+                  sizes="(min-width: 1024px) 24rem, 50vw"
+                />
+              </div>
+            ))}
           </div>
-          <div className="shrink-0 text-right">
-            {l.priceCentsFrom != null && (
-              <p className="font-display text-xl text-ink-900">
-                {formatMoney(l.priceCentsFrom, { compact: true })}
-                {l.priceCentsTo && l.priceCentsTo !== l.priceCentsFrom && (
-                  <span className="text-ink-400">–{formatMoney(l.priceCentsTo, { compact: true })}</span>
-                )}
-              </p>
-            )}
-            <p className="mt-0.5 text-2xs text-ink-400">
-              {l.cachedAvailablePups} of {l.cachedTotalPups} available
-            </p>
-          </div>
-        </div>
+        )}
 
-        {/* The two numbers that decide whether this litter is worth a click. */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-bone-200 pt-3">
-          <Badge tone={verified > 0 ? 'brand' : 'neutral'} size="sm">
-            <ShieldCheck /> {verified} verified {verified === 1 ? 'result' : 'results'} on the parents
-          </Badge>
-          {l.cachedCoi != null && (
-            <Badge tone={l.cachedCoi <= 0.0625 ? 'brand' : l.cachedCoi <= 0.125 ? 'warning' : 'danger'} size="sm">
-              {formatCoi(l.cachedCoi)} COI
-            </Badge>
-          )}
-          {l.goHomeFrom && (
-            <span className="text-2xs text-ink-400">home from {formatDate(l.goHomeFrom)}</span>
-          )}
+        <div className="p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-display text-2xl leading-tight text-ink-900">
+                {l.headline ?? `${l.cachedBreed} puppies`}
+              </p>
+              <p className="mt-1 text-sm text-ink-500">
+                {kennel ? `Raised by ${kennel.name}` : 'Independent breeder'}
+                {kennel?.city ? ` · ${kennel.city}, ${kennel.region}` : ''}
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              {l.priceCentsFrom != null && (
+                <p className="font-display text-xl text-ink-900">
+                  {formatMoney(l.priceCentsFrom, { compact: true })}
+                  {l.priceCentsTo && l.priceCentsTo !== l.priceCentsFrom && (
+                    <span className="text-ink-400">+</span>
+                  )}
+                </p>
+              )}
+              <p className="mt-0.5 text-2xs text-ink-400">
+                {l.cachedAvailablePups} of {l.cachedTotalPups} left
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {verified > 0 && (
+              <Badge tone="brand" size="sm">
+                <ShieldCheck /> health checked
+              </Badge>
+            )}
+            <span className="text-2xs text-ink-400">
+              {AVAILABILITY_LABEL[l.availability] ?? l.availability}
+              {l.goHomeFrom ? ` · home from ${formatDate(l.goHomeFrom)}` : ''}
+            </span>
+            {l.cachedCoi != null && l.cachedCoi > 0.125 && (
+              <Badge tone="danger" size="sm">
+                {formatCoi(l.cachedCoi)} COI
+              </Badge>
+            )}
+          </div>
         </div>
       </Link>
     </Card>

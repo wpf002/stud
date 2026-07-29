@@ -1,5 +1,6 @@
 import { MapPin, PawPrint, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Badge, Card, EmptyState, formatCoi, formatMoney } from '@stud/ui';
 import { API_URL } from '@/lib/api';
@@ -28,6 +29,7 @@ interface StudRow {
   dog: {
     slug: string;
     callName: string;
+    media?: { url: string }[];
     registeredName: string | null;
     breed: string;
     colorPattern: string | null;
@@ -68,12 +70,11 @@ export default async function StudsPage({
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          Stud dogs, with the testing to show for it
+          Stud dogs
         </h1>
-        <p className="mt-3 text-md leading-relaxed text-ink-600">
-          Every health result and title on these pages was checked against the registry that issued
-          it. If you keep a bitch on Stud, you can run a trial pairing against any of these dogs and
-          see the projected COI for a litter that does not exist yet.
+        <p className="mt-2 text-md leading-relaxed text-ink-600">
+          Health tests and titles checked with the registry. Keep a female on Stud? Run a trial
+          pairing against any of them.
         </p>
       </header>
 
@@ -90,8 +91,20 @@ export default async function StudsPage({
             const v = s.dog.verificationSummary;
             return (
               <li key={s.id}>
-                <Card interactive className="h-full">
-                  <Link href={`/studs/${s.dog.slug}`} className="block p-5">
+                <Card interactive className="h-full overflow-hidden">
+                  <Link href={`/studs/${s.dog.slug}`} className="block">
+                    {s.dog.media?.[0] && (
+                      <div className="relative aspect-[5/2] overflow-hidden">
+                        <Image
+                          src={s.dog.media[0].url}
+                          alt={s.dog.callName}
+                          fill
+                          className="object-cover transition-transform duration-500 hover:scale-105"
+                          sizes="(min-width: 768px) 34rem, 100vw"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
@@ -145,6 +158,7 @@ export default async function StudsPage({
                         </span>
                       )}
                       {s.shipsSemen && <span className="text-2xs text-ink-400">ships</span>}
+                    </div>
                     </div>
                   </Link>
                 </Card>
