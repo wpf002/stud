@@ -241,7 +241,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **4** ✅ | Stud directory & match | Search, open a profile, run a trial pairing, see a COI for a litter that doesn't exist yet |
 | **5** ✅ | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
 | **6** ✅ | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
-| **7** | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
+| **7** ✅ | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
 | **8** | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
 | **9** | Trust, discovery & growth | Organic traffic is the primary channel; the verified tier converts measurably better |
 
@@ -430,3 +430,46 @@ requires both results on **both** parents, and an open `CONFLICTED` result does
 not count as verified. The consequence is a much smaller directory than a
 classified board with the same number of breeders — which the empty state says
 out loud, because it is the trade the whole product is making.
+
+
+---
+
+## The buyer pipeline
+
+Application → approval → deposit → balance → pickup, in one record that both
+sides can read.
+
+**Money never moves before approval.** The legal stage transitions are a data
+table in `@stud/payments`, and every route goes through it — so a deposit
+cannot be taken from somebody the breeder has not accepted, and no future route
+can forget the rule. The refusal says why rather than returning a bare error.
+
+**The pick order turns on deposit time.** Not application time, which rewards
+whoever refreshed the page fastest on announcement day. A breeder can set a
+position by hand — a promise of first pick is a promise already made — and the
+reason shows on the application. Matching out of turn is allowed, because
+sometimes there is a good reason, and recorded, because the buyer who was
+skipped has a right to know.
+
+**A buyer sees where they stand.** Their own position and the size of the
+queue; never who else is in it. That single number is what stops the anxious
+weekly email, and no marketplace currently shows it.
+
+| | |
+|---|---|
+| **The application** | Home, hours alone, children, other pets, previous dogs — *including the ones they no longer have* — their vet, and what the dog's life will look like. Long on purpose. |
+| **No payment on the form** | Said in a banner, because every buyer who has been burned by a fake listing is watching for exactly that. |
+| **The contract** | Drawn from the record: the puppy, both parents, every verified health result, frozen with the document. The breeder sets the money and nothing else. |
+| **Refunds** | From the contract's clause effect, never its prose. No signed contract means fully refundable — Stud will not keep a buyer's money against terms nobody agreed to. |
+| **A breeder who withdraws** | Always refunds in full, whatever the contract says. A non-refundable deposit is consideration for the *buyer's* commitment; it cannot also be a fee for the breeder changing their mind. |
+| **The handover** | A record of what actually left with the dog — chip, papers, health certificate, vaccination and worming records — not a status flag. Phase 8 builds the owner's copy on top of it. |
+
+Eight weeks blocks a handover; a missing vaccination record only warns. The
+age floor is statutory in most states and a welfare minimum everywhere, applied
+at the door as well as on the listing. But a breeder who did the work and did
+not log it should not be stopped by their own paperwork with a family standing
+in the driveway — so warnings are warnings, blockers can be overridden with a
+written reason, and that reason goes into the append-only history.
+
+Readiness is shown from the moment a puppy is matched rather than on collection
+day, because a blocker you learn about at the door is one nobody can fix.

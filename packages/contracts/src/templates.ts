@@ -16,7 +16,8 @@ export type TemplateId =
   | 'STUD_SERVICE'
   | 'STUD_SERVICE_PICK_OF_LITTER'
   | 'CO_OWNERSHIP'
-  | 'REPEAT_BREEDING_ONLY';
+  | 'REPEAT_BREEDING_ONLY'
+  | 'PUPPY_SALE';
 
 export interface ContractTemplate {
   id: TemplateId;
@@ -86,6 +87,27 @@ export const TEMPLATES: ContractTemplate[] = [
     requiresLegalReview: true,
     clauseIds: ['parties.stud_service', 'service.method', 'health.brucellosis', 'general.entire_agreement'],
     guidance: 'Reference the original agreement by date so it is clear this replaces nothing else.',
+  },
+  {
+    id: 'PUPPY_SALE',
+    name: 'Puppy sale',
+    description:
+      'A pet-home sale: deposit and balance, a health guarantee, limited registration, spay/neuter, and a take-back for the life of the dog.',
+    requiresLegalReview: true,
+    clauseIds: [
+      'parties.puppy_sale',
+      'fee.purchase_price',
+      'health.verified_testing',
+      'health.puppy_guarantee',
+      'ownership.puppy_registration',
+      'care.spay_neuter',
+      'care.return_to_breeder',
+      'care.puppy_welfare',
+      'general.governing_law',
+      'general.entire_agreement',
+    ],
+    guidance:
+      'This one is read by somebody who has never seen a puppy contract before. The two decisions that matter are what happens to the deposit if they change their mind, and what your health guarantee actually pays out — everything else is standard.',
   },
 ];
 

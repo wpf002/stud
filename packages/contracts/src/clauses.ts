@@ -77,9 +77,34 @@ export interface Clause {
     /** Marks this clause as defining a repeat-breeding right. */
     grantsRepeatBreeding?: boolean;
     /** Marks this clause as defining when the balance falls due. */
-    definesBalanceTrigger?: 'ON_SIGNING' | 'ON_TIE' | 'ON_CONFIRMED_PREGNANCY' | 'ON_WHELP';
+    definesBalanceTrigger?:
+      | 'ON_SIGNING'
+      | 'ON_TIE'
+      | 'ON_CONFIRMED_PREGNANCY'
+      | 'ON_WHELP'
+      | 'ON_PICK'
+      | 'ON_PICKUP';
     /** Marks this clause as defining the refund position if no litter results. */
     definesNoLitterRemedy?: 'REPEAT_ONLY' | 'REFUND_BALANCE' | 'REFUND_ALL' | 'NO_REMEDY';
+
+    // ── Puppy sale ──
+    /**
+     * Whether the deposit survives a buyer who changes their mind.
+     *
+     * Read by the refund logic, never parsed from the sentence. `UNTIL_PICK`
+     * is the position most breeders actually take and almost none write down.
+     */
+    definesDepositRefund?: 'NON_REFUNDABLE' | 'REFUNDABLE_UNTIL_PICK' | 'FULLY_REFUNDABLE';
+    /** Marks this clause as the health guarantee, and how long it runs. */
+    definesHealthGuaranteeDays?: number;
+    /** What the buyer gets if the guarantee is invoked. */
+    definesHealthRemedy?: 'REPLACEMENT_PUPPY' | 'PARTIAL_REFUND' | 'FULL_REFUND' | 'PURCHASE_PRICE_CREDIT';
+    /** Marks this clause as requiring the dog back rather than rehomed. */
+    requiresReturnToBreeder?: boolean;
+    /** What registration the buyer receives. Decides what Phase 8 can transfer. */
+    definesRegistrationType?: 'FULL' | 'LIMITED' | 'NONE';
+    /** Marks this clause as imposing a spay/neuter obligation. */
+    requiresAlteration?: boolean;
   };
   /** Shown to the drafter, not printed in the contract. */
   drafterNote?: string;
@@ -354,6 +379,268 @@ Either party may buy out the other at {{buyoutTerms}}.`,
   },
 
   // ── General ─────────────────────────────────────────────────────────────
+  // ── Puppy sale ──────────────────────────────────────────────────────────
+  //
+  // A puppy contract is not a stud contract with the nouns changed. It is
+  // consumer-facing, it is signed by someone who has never read one before,
+  // and the clauses that matter most are the ones that decide what happens
+  // when something goes wrong months later.
+  {
+    id: 'parties.puppy_sale',
+    version: 1,
+    category: 'PARTIES',
+    title: 'Parties and puppy',
+    body: `This agreement is made on {{agreementDate}} between {{breederName}} ("Breeder") and {{buyerName}} ("Buyer").
+
+The Breeder sells and the Buyer purchases {{puppyDescription}}, born {{dateOfBirth}}, out of {{damName}} by {{sireName}}.
+
+The Buyer confirms they have read the health testing recorded for both parents on the Stud platform, as set out in the schedule attached.`,
+    variables: [
+      { key: 'agreementDate', label: 'Agreement date', kind: 'DATE', required: true },
+      { key: 'breederName', label: 'Breeder', kind: 'TEXT', required: true },
+      { key: 'buyerName', label: 'Buyer', kind: 'TEXT', required: true },
+      {
+        key: 'puppyDescription',
+        label: 'The puppy',
+        kind: 'TEXT',
+        required: true,
+        help: 'Sex, colour and collar or name — enough that there is no doubt which puppy this is.',
+      },
+      { key: 'dateOfBirth', label: 'Date of birth', kind: 'DATE', required: true },
+      { key: 'damName', label: 'Dam', kind: 'TEXT', required: true },
+      { key: 'sireName', label: 'Sire', kind: 'TEXT', required: true },
+    ],
+    drafterNote:
+      'Identify the puppy precisely. "A male puppy" has been litigated more than once when a breeder and a buyer each had a different one in mind.',
+  },
+  {
+    id: 'fee.purchase_price',
+    version: 1,
+    category: 'CONSIDERATION',
+    title: 'Purchase price and deposit',
+    body: `The purchase price is {{priceTotal}}.
+
+A deposit of {{depositAmount}} is payable on signing. {{depositTerms}}
+
+The balance of {{balanceAmount}} falls due {{balanceTrigger}}, and the puppy does not leave the Breeder's care until it has been paid in full.`,
+    variables: [
+      { key: 'priceTotal', label: 'Purchase price', kind: 'MONEY_CENTS', required: true },
+      { key: 'depositAmount', label: 'Deposit', kind: 'MONEY_CENTS', required: true },
+      { key: 'balanceAmount', label: 'Balance', kind: 'MONEY_CENTS', required: true },
+      {
+        key: 'balanceTrigger',
+        label: 'Balance falls due',
+        kind: 'CHOICE',
+        required: true,
+        defaultValue: 'ON_PICKUP',
+        options: [
+          { value: 'ON_PICK', label: 'On choosing a puppy', text: 'when the Buyer selects their puppy' },
+          { value: 'ON_PICKUP', label: 'At collection', text: 'on or before collection' },
+        ],
+      },
+      {
+        key: 'depositTerms',
+        label: 'The deposit',
+        kind: 'CHOICE',
+        required: true,
+        defaultValue: 'REFUNDABLE_UNTIL_PICK',
+        options: [
+          {
+            value: 'NON_REFUNDABLE',
+            label: 'Non-refundable',
+            text: 'The deposit is not refundable if the Buyer withdraws.',
+          },
+          {
+            value: 'REFUNDABLE_UNTIL_PICK',
+            label: 'Refundable until they choose',
+            text: 'The deposit is refundable in full if the Buyer withdraws before selecting a puppy, and is not refundable afterwards.',
+          },
+          {
+            value: 'FULLY_REFUNDABLE',
+            label: 'Fully refundable',
+            text: 'The deposit is refundable in full at any time before collection.',
+          },
+        ],
+      },
+    ],
+    effects: { definesBalanceTrigger: 'ON_PICKUP', definesDepositRefund: 'REFUNDABLE_UNTIL_PICK' },
+    drafterNote:
+      'Say what happens to the deposit if the buyer changes their mind. Most breeders hold a position on this and almost none write it down, which is how it ends up being argued about.',
+  },
+  {
+    id: 'health.puppy_guarantee',
+    version: 1,
+    category: 'GUARANTEE',
+    title: 'Health guarantee',
+    body: `The Breeder warrants the puppy is in good health at collection and has been examined by a licensed veterinarian.
+
+The Buyer shall have the puppy examined by their own veterinarian within {{initialExamWindow}} of collection. If that examination finds a pre-existing condition that materially affects the puppy's health, the Buyer may return the puppy for a full refund of the purchase price.
+
+For {{guaranteePeriod}} from the date of birth, the Breeder guarantees the puppy against a life-threatening or life-limiting hereditary condition diagnosed by a licensed veterinarian and confirmed by a second opinion the Breeder may obtain at their own cost. The remedy is {{guaranteeRemedy}}.
+
+This guarantee does not cover conditions arising from injury, neglect, poor nutrition, infectious disease, or a failure to follow reasonable veterinary advice.`,
+    variables: [
+      {
+        key: 'initialExamWindow',
+        label: 'Initial vet exam window',
+        kind: 'TEXT',
+        required: true,
+        defaultValue: '72 hours',
+        help: 'Short enough to be about the puppy you handed over, long enough to find a vet.',
+      },
+      {
+        key: 'guaranteePeriod',
+        label: 'Guarantee period',
+        kind: 'CHOICE',
+        required: true,
+        defaultValue: 'TWENTY_FOUR_MONTHS',
+        options: [
+          { value: 'TWELVE_MONTHS', label: '12 months', text: 'twelve months' },
+          { value: 'TWENTY_FOUR_MONTHS', label: '24 months', text: 'twenty-four months' },
+          { value: 'THIRTY_SIX_MONTHS', label: '36 months', text: 'thirty-six months' },
+        ],
+      },
+      {
+        key: 'guaranteeRemedy',
+        label: 'Remedy',
+        kind: 'CHOICE',
+        required: true,
+        defaultValue: 'REPLACEMENT_PUPPY',
+        options: [
+          {
+            value: 'REPLACEMENT_PUPPY',
+            label: 'Replacement puppy',
+            text: 'a replacement puppy from a future litter, at no further cost, with the Buyer under no obligation to return the affected dog',
+          },
+          {
+            value: 'PARTIAL_REFUND',
+            label: 'Partial refund',
+            text: 'a refund of half the purchase price, with the Buyer under no obligation to return the affected dog',
+          },
+          {
+            value: 'FULL_REFUND',
+            label: 'Full refund on return',
+            text: 'a full refund of the purchase price on return of the dog',
+          },
+          {
+            value: 'PURCHASE_PRICE_CREDIT',
+            label: 'Credit against a future puppy',
+            text: 'a credit for the purchase price against a future puppy',
+          },
+        ],
+      },
+    ],
+    effects: { definesHealthGuaranteeDays: 730, definesHealthRemedy: 'REPLACEMENT_PUPPY' },
+    drafterNote:
+      'A guarantee that requires the dog back to pay out is a guarantee most families will never claim, and both parties know it. Decide honestly whether you want a clause that pays or a clause that looks good.',
+  },
+  {
+    id: 'ownership.puppy_registration',
+    version: 1,
+    category: 'OWNERSHIP',
+    title: 'Registration',
+    body: `The puppy is sold with {{registrationType}}.
+
+The Breeder shall provide the registration paperwork within {{paperworkWindow}} of the balance being paid in full.
+
+The puppy's microchip shall be registered to the Buyer at collection, and the Breeder shall remain listed as a secondary contact so the Buyer can be reached if the dog is ever found without them.`,
+    variables: [
+      {
+        key: 'registrationType',
+        label: 'Registration',
+        kind: 'CHOICE',
+        required: true,
+        defaultValue: 'LIMITED',
+        options: [
+          {
+            value: 'LIMITED',
+            label: 'Limited — no breeding rights',
+            text: 'limited registration, which does not permit the registration of any offspring',
+          },
+          {
+            value: 'FULL',
+            label: 'Full — breeding rights',
+            text: 'full registration, which permits the registration of offspring',
+          },
+          { value: 'NONE', label: 'No registration', text: 'no registration paperwork' },
+        ],
+      },
+      { key: 'paperworkWindow', label: 'Paperwork window', kind: 'TEXT', required: true, defaultValue: '14 days' },
+    ],
+    effects: { definesRegistrationType: 'LIMITED' },
+    drafterNote:
+      'Limited registration is the norm for a pet home and is not an insult — say so to the buyer, because many read it as one.',
+  },
+  {
+    id: 'care.spay_neuter',
+    version: 1,
+    category: 'PERFORMANCE',
+    title: 'Spay and neuter',
+    body: `The Buyer shall have the puppy spayed or neutered by {{alterationDeadline}}, and shall provide the Breeder with veterinary confirmation within {{confirmationWindow}} of the procedure.
+
+The Buyer shall not breed from this dog.`,
+    variables: [
+      {
+        key: 'alterationDeadline',
+        label: 'By when',
+        kind: 'TEXT',
+        required: true,
+        defaultValue: 'eighteen months of age, or earlier on veterinary advice',
+        help: 'Current orthopaedic evidence favours waiting past skeletal maturity in larger breeds. A blanket six-month deadline is out of step with it.',
+      },
+      { key: 'confirmationWindow', label: 'Confirmation window', kind: 'TEXT', required: true, defaultValue: '30 days' },
+    ],
+    effects: { requiresAlteration: true },
+    drafterNote:
+      'Naming a fixed early age can conflict with veterinary advice for the breed. Tying it to maturity, with room for the vet to move it, is both safer for the dog and more enforceable.',
+  },
+  {
+    id: 'care.return_to_breeder',
+    version: 1,
+    category: 'PERFORMANCE',
+    title: 'Return to breeder',
+    body: `If at any point in this dog's life the Buyer cannot keep it, the Buyer shall contact the Breeder first and return the dog to the Breeder.
+
+The Buyer shall not sell, give away, rehome, surrender to a shelter or rescue, or euthanise this dog other than on veterinary advice, without first offering it back to the Breeder.
+
+The Breeder shall accept the dog back at any age and for any reason. {{refundOnReturn}}`,
+    variables: [
+      {
+        key: 'refundOnReturn',
+        label: 'On return',
+        kind: 'CHOICE',
+        required: true,
+        defaultValue: 'NO_REFUND',
+        options: [
+          {
+            value: 'NO_REFUND',
+            label: 'No refund',
+            text: 'No refund of the purchase price is due on a return.',
+          },
+          {
+            value: 'PRORATED',
+            label: 'Prorated in the first year',
+            text: 'A return within the first year carries a refund prorated against the purchase price.',
+          },
+        ],
+      },
+    ],
+    effects: { requiresReturnToBreeder: true },
+    drafterNote:
+      'This is the clause that keeps dogs out of shelters. Make it unconditional on your side — a take-back that depends on the buyer being blameless is one that will not be used when it is needed.',
+  },
+  {
+    id: 'care.puppy_welfare',
+    version: 1,
+    category: 'PERFORMANCE',
+    title: 'Care of the dog',
+    body: `The Buyer shall keep this dog as a companion animal in their home, provide routine and emergency veterinary care including core vaccination and parasite prevention, and shall not keep it permanently kennelled, chained or outdoors.
+
+The Buyer shall not sell or transfer this dog to a pet shop, dealer, laboratory, or any commercial breeding operation, in any circumstances.`,
+    variables: [],
+    drafterNote:
+      'Unenforceable in practice against a determined buyer, but it states the expectation plainly and gives you standing if you ever need it.',
+  },
   {
     id: 'general.governing_law',
     version: 1,

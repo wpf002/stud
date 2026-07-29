@@ -128,6 +128,92 @@ describe('validation', () => {
   });
 });
 
+describe('puppy sale', () => {
+  function puppyDraft(over: Record<string, Record<string, string | number>> = {}) {
+    return draftFromTemplate('PUPPY_SALE', {
+      'parties.puppy_sale': {
+        agreementDate: '2026-09-05',
+        breederName: 'Priya Raman, Cedar Run',
+        buyerName: 'Dana Whitfield',
+        puppyDescription: 'a female Golden Retriever puppy, red collar',
+        dateOfBirth: '2026-07-10',
+        damName: "Cedar Run's Marigold",
+        sireName: "Cedar Run's Atlas Unbound",
+      },
+      'fee.purchase_price': {
+        priceTotal: 320_000,
+        depositAmount: 50_000,
+        balanceAmount: 270_000,
+        balanceTrigger: 'ON_PICKUP',
+        depositTerms: 'REFUNDABLE_UNTIL_PICK',
+      },
+      'general.governing_law': { jurisdiction: 'the State of Texas' },
+      ...over,
+    })!;
+  }
+
+  it('builds a complete, valid puppy contract from the template', () => {
+    const issues = validateDraft(puppyDraft());
+    expect(issues.filter((i) => i.severity === 'error')).toEqual([]);
+  });
+
+  it('catches a deposit and balance that do not add up to the price', () => {
+    const draft = puppyDraft({
+      'fee.purchase_price': {
+        priceTotal: 320_000,
+        depositAmount: 50_000,
+        balanceAmount: 250_000,
+        balanceTrigger: 'ON_PICKUP',
+        depositTerms: 'REFUNDABLE_UNTIL_PICK',
+      },
+    });
+    const errors = validateDraft(draft).filter((i) => i.severity === 'error');
+    expect(errors).toHaveLength(1);
+    expect(errors[0]!.message).toMatch(/purchase price/i);
+  });
+
+  it('warns when the contract restricts rehoming without committing to a take-back', () => {
+    const draft = puppyDraft();
+    draft.instances = draft.instances.filter((i) => i.clauseId !== 'care.return_to_breeder');
+    const warnings = validateDraft(draft).filter((i) => i.severity === 'warning');
+    expect(warnings.some((w) => /no lawful option|shelters/i.test(w.message))).toBe(true);
+  });
+
+  it('warns when full registration is granted alongside a breeding prohibition', () => {
+    const draft = puppyDraft();
+    const reg = draft.instances.find((i) => i.clauseId === 'ownership.puppy_registration')!;
+    reg.values.registrationType = 'FULL';
+    const warnings = validateDraft(draft).filter((i) => i.severity === 'warning');
+    expect(warnings.some((w) => /contradict/i.test(w.message))).toBe(true);
+  });
+
+  it('renders the deposit position as a sentence, not a token', () => {
+    const text = renderContract(puppyDraft()).plainText;
+    expect(text).toContain('refundable in full if the Buyer withdraws before selecting a puppy');
+    expect(text).not.toContain('REFUNDABLE_UNTIL_PICK');
+    expect(text).not.toContain('ON_PICKUP');
+  });
+
+  it('carries the effects the money and transfer logic read', () => {
+    const draft = puppyDraft();
+    const fee = getClause('fee.purchase_price')!;
+    expect(fee.effects?.definesDepositRefund).toBe('REFUNDABLE_UNTIL_PICK');
+    expect(getClause('ownership.puppy_registration')!.effects?.definesRegistrationType).toBe('LIMITED');
+    expect(getClause('care.return_to_breeder')!.effects?.requiresReturnToBreeder).toBe(true);
+    // Every clause in the template resolves — a template naming a clause the
+    // library does not have would fail at render, on a buyer's screen.
+    for (const i of draft.instances) {
+      expect(getClause(i.clauseId, i.clauseVersion)).not.toBeNull();
+    }
+  });
+
+  it('names the puppy precisely enough to identify it', () => {
+    const text = renderContract(puppyDraft()).plainText;
+    expect(text).toContain('a female Golden Retriever puppy, red collar');
+    expect(text).toContain("Cedar Run's Marigold");
+  });
+});
+
 describe('rendering', () => {
   it('interpolates money as currency and choices as their document wording', () => {
     const clause = getClause('fee.deposit_and_balance')!;
@@ -160,11 +246,20 @@ describe('rendering', () => {
       for (const v of clause.variables) {
         if (!v.options) continue;
         const chosen = v.options[0]!;
+        const wording = chosen.text ?? chosen.value;
         // The wording that should appear.
-        expect(text).toContain(chosen.text ?? chosen.value);
-        // And the picker label must not, unless it happens to be the wording.
-        if (chosen.label !== (chosen.text ?? chosen.value)) {
-          expect(text).not.toContain(chosen.label);
+        expect(text).toContain(wording);
+        /**
+         * And the picker label must not appear ANYWHERE ELSE.
+         *
+         * Checked against the text with the correct wording removed, because
+         * a label is often a prefix of it — "No refund" is the picker for
+         * "No refund of the purchase price is due on a return." A plain
+         * substring check flags that as a bug when it is the correct output.
+         */
+        const remainder = text.split(wording).join('');
+        if (chosen.label !== wording) {
+          expect(remainder).not.toContain(chosen.label);
         }
       }
     }

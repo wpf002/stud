@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   Alert,
   Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -382,6 +383,22 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
               </dl>
             </CardContent>
           </Card>
+
+          {/* Applying is the primary action; asking a question is the fallback. */}
+          {listing.availability !== 'PAST' && (
+            <Card className="border-brand-300">
+              <CardContent className="pt-5">
+                <p className="font-display text-lg text-ink-900">Apply for a puppy</p>
+                <p className="mt-1 text-xs leading-relaxed text-ink-600">
+                  No payment is taken when you apply. Nothing is due until the breeder has read it
+                  and accepted you.
+                </p>
+                <Button block className="mt-3" asChild>
+                  <Link href={`/puppies/${listing.slug}/apply`}>Start an application</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           <InquiryForm
             slug={listing.slug}

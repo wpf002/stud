@@ -606,3 +606,111 @@ disagreed with the one in the workspace. Same reasoning as
 **Consequence.** `@stud/db` now depends on `@stud/pedigree`. Both are still
 pure of each other's concerns — the engine does no I/O and the loader does no
 arithmetic.
+
+## D44 — Money never moves before approval (Phase 7)
+
+**Decision.** `canAdvance` is a data table of legal stage transitions, and
+every stage change in the pipeline goes through it. `APPROVED` is the only
+stage a deposit may be taken from.
+
+**Why.** A deposit from an applicant the breeder has not accepted is a deposit
+that has to go back, and the platform holding it in the meantime is the
+platform's problem. Writing the ordering as data rather than as a check inside
+each route means a new route cannot forget it.
+
+**Consequence.** The refusal explains itself rather than returning a bare 400:
+*"Approve it first — money that arrives from someone you have not accepted has
+to go back."*
+
+## D45 — The pick order is set by deposit time, not application time (Phase 7)
+
+**Decision.** `buildPickOrder` sorts on a breeder's hand-set position first,
+then when the deposit landed, then when the application was submitted.
+
+**Why.** Deposit time is the point at which somebody actually committed, and it
+is the only one of the three dates both parties can see. Application time
+rewards whoever refreshed the page fastest on the day the litter was announced.
+
+**Consequence.** A breeder who promised somebody first pick sets it explicitly,
+and the reason shows on the application. Applicants without a deposit are not
+in the queue at all — being approved is not the same as holding a place.
+
+## D46 — Out-of-turn matching is allowed and recorded (Phase 7)
+
+**Decision.** A breeder may match a puppy to a buyer who is not next. The
+event log records that it happened.
+
+**Why.** There are good reasons — the buyer ahead wanted a female and this is
+the only male left. Blocking it would make the software wrong about the
+situation. Doing it silently would be worse, because the buyer who was skipped
+has a right to know.
+
+**Consequence.** The match dialog warns before it happens rather than after.
+
+## D47 — A breeder who withdraws always refunds in full (Phase 7)
+
+**Decision.** `assessDepositRefund` returns the whole deposit when
+`breederWithdrew`, whatever the contract says.
+
+**Why.** A "non-refundable" deposit is consideration for the **buyer's**
+commitment. It cannot also be a fee for the breeder changing their mind — a
+term that let a breeder keep it would be unconscionable and, in most states,
+unenforceable.
+
+**Consequence.** The only term the platform overrides. Everything else about a
+deposit comes from the contract's clause effect.
+
+## D48 — With no signed contract, a deposit is fully refundable (Phase 7)
+
+**Decision.** A null deposit term means refund in full.
+
+**Why.** The platform will not keep a buyer's money against terms nobody
+agreed to. This is the same principle as Phase 5's `NEEDS_REVIEW`: where there
+is no agreement, Stud does not invent one — it just does the thing that cannot
+be unfair.
+
+**Consequence.** A breeder who wants a non-refundable deposit has to get the
+contract signed before taking it, which is the right order anyway.
+
+## D49 — Pickup readiness reads the ledger, not instalment rows (Phase 7)
+
+**Decision.** `computeReadiness` sums `ESCROW` ledger entries for the
+application and compares against the contract total.
+
+**Why.** The deposit is taken against the *application*, before any contract
+exists. Summing instalment statuses would count the contract's still-PENDING
+deposit row as outstanding and block a buyer at the door for money they paid
+weeks ago. Phase 5's rule again: the ledger is the record.
+
+**Consequence.** The deposit instalment is reconciled to PAID when the balance
+is taken, so the contract's own schedule stops disagreeing with the ledger.
+
+## D50 — Eight weeks blocks a handover; missing paperwork only warns (Phase 7)
+
+**Decision.** Age under 56 days, an outstanding balance and an unsigned
+contract are blockers. A missing microchip, vaccination or vet record is a
+warning.
+
+**Why.** The age floor is statutory in most states and a welfare minimum
+everywhere — the same rule the listing enforces, applied at the door. But a
+breeder who genuinely did the vaccinations and did not log them should not be
+stopped by their own paperwork on the day a family arrives.
+
+**Consequence.** Blockers can be overridden with a written reason, which goes
+into the append-only application history. Readiness is shown from the moment a
+puppy is matched, not on collection day — a blocker learned about at the door
+is one nobody can do anything about.
+
+## D51 — An application is not an enquiry (Phase 7)
+
+**Decision.** `PuppyApplication` is a separate model from Phase 6's
+`LitterInquiry`, which stays exactly what it was.
+
+**Why.** Most buyers start with a question, not a form. Making the first
+contact a twenty-field application loses the buyer who was only half sure;
+making the considered one a free-text message loses the breeder who has twenty
+to triage.
+
+**Consequence.** An application can link back to the enquiry it grew out of, so
+the thread is not lost. One live application per person per litter — a second
+is almost always somebody who thought the first did not send.

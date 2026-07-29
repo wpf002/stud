@@ -127,6 +127,63 @@ export function validateDraft(draft: ContractDraft): ValidationIssue[] {
     });
   }
 
+  // ── Puppy sale ──
+  const price = findValue(draft, 'fee.purchase_price', 'priceTotal');
+  const puppyDeposit = findValue(draft, 'fee.purchase_price', 'depositAmount');
+  const puppyBalance = findValue(draft, 'fee.purchase_price', 'balanceAmount');
+  if (
+    typeof price === 'number' &&
+    typeof puppyDeposit === 'number' &&
+    typeof puppyBalance === 'number' &&
+    puppyDeposit + puppyBalance !== price
+  ) {
+    issues.push({
+      clauseId: 'fee.purchase_price',
+      severity: 'error',
+      message: `Deposit and balance add up to ${puppyDeposit + puppyBalance} cents, but the purchase price is ${price}. They must reconcile.`,
+    });
+  }
+
+  /**
+   * A take-back clause and a "no rehoming" clause are the same promise from
+   * two directions, and a contract that forbids rehoming without committing
+   * the breeder to take the dog back leaves the owner with nowhere to go. That
+   * is the situation that fills shelters.
+   */
+  const forbidsRehoming = draft.instances.some((i) => i.clauseId === 'care.puppy_welfare');
+  const takesBack = draft.instances.some((i) => {
+    const clause = getClause(i.clauseId, i.clauseVersion);
+    return clause?.effects?.requiresReturnToBreeder;
+  });
+  if (forbidsRehoming && !takesBack) {
+    issues.push({
+      clauseId: 'care.puppy_welfare',
+      severity: 'warning',
+      message:
+        'This contract restricts what the buyer may do with the dog but does not commit you to taking it back. If they cannot keep it, that leaves them with no lawful option — which is how dogs end up in shelters anyway.',
+    });
+  }
+
+  // Full registration alongside a breeding prohibition is a contradiction the
+  // buyer will notice, and the clause that loses is whichever one is argued
+  // second.
+  const registrationType = draft.instances
+    .map((i) => getClause(i.clauseId, i.clauseVersion)?.effects?.definesRegistrationType)
+    .find(Boolean);
+  const regInstance = draft.instances.find((i) => i.clauseId === 'ownership.puppy_registration');
+  const chosenReg = regInstance ? String(regInstance.values.registrationType ?? '') : registrationType;
+  const requiresAlteration = draft.instances.some(
+    (i) => getClause(i.clauseId, i.clauseVersion)?.effects?.requiresAlteration,
+  );
+  if (chosenReg === 'FULL' && requiresAlteration) {
+    issues.push({
+      clauseId: 'care.spay_neuter',
+      severity: 'warning',
+      message:
+        'This contract grants full registration and also requires the dog to be spayed or neutered and not bred. Those two clauses contradict each other — pick the one you mean.',
+    });
+  }
+
   const hasRepeat = draft.instances.some((i) => i.clauseId === 'remedy.repeat_breeding');
   const hasRefund = draft.instances.some((i) => i.clauseId === 'remedy.refund_no_conception');
   if (hasRepeat && hasRefund) {

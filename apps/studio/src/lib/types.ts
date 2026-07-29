@@ -855,3 +855,125 @@ export interface LitterInquiryDto {
   litterListing: { slug: string; headline: string | null; litterId: string };
   puppy: { id: string; name: string | null; collarColor: string | null; sex: string } | null;
 }
+
+// ── Phase 7: buyer pipeline ─────────────────────────────────────────────────
+
+export type ApplicationStage =
+  | 'SUBMITTED'
+  | 'IN_REVIEW'
+  | 'APPROVED'
+  | 'WAITLISTED'
+  | 'DEPOSIT_PAID'
+  | 'MATCHED'
+  | 'PAID_IN_FULL'
+  | 'COMPLETED'
+  | 'DECLINED'
+  | 'WITHDRAWN';
+
+export interface ApplicationEventDto {
+  id: string;
+  fromStage: ApplicationStage | null;
+  toStage: ApplicationStage;
+  note: string | null;
+  automatic: boolean;
+  occurredAt: string;
+}
+
+export interface HandoverDto {
+  id: string;
+  collectedOn: string;
+  collectedBy: string | null;
+  microchipRegistered: boolean;
+  registrationPapers: boolean;
+  healthCertificate: boolean;
+  vaccinationRecord: boolean;
+  wormingRecord: boolean;
+  microchipNumber: string | null;
+  foodProvided: string | null;
+  itemsProvided: string | null;
+  vetExamDueBy: string | null;
+  notes: string | null;
+}
+
+export interface ApplicationDto {
+  id: string;
+  stage: ApplicationStage;
+  name: string;
+  email: string;
+  phone: string | null;
+  city: string | null;
+  region: string | null;
+  intendedHome: string | null;
+  homeType: string | null;
+  hasFencedYard: boolean | null;
+  hoursAloneDaily: number | null;
+  hasChildren: boolean | null;
+  childrenAges: string | null;
+  hasOtherPets: boolean | null;
+  otherPetsDetail: string | null;
+  previousDogs: string | null;
+  vetName: string | null;
+  vetPhone: string | null;
+  activityPlans: string | null;
+  preferredSex: string | null;
+  preferredColor: string | null;
+  message: string | null;
+  reviewNote: string | null;
+  declineReason: string | null;
+  manualPickPosition: number | null;
+  matchedPuppyId: string | null;
+  matchedAt: string | null;
+  depositPaidAt: string | null;
+  contractId: string | null;
+  applicantUserId: string | null;
+  submittedAt: string;
+  litterListing: {
+    id: string;
+    slug: string;
+    headline: string | null;
+    litterId: string;
+    priceCentsFrom: number | null;
+    priceCentsTo: number | null;
+    depositCents: number | null;
+    goHomeFrom: string | null;
+    litter: {
+      id: string;
+      whelpedOn: string | null;
+      letter: string | null;
+      sire: { slug: string; callName: string };
+      dam: { slug: string; callName: string };
+      puppies: {
+        id: string;
+        name: string | null;
+        collarColor: string | null;
+        sex: 'MALE' | 'FEMALE';
+        status: string;
+        colorPattern: string | null;
+      }[];
+    };
+  };
+  matchedPuppy: {
+    id: string;
+    name: string | null;
+    collarColor: string | null;
+    sex: string;
+    status: string;
+    microchip: string | null;
+  } | null;
+  contract: { id: string; status: string; title: string; contentHash: string | null } | null;
+  events: ApplicationEventDto[];
+  pickup: HandoverDto | null;
+  pick?: { position: number; isNext: boolean; reason?: string; of?: number } | null;
+}
+
+export interface PipelineResponse {
+  applications: ApplicationDto[];
+  counts: Record<string, number>;
+}
+
+export interface ApplicationDetailResponse {
+  application: ApplicationDto;
+  pick: { position: number; isNext: boolean; reason: string; of: number } | null;
+  readiness: { ready: boolean; blockers: string[]; warnings: string[] };
+  isBreeder: boolean;
+}

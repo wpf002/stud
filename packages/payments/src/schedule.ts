@@ -19,6 +19,9 @@ export type ScheduleTrigger =
   | 'ON_TIE'
   | 'ON_CONFIRMED_PREGNANCY'
   | 'ON_WHELP'
+  // Puppy sale (Phase 7).
+  | 'ON_PICK'
+  | 'ON_PICKUP'
   | 'MANUAL';
 
 export type InstalmentStatus = 'PENDING' | 'DUE' | 'PAID' | 'WAIVED' | 'REFUNDED';
@@ -105,6 +108,10 @@ export interface BreedingProgress {
   tieRecorded: boolean;
   pregnancyConfirmed: boolean;
   litterWhelped: boolean;
+  /** Puppy sale: the buyer has selected their puppy. */
+  puppyPicked?: boolean;
+  /** Puppy sale: the dog has been collected. */
+  puppyCollected?: boolean;
 }
 
 export function isTriggerMet(trigger: ScheduleTrigger, progress: BreedingProgress): boolean {
@@ -117,6 +124,10 @@ export function isTriggerMet(trigger: ScheduleTrigger, progress: BreedingProgres
       return progress.pregnancyConfirmed;
     case 'ON_WHELP':
       return progress.litterWhelped;
+    case 'ON_PICK':
+      return progress.puppyPicked ?? false;
+    case 'ON_PICKUP':
+      return progress.puppyCollected ?? false;
     case 'MANUAL':
       return false;
   }

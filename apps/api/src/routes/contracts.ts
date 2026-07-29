@@ -832,20 +832,27 @@ function toDraft(contract: NonNullable<ContractWithRelations>): ContractDraft {
 function extractScheduleTerms(draft: ContractDraft): {
   totalCents: number;
   depositCents: number;
-  balanceTrigger: 'ON_TIE' | 'ON_CONFIRMED_PREGNANCY' | 'ON_WHELP';
+  balanceTrigger: 'ON_TIE' | 'ON_CONFIRMED_PREGNANCY' | 'ON_WHELP' | 'ON_PICK' | 'ON_PICKUP';
   noLitterRemedy: string | null;
 } | null {
-  const feeInstance = draft.instances.find((i) => i.clauseId === 'fee.deposit_and_balance');
+  /**
+   * Two clauses can carry a fee: the stud service one and the puppy sale one.
+   * They use different variable names because they are different agreements,
+   * but both produce the same schedule — so this reads whichever is present
+   * rather than the send route needing to know what kind of contract it has.
+   */
+  const studFee = draft.instances.find((i) => i.clauseId === 'fee.deposit_and_balance');
+  const puppyFee = draft.instances.find((i) => i.clauseId === 'fee.purchase_price');
+  const feeInstance = studFee ?? puppyFee;
   if (!feeInstance) return null;
 
-  const total = Number(feeInstance.values.feeTotal ?? 0);
+  const total = Number(feeInstance.values[studFee ? 'feeTotal' : 'priceTotal'] ?? 0);
   const deposit = Number(feeInstance.values.depositAmount ?? 0);
   if (!Number.isInteger(total) || !Number.isInteger(deposit)) return null;
 
-  const trigger = String(feeInstance.values.balanceTrigger ?? 'ON_CONFIRMED_PREGNANCY') as
-    | 'ON_TIE'
-    | 'ON_CONFIRMED_PREGNANCY'
-    | 'ON_WHELP';
+  const trigger = String(
+    feeInstance.values.balanceTrigger ?? (studFee ? 'ON_CONFIRMED_PREGNANCY' : 'ON_PICKUP'),
+  ) as 'ON_TIE' | 'ON_CONFIRMED_PREGNANCY' | 'ON_WHELP' | 'ON_PICK' | 'ON_PICKUP';
 
   // The remedy comes from whichever remedy clause is present, via its effects.
   let noLitterRemedy: string | null = null;

@@ -15,6 +15,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import litterRoutes from './routes/litters.js';
 import contractRoutes from './routes/contracts.js';
 import marketplaceRoutes from './routes/marketplace.js';
+import applicationRoutes from './routes/applications.js';
 import studRoutes from './routes/studs.js';
 import dogRoutes from './routes/dogs.js';
 import kennelRoutes from './routes/kennels.js';
@@ -85,6 +86,7 @@ export async function buildServer() {
       await api.register(studRoutes);
       await api.register(contractRoutes);
       await api.register(marketplaceRoutes);
+      await api.register(applicationRoutes);
     },
     { prefix: '/v1' },
   );

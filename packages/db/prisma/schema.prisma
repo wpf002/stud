@@ -83,6 +83,7 @@ model User {
   documentsSubmitted DocumentSubmission[] @relation("DocumentSubmitter")
   studInquiries      StudInquiry[]
   litterInquiries    LitterInquiry[]
+  puppyApplications  PuppyApplication[]
   savedPairings      SavedPairing[]
   contractParties    ContractParty[]
   contractSignatures ContractSignature[]
@@ -1106,11 +1107,13 @@ model Puppy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  litter    Litter          @relation(fields: [litterId], references: [id], onDelete: Cascade)
-  dog       Dog?            @relation(fields: [dogId], references: [id], onDelete: SetNull)
-  weights   PuppyWeight[]
-  careTasks CareTask[]
-  inquiries LitterInquiry[]
+  litter             Litter            @relation(fields: [litterId], references: [id], onDelete: Cascade)
+  dog                Dog?              @relation(fields: [dogId], references: [id], onDelete: SetNull)
+  weights            PuppyWeight[]
+  careTasks          CareTask[]
+  inquiries          LitterInquiry[]
+  matchedApplication PuppyApplication? @relation("PuppyMatch")
+  handover           PuppyHandover?
 
   @@index([litterId, birthOrder])
   @@index([status])
@@ -1514,6 +1517,7 @@ model Contract {
   signatures   ContractSignature[]
   schedule     PaymentSchedule?
   repeatClaims RepeatBreedingClaim[]
+  application  PuppyApplication?
 
   @@index([kennelId, status])
   @@index([breedingId])
@@ -1871,8 +1875,9 @@ model LitterListing {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  litter    Litter          @relation(fields: [litterId], references: [id], onDelete: Cascade)
-  inquiries LitterInquiry[]
+  litter       Litter             @relation(fields: [litterId], references: [id], onDelete: Cascade)
+  inquiries    LitterInquiry[]
+  applications PuppyApplication[]
 
   @@index([availability, publishedAt])
   @@index([cachedBreed, availability])
@@ -1918,11 +1923,181 @@ model LitterInquiry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  litterListing LitterListing @relation(fields: [litterListingId], references: [id], onDelete: Cascade)
-  fromUser      User?         @relation(fields: [fromUserId], references: [id], onDelete: SetNull)
-  puppy         Puppy?        @relation(fields: [puppyId], references: [id], onDelete: SetNull)
+  litterListing LitterListing     @relation(fields: [litterListingId], references: [id], onDelete: Cascade)
+  fromUser      User?             @relation(fields: [fromUserId], references: [id], onDelete: SetNull)
+  puppy         Puppy?            @relation(fields: [puppyId], references: [id], onDelete: SetNull)
+  application   PuppyApplication?
 
   @@index([litterListingId, status, createdAt])
   @@index([email, createdAt])
   @@map("litter_inquiries")
+}
+
+// ── Phase 7: buyer pipeline ─────────────────────────────────────────────────
+
+enum ApplicationStage {
+  SUBMITTED
+  IN_REVIEW
+  /// Approved, in the queue, no puppy chosen yet.
+  APPROVED
+  /// Approved but no puppy available in this litter.
+  WAITLISTED
+  /// Deposit paid, holding a place in the pick order.
+  DEPOSIT_PAID
+  /// A specific puppy is theirs.
+  MATCHED
+  /// Contract signed, balance settled.
+  PAID_IN_FULL
+  /// The dog has gone home.
+  COMPLETED
+  DECLINED
+  WITHDRAWN
+}
+
+/**
+ * A buyer's application for a puppy.
+ * Grown from Phase 6's `LitterInquiry`, which stays what it is — a question.
+ * An application is a considered thing with structured answers, a stage, a
+ * place in the pick order and, eventually, money attached. Keeping them
+ * separate means a buyer can ask a question without filling in a form, which
+ * is how most of them start.
+ */
+model PuppyApplication {
+  id              String  @id @default(cuid())
+  litterListingId String
+  /// Set when this grew out of an enquiry, so the thread is not lost.
+  inquiryId       String? @unique
+
+  /// Null for an application made before signing up. The email is the key.
+  applicantUserId String?
+
+  stage ApplicationStage @default(SUBMITTED)
+
+  // ── Who they are ──
+  name    String
+  email   String
+  phone   String?
+  city    String?
+  region  String?
+  country String  @default("US")
+
+  // ── The structured answers ──
+  /// What they want the dog for. Shapes which puppy suits them.
+  intendedHome    String?
+  homeType        String?
+  hasFencedYard   Boolean?
+  hoursAloneDaily Int?
+  hasChildren     Boolean?
+  childrenAges    String?
+  hasOtherPets    Boolean?
+  otherPetsDetail String?
+  previousDogs    String?  @db.Text
+  vetName         String?
+  vetPhone        String?
+  activityPlans   String?  @db.Text
+  /// Preferences, not promises. A breeder matches on temperament, not on wishes.
+  preferredSex    String?
+  preferredColor  String?
+  /// Their own words. The part a breeder actually reads.
+  message         String?  @db.Text
+
+  // ── The breeder's side ──
+  reviewNote       String?   @db.Text
+  declineReason    String?   @db.Text
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+
+  /// Set by the breeder to override the deposit-time ordering. A promise of
+  /// first pick is a promise already made.
+  manualPickPosition Int?
+
+  /// The puppy this buyer ended up with.
+  matchedPuppyId String?   @unique
+  matchedAt      DateTime?
+
+  depositPaidAt DateTime?
+
+  /// The PUPPY_SALE contract, once one exists.
+  contractId String? @unique
+
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  litterListing LitterListing      @relation(fields: [litterListingId], references: [id], onDelete: Cascade)
+  inquiry       LitterInquiry?     @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  applicant     User?              @relation(fields: [applicantUserId], references: [id], onDelete: SetNull)
+  matchedPuppy  Puppy?             @relation("PuppyMatch", fields: [matchedPuppyId], references: [id], onDelete: SetNull)
+  contract      Contract?          @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  events        ApplicationEvent[]
+  pickup        PuppyHandover?
+
+  @@index([litterListingId, stage, submittedAt])
+  @@index([applicantUserId, submittedAt])
+  @@index([email])
+  @@map("puppy_applications")
+}
+
+/**
+ * Every stage change, append-only.
+ * A buyer who was declined after paying a deposit deserves a reconstructible
+ * history, and so does the breeder. Same reasoning as the ledger.
+ */
+model ApplicationEvent {
+  id            String @id @default(cuid())
+  applicationId String
+
+  fromStage   ApplicationStage?
+  toStage     ApplicationStage
+  note        String?           @db.Text
+  actorUserId String?
+  /// True when Stud moved it rather than a person — a paid deposit advancing
+  /// the stage, for instance.
+  automatic   Boolean           @default(false)
+
+  occurredAt DateTime @default(now())
+
+  application PuppyApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, occurredAt])
+  @@map("application_events")
+}
+
+/**
+ * The handover.
+ * Not a status flag — a record of what actually left with the dog. Phase 8
+ * builds the owner's copy of the record on top of this, so what is captured
+ * here is what a new owner gets on day one.
+ */
+model PuppyHandover {
+  id            String @id @default(cuid())
+  applicationId String @unique
+  puppyId       String @unique
+
+  collectedOn DateTime
+  collectedBy String?
+
+  /// What physically went with the dog.
+  microchipRegistered Boolean @default(false)
+  registrationPapers  Boolean @default(false)
+  healthCertificate   Boolean @default(false)
+  vaccinationRecord   Boolean @default(false)
+  wormingRecord       Boolean @default(false)
+  microchipNumber     String?
+  foodProvided        String?
+  itemsProvided       String? @db.Text
+
+  /// The vet exam window from the contract's health guarantee starts here.
+  vetExamDueBy DateTime?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  application PuppyApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  puppy       Puppy            @relation(fields: [puppyId], references: [id], onDelete: Cascade)
+
+  @@index([collectedOn])
+  @@map("puppy_handovers")
 }

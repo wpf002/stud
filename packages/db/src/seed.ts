@@ -1256,6 +1256,245 @@ async function main() {
     console.info('  ✓ a buyer enquiry waiting in the inbox');
   }
 
+  // ── Phase 7: the buyer pipeline ──────────────────────────────────────────
+  //
+  // Two states, because one litter cannot show both. Blackwater's previous
+  // litter is placed and archived — it carries a completed application all the
+  // way through to a recorded handover, which is the phase gate end to end.
+  // The Cedar Run litter on the ground carries live applications mid-pipeline.
+  const junipersId = juniper?.id;
+  const rangersId = ranger?.id;
+
+  if (junipersId && rangersId) {
+    const pastWhelp = at(112); // sixteen weeks ago
+    let pastLitter = await db.litter.findFirst({ where: { damId: junipersId, letter: 'A' } });
+    if (!pastLitter) {
+      pastLitter = await db.litter.create({
+        data: {
+          kennelId: blackwater.id,
+          sireId: rangersId,
+          damId: junipersId,
+          letter: 'A',
+          status: 'PLACED',
+          whelpedOn: pastWhelp,
+          totalBorn: 7,
+          liveBorn: 7,
+          whelpingNotes: 'Seven, no intervention. Her first and an easy one.',
+        },
+      });
+
+      const pastPups: { collar: string; sex: 'MALE' | 'FEMALE' }[] = [
+        { collar: 'Slate', sex: 'MALE' },
+        { collar: 'Rust', sex: 'FEMALE' },
+        { collar: 'Moss', sex: 'MALE' },
+        { collar: 'Cream', sex: 'FEMALE' },
+        { collar: 'Navy', sex: 'MALE' },
+        { collar: 'Amber', sex: 'FEMALE' },
+        { collar: 'Fern', sex: 'FEMALE' },
+      ];
+      for (const [i, pup] of pastPups.entries()) {
+        await db.puppy.create({
+          data: {
+            litterId: pastLitter.id,
+            birthOrder: i + 1,
+            collarColor: pup.collar,
+            sex: pup.sex,
+            status: 'SOLD',
+            birthWeightGrams: 400 + i * 8,
+            colorPattern: 'Liver roan',
+            bornAt: pastWhelp,
+            priceCents: 250_000,
+            microchip: `98514100200000${i}`,
+          },
+        });
+      }
+
+      // Published and archived. A placed litter stays up — it is the best
+      // evidence the program has, and taking it down throws that away.
+      await db.litterListing.create({
+        data: {
+          litterId: pastLitter.id,
+          slug: 'german-shorthaired-pointer-juniper-x-ranger-a',
+          availability: 'PAST',
+          priceCentsFrom: 250_000,
+          priceCentsTo: 250_000,
+          depositCents: 50_000,
+          headline: 'German Shorthaired Pointers — Juniper × Ranger',
+          description:
+            "Juniper's first litter and one we were pleased with. All seven placed into hunting and companion homes, and we are still in touch with every one of them.\n\nBoth parents are OFA tested and NAVHDA titled, and every result on this page was checked against the issuing body rather than typed in by us.",
+          includedInPrice:
+            'AKC limited registration, microchip registered to you, first vaccination and worming, a health certificate, four weeks of insurance, and a take-back for the life of the dog.',
+          buyerRequirements:
+            'An application and a phone call. This is a hunting breed with a working line behind it — a dog from this litter needs a job or a great deal of exercise, and we would rather say so than place one badly.',
+          goHomeFrom: new Date(pastWhelp.getTime() + 57 * DAY),
+          publishedAt: at(120),
+        },
+      });
+      await refreshListingCache(db, pastLitter.id);
+      console.info('  ✓ a past litter, placed and archived, still indexed');
+    }
+
+    // The completed application: applied, approved, deposit, matched, contract
+    // signed, balance paid, collected. The gate, in one record.
+    const pastListing = await db.litterListing.findUnique({ where: { litterId: pastLitter.id } });
+    const rustPuppy = await db.puppy.findFirst({ where: { litterId: pastLitter.id, collarColor: 'Rust' } });
+
+    if (pastListing && rustPuppy && (await db.puppyApplication.count({ where: { litterListingId: pastListing.id } })) === 0) {
+      const collectedOn = new Date(pastWhelp.getTime() + 58 * DAY);
+      const application = await db.puppyApplication.create({
+        data: {
+          litterListingId: pastListing.id,
+          applicantUserId: buyer.id,
+          stage: 'COMPLETED',
+          name: 'Sam Ortiz',
+          email: 'buyer@stud.dev',
+          phone: '(512) 555-0148',
+          city: 'Austin',
+          region: 'TX',
+          intendedHome: 'Hunting and companion',
+          homeType: 'Farm or acreage',
+          hasFencedYard: true,
+          hoursAloneDaily: 3,
+          hasChildren: false,
+          hasOtherPets: true,
+          otherPetsDetail: 'One older Lab, spayed, very tolerant.',
+          previousDogs: 'Third pointer. The last one hunted until she was eleven.',
+          vetName: 'Blanco River Veterinary',
+          vetPhone: '(512) 555-0177',
+          activityPlans: 'Quail and dove through the season, NAVHDA natural ability in the spring.',
+          preferredSex: 'FEMALE',
+          message: 'We have been on your list since Juniper was bred. No rush and no preference on markings.',
+          reviewNote: 'Experienced pointer home with somewhere to run. Straightforward yes.',
+          reviewedByUserId: breeder.id,
+          reviewedAt: at(140),
+          depositPaidAt: at(138),
+          matchedPuppyId: rustPuppy.id,
+          matchedAt: at(70),
+          submittedAt: at(145),
+        },
+      });
+
+      const stages: [string, string | null, string, number][] = [
+        ['SUBMITTED', null, 'Application submitted.', 145],
+        ['IN_REVIEW', 'SUBMITTED', 'Reading through it.', 143],
+        ['APPROVED', 'IN_REVIEW', 'Experienced pointer home with somewhere to run. Straightforward yes.', 140],
+        ['DEPOSIT_PAID', 'APPROVED', 'Deposit received.', 138],
+        ['MATCHED', 'DEPOSIT_PAID', 'Matched to Rust.', 70],
+        ['PAID_IN_FULL', 'MATCHED', 'Balance received.', 56],
+        ['COMPLETED', 'PAID_IN_FULL', 'Collected.', 54],
+      ];
+      for (const [to, from, note, daysAgo] of stages) {
+        await db.applicationEvent.create({
+          data: {
+            applicationId: application.id,
+            fromStage: from as never,
+            toStage: to as never,
+            note,
+            occurredAt: at(daysAgo),
+          },
+        });
+      }
+
+      await db.puppyHandover.create({
+        data: {
+          applicationId: application.id,
+          puppyId: rustPuppy.id,
+          collectedOn,
+          collectedBy: 'Sam Ortiz',
+          microchipRegistered: true,
+          registrationPapers: true,
+          healthCertificate: true,
+          vaccinationRecord: true,
+          wormingRecord: true,
+          microchipNumber: rustPuppy.microchip,
+          foodProvided: 'Two weeks of what she is already on.',
+          itemsProvided: 'Scent blanket from the litter, her weight chart, worming and vaccination records, and the NAVHDA paperwork.',
+          vetExamDueBy: new Date(collectedOn.getTime() + 3 * DAY),
+          notes: 'Straightforward handover. They stayed an hour and met both parents.',
+        },
+      });
+      console.info('  ✓ a completed application — applied to collected, fully tracked');
+    }
+  }
+
+  // Two live applications on the litter that is on the ground, so the pipeline
+  // has something in it and the pick order has something to order.
+  const currentListing = await db.litterListing.findFirst({
+    where: { slug: 'golden-retriever-marigold-x-atlas-a' },
+  });
+  if (currentListing && (await db.puppyApplication.count({ where: { litterListingId: currentListing.id } })) === 0) {
+    const marcus = await db.puppyApplication.create({
+      data: {
+        litterListingId: currentListing.id,
+        stage: 'APPROVED',
+        name: 'Marcus Bell',
+        email: 'marcus.bell@example.com',
+        phone: '(214) 555-0132',
+        city: 'Dallas',
+        region: 'TX',
+        intendedHome: 'Family companion',
+        homeType: 'House with fenced yard',
+        hasFencedYard: true,
+        hoursAloneDaily: 5,
+        hasChildren: true,
+        childrenAges: '6 and 9',
+        hasOtherPets: false,
+        previousDogs: 'First dog for us as a family, though I grew up with Goldens.',
+        vetName: 'Preston Road Animal Clinic',
+        activityPlans: 'Daily walks, swimming in the summer, and we would like to try therapy work when he is older.',
+        preferredSex: 'MALE',
+        message:
+          'We are not in a hurry and would rather wait for the right puppy than take the first available one.',
+        reviewNote: 'Good home. First-time owners but realistic and asking the right questions.',
+        reviewedByUserId: breeder.id,
+        reviewedAt: at(6),
+        submittedAt: at(8),
+      },
+    });
+    await db.applicationEvent.createMany({
+      data: [
+        { applicationId: marcus.id, toStage: 'SUBMITTED', note: 'Application submitted.', occurredAt: at(8) },
+        { applicationId: marcus.id, fromStage: 'SUBMITTED', toStage: 'IN_REVIEW', note: 'Reading through it.', occurredAt: at(7) },
+        {
+          applicationId: marcus.id,
+          fromStage: 'IN_REVIEW',
+          toStage: 'APPROVED',
+          note: 'Good home. First-time owners but realistic and asking the right questions.',
+          actorUserId: breeder.id,
+          occurredAt: at(6),
+        },
+      ],
+    });
+
+    const elena = await db.puppyApplication.create({
+      data: {
+        litterListingId: currentListing.id,
+        stage: 'SUBMITTED',
+        name: 'Elena Fitzgerald',
+        email: 'elena.f@example.com',
+        city: 'Houston',
+        region: 'TX',
+        intendedHome: 'Companion',
+        homeType: 'Apartment or condo',
+        hasFencedYard: false,
+        hoursAloneDaily: 9,
+        hasChildren: false,
+        hasOtherPets: false,
+        message: 'Do you ship? I would like a light golden female, as pale as possible.',
+        submittedAt: at(2),
+      },
+    });
+    await db.applicationEvent.create({
+      data: {
+        applicationId: elena.id,
+        toStage: 'SUBMITTED',
+        note: 'Application submitted.',
+        occurredAt: at(2),
+      },
+    });
+    console.info('  ✓ two live applications waiting in the pipeline');
+  }
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);
