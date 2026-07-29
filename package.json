@@ -2,7 +2,7 @@
   "name": "stud",
   "private": true,
   "version": "0.1.0",
-  "description": "Stud — verified dog breeding marketplace and breeder workspace",
+  "description": "Stud \u2014 verified dog breeding marketplace and breeder workspace",
   "packageManager": "pnpm@9.12.0",
   "engines": {
     "node": ">=20.11"
@@ -21,7 +21,11 @@
     "db:studio": "pnpm --filter @stud/db studio",
     "db:reset": "pnpm --filter @stud/db reset",
     "bootstrap": "bash scripts/bootstrap.sh",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "build:api": "turbo run build --filter=@stud/api...",
+    "start:api": "pnpm --filter @stud/db migrate:deploy:ci && node apps/api/dist/server.js",
+    "build:web": "turbo run build --filter=@stud/web...",
+    "start:web": "pnpm --filter @stud/web start:prod"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
@@ -35,7 +39,8 @@
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.1.0",
     "@next/eslint-plugin-next": "^15.1.3",
-    "globals": "^15.14.0"
+    "globals": "^15.14.0",
+    "railway": "^3.1.1"
   },
   "type": "module"
 }

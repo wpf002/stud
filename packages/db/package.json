@@ -23,7 +23,8 @@
     "studio": "dotenv -e ../../.env -- prisma studio",
     "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
     "typecheck": "tsc --noEmit",
-    "build": "prisma generate"
+    "build": "prisma generate",
+    "migrate:deploy:ci": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
