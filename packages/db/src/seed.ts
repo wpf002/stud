@@ -1774,19 +1774,22 @@ async function main() {
     goldenPupCollar: U('1591160690555-5debfba289f0'),
     goldenPupRed: U('1507146426996-ef05306b995a'),
     creamRetrieverField: U('1605897472359-85e4b94d685d'),
-    tollerBeach: U('1530281700549-e82e7bf110d6'),
-    pointerCity: U('1477884213360-7e9d7dcc1e48'),
-    liverTongue: U('1518717758536-85ae29035b6d'),
-    brownWhiteField: U('1587300003388-59208cc962cb'),
-    terrierFace: U('1561037404-61cd46aa615b'),
+    goldenBeachRun: U('1641147015813-7025d4fb306e'),
+    gspWaterSplash: U('1670504717413-81ba2ae9435b'),
+    gspWildflowers: U('1670505496137-0cde81df1d6e'),
+    gspPortrait: U('1632060503162-b96166039048'),
+    gspFieldRun: U('1670505343033-ae36ef2854f9'),
+    gspAutumnRun: U('1500165974561-f16bc21927a3'),
+    gspPuppyPatio: U('1639654967523-3c7b3f02b6bc'),
+    gspOnPillows: U('1632060503157-2c1571639e9b'),
   } as const;
 
   const dogPhotos: [string, string][] = [
-    ['blackwaters-ranger-of-the-marsh', PHOTOS.pointerCity],
-    ['blackwaters-juniper', PHOTOS.liverTongue],
+    ['blackwaters-ranger-of-the-marsh', PHOTOS.gspWaterSplash],
+    ['blackwaters-juniper', PHOTOS.gspWildflowers],
     ['cedar-run-atlas', PHOTOS.goldenAdult],
     ['cedar-run-marigold', PHOTOS.creamRetrieverField],
-    ['lindqvists-jack-of-tulsa', PHOTOS.terrierFace],
+    ['lindqvists-jack-of-tulsa', PHOTOS.gspPortrait],
   ];
   for (const [slug, url] of dogPhotos) {
     const dog = await db.dog.findUnique({ where: { slug }, select: { id: true } });
@@ -1802,16 +1805,16 @@ async function main() {
   });
   await db.litterListing.updateMany({
     where: { slug: 'german-shorthaired-pointer-juniper-x-ranger-a' },
-    data: { photoUrls: [PHOTOS.brownWhiteField, PHOTOS.pointerCity] },
+    data: { photoUrls: [PHOTOS.gspPuppyPatio, PHOTOS.gspAutumnRun] },
   });
 
   await db.kennel.updateMany({
     where: { slug: 'blackwater-kennels' },
-    data: { coverUrl: PHOTOS.brownWhiteField, logoUrl: PHOTOS.pointerCity },
+    data: { coverUrl: PHOTOS.gspFieldRun, logoUrl: PHOTOS.gspOnPillows },
   });
   await db.kennel.updateMany({
     where: { slug: 'cedar-run-retrievers' },
-    data: { coverUrl: PHOTOS.tollerBeach, logoUrl: PHOTOS.goldenAdult },
+    data: { coverUrl: PHOTOS.goldenBeachRun, logoUrl: PHOTOS.goldenAdult },
   });
   console.info('  ✓ photos on dogs, listings and kennels');
 

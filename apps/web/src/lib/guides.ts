@@ -168,7 +168,7 @@ export const GUIDES: Guide[] = [
     minutes: 3,
     audience: 'BUYER',
     updated: '2026-07-28',
-    photo: U('1477884213360-7e9d7dcc1e48'),
+    photo: U('1670505343033-ae36ef2854f9'),
     body: [
       {
         paragraphs: [

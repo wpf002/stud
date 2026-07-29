@@ -86,7 +86,7 @@ export default function VerificationPage() {
             <div className="flex items-center gap-3">
               <div className="relative h-12 w-12 overflow-hidden rounded-full">
                 <Image
-                  src="https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?q=80&w=200&auto=format&fit=crop"
+                  src="https://images.unsplash.com/photo-1670504717413-81ba2ae9435b?q=80&w=200&auto=format&fit=crop"
                   alt=""
                   fill
                   className="object-cover"
