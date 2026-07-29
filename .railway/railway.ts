@@ -21,7 +21,12 @@ export default defineRailway(() => {
   const db = postgres("postgres");
 
   const api = service("api", {
-    source: github("wpf002/stud"),
+    // Branch pinned explicitly: without it, Railway's dashboard couldn't
+    // verify the source ("GitHub Repo not found" in Settings) even though
+    // the repo is public and builds succeeded — reconnecting with an
+    // explicit branch fixed it. Pinning it here keeps a future config apply
+    // from dropping it back to whatever it inferred the first time.
+    source: github("wpf002/stud", { branch: "main" }),
     build: "pnpm run build:api",
     start: "pnpm run start:api",
     env: {
@@ -38,7 +43,8 @@ export default defineRailway(() => {
   });
 
   const web = service("web", {
-    source: github("wpf002/stud"),
+    // Same branch pin as api, same reason.
+    source: github("wpf002/stud", { branch: "main" }),
     build: "pnpm run build:web",
     start: "pnpm run start:web",
     env: {
