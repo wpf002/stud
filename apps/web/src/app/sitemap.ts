@@ -9,7 +9,14 @@ import { loadPublicIndex } from '@/lib/marketplace';
  * cannot. Litter pages carry the highest priority because they are the ones
  * with something to say that no other site can say.
  */
-export const revalidate = 3600;
+/**
+ * Rendered per request rather than prerendered at build time — the build
+ * runs in its own container with no route to the API service, so a
+ * build-time fetch here fails the whole deploy. The underlying fetch in
+ * loadPublicIndex() still carries its own `next: { revalidate }`, so results
+ * are cached independently of this.
+ */
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
