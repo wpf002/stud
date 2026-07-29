@@ -6,6 +6,7 @@ export * from './primitives';
 export * from './overlays';
 export * from './verification-badge';
 export * from './pedigree-chart';
+export * from './claim-label';
 export * from './claim-panel';
 export * from './growth-chart';
 export * from './format';

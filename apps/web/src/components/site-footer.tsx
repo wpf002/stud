@@ -1,42 +1,36 @@
 import Link from 'next/link';
+import { GUIDES } from '@/lib/guides';
 import { Logo } from './logo';
 
+/**
+ * Every link here points at a page that exists.
+ *
+ * The Learn column is built from GUIDES rather than typed out, because the
+ * hand-written version drifted: four of its five links used slugs the guides
+ * had never had, and a footer is exactly where nobody notices.
+ */
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   {
     title: 'Find a dog',
     links: [
       { href: '/puppies', label: 'Available Puppies' },
-      { href: '/breeders', label: 'Breeder Programs' },
-      { href: '/breeds', label: 'Browse by Breed' },
       { href: '/puppies?verified=1', label: 'Verified-Health Litters' },
+      { href: '/breeders', label: 'Breeder Programs' },
     ],
   },
   {
     title: 'Breeding',
     links: [
       { href: '/studs', label: 'Stud Directory' },
-      { href: '/tools/coi', label: 'COI Calculator' },
-      { href: '/tools/trial-pairing', label: 'Trial Pairing' },
-      { href: '/verification', label: 'Verification Standard' },
+      { href: '/verification', label: 'How Verification Works' },
+      { href: '/studio', label: 'Breeder Studio' },
     ],
   },
   {
     title: 'Learn',
     links: [
-      { href: '/learn/health-testing', label: 'Health Testing by Breed' },
-      { href: '/learn/coi', label: 'Understanding COI' },
-      { href: '/learn/questions-to-ask', label: 'What to Ask a Breeder' },
-      { href: '/learn/contracts', label: 'Reading a Breeding Contract' },
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      { href: '/standards', label: 'Our Standards' },
-      { href: '/trust', label: 'Trust & Safety' },
-      { href: '/report', label: 'Report a Concern' },
-      { href: '/legal/terms', label: 'Terms' },
-      { href: '/legal/privacy', label: 'Privacy' },
+      ...GUIDES.slice(0, 4).map((g) => ({ href: `/learn/${g.slug}`, label: g.title })),
+      { href: '/learn', label: 'All Guides' },
     ],
   },
 ];
@@ -45,7 +39,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-bone-300 bg-bone-200/60">
       <div className="mx-auto max-w-content px-5 py-14 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-500">
