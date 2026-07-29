@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ArrowLeft,
   CalendarHeart,
   Dog,
   FileSignature,
@@ -96,6 +97,14 @@ export function StudioShell({
         </nav>
 
         <div className="border-t border-bone-200 p-3">
+          {/* The way back out. A workspace you cannot leave is a trap. */}
+          <a
+            href={process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000'}
+            className="mb-1 flex items-center gap-2.5 rounded-md px-2 py-2 text-sm font-medium text-ink-600 transition-colors hover:bg-bone-200 hover:text-ink-900"
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0 text-ink-400" />
+            Back to Main Site
+          </a>
           <Link
             href="/settings"
             className="flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-bone-200"
