@@ -31,7 +31,7 @@ export default async function BreedingsPage() {
           <EmptyState
             icon={<CalendarHeart className="h-5 w-5" />}
             title="No breedings on record"
-            description="A breeding starts from a heat cycle, so the timing is anchored on progesterone rather than a guess at day 11."
+            description="Start a heat on the dam\u2019s page and breeding timing follows her progesterone."
           />
         ) : (
           <div className="space-y-3">

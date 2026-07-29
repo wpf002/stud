@@ -97,8 +97,7 @@ export default async function PlacedDogsPage() {
 
                         {d.healthEvents.length === 0 ? (
                           <p className="mt-3 border-t border-bone-200 pt-2 text-2xs text-ink-400">
-                            Nothing shared. That is the owner&rsquo;s call, and no news is usually
-                            good news.
+                            Nothing shared yet. No news is usually good news.
                           </p>
                         ) : (
                           <ul className="mt-3 space-y-1.5 border-t border-bone-200 pt-3">

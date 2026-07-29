@@ -267,8 +267,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
                 </Button>
                 <DeclineDialog onDecline={(reason) => setStage('DECLINED', reason)} busy={busy} />
                 <p className="text-2xs leading-relaxed text-ink-400">
-                  No money can be taken until you approve. A deposit from someone you have not
-                  accepted is a deposit you have to give back.
+                  Deposits can only be taken after you approve the application.
                 </p>
               </>
             )}
@@ -294,8 +293,8 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
                   deposit
                 </Button>
                 <Alert tone="info">
-                  Payments are modelled end to end — escrow and a double-entry ledger — but no money
-                  moves. Live animal sales need written processor approval for this vertical first.
+                  Payments run in test mode for now — everything is tracked, but no real money
+                  moves yet.
                 </Alert>
               </>
             )}
@@ -483,7 +482,7 @@ function DeclineDialog({
               label="Why"
               htmlFor="reason"
               required
-              hint="Kept on the record. Say it the way you would want to hear it — most people who are declined once apply again."
+              hint="This stays on the application record."
             >
               <Textarea id="reason" name="reason" rows={4} required />
             </Field>
@@ -538,8 +537,8 @@ function MatchDialog({
             */}
             {!isNext && (
               <Alert tone="warning">
-                This buyer is not next in the pick order. You can still match them — you may have a
-                good reason — but it will be recorded on the application as an out-of-turn match.
+                This buyer isn&rsquo;t next in the pick order. You can still match them, and the
+                skip will be noted on the application.
               </Alert>
             )}
             <Field label="Puppy" htmlFor="puppyId" required>
@@ -607,9 +606,8 @@ function ContractDialog({
           <DialogBody>
             {!hasAccount && (
               <Alert tone="warning">
-                This buyer applied without an account. They need one before a contract can be
-                signed — a signature has to be tied to an authenticated identity rather than a typed
-                name.
+                This buyer applied without an account. They&rsquo;ll need one to sign the
+                contract.
               </Alert>
             )}
             <p className="text-sm leading-relaxed text-ink-600">
@@ -765,8 +763,7 @@ function HandoverDialog({
                   </Field>
                 )}
                 <p className="mt-1.5 text-2xs leading-relaxed text-warning-fg">
-                  Your reason is written into the application history. It is not hidden and it does
-                  not go away.
+                  Your reason will be saved to the application history.
                 </p>
               </div>
             )}

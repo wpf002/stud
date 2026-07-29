@@ -132,8 +132,8 @@ export function ContractClient({
             {!editable && (
               <p className="mb-4 flex items-center gap-2 rounded-md bg-bone-100 px-3 py-2 text-xs text-ink-600">
                 <Lock className="h-3.5 w-3.5 shrink-0" />
-                Frozen. A signature has to stay attached to the exact text that was agreed, so
-                changes need an amendment that supersedes this contract.
+                This contract is locked now that it&rsquo;s been sent. To change terms, create
+                an amendment that supersedes it.
               </p>
             )}
 
@@ -218,11 +218,10 @@ export function ContractClient({
             </ul>
 
             <p className="mt-4 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
-              Each signature records the signer&rsquo;s authenticated account, the exact consent
-              wording they affirmed, and a hash of the document as it read at that moment. Editing
-              the contract afterwards breaks the hash rather than silently changing what was agreed.
-              This is an auditable electronic signature, not a certificate-based digital signature,
-              and nothing here is legal advice about enforceability.
+              Each signature is tied to the signer&rsquo;s account, the consent text they
+              agreed to, and a fingerprint of the document at the moment of signing. Any later
+              edit would break that fingerprint. This is an electronic signature record, not
+              legal advice.
             </p>
           </CardContent>
         </Card>
@@ -651,8 +650,8 @@ function PaymentsCard({
         {/* The diligence gate, stated where the money would move. */}
         {!payments.provider?.isLive && (
           <Alert tone="info" className="mb-3">
-            Payments are modelled end to end — schedule, escrow and a double-entry ledger — but no
-            money moves. Live animal sales need written processor approval for this vertical first.
+            Payments run in test mode for now — schedules, escrow, and records all work, but no
+            real money moves yet.
           </Alert>
         )}
 
@@ -703,7 +702,7 @@ function PaymentsCard({
                 <p className="mt-2 text-2xs leading-relaxed text-ink-500">{assessment.reason}</p>
                 {assessment.requiresHuman ? (
                   <p className="mt-2 rounded-md bg-warning-bg px-2 py-1.5 text-2xs text-warning-fg">
-                    Stud will not decide this one. The parties or an admin have to.
+                    This needs a decision from the parties or an admin.
                   </p>
                 ) : assessment.decision !== 'HOLD' ? (
                   <Button size="sm" block className="mt-3" loading={busy === 'settle'} onClick={settle}>
@@ -737,8 +736,8 @@ function PaymentsCard({
               ))}
             </ul>
             <p className="mt-2 text-2xs leading-relaxed text-ink-400">
-              Double-entry and append-only. A correction is a reversal pair, never an edit — when
-              two parties disagree about who paid what, the answer has to be reconstructible.
+              Every entry is permanent. Corrections are added as new entries, so the full
+              payment history is always available.
             </p>
           </details>
         )}

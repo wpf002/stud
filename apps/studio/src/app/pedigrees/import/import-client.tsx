@@ -273,8 +273,8 @@ export function ImportClient({ kennelId }: { kennelId?: string }) {
                 same animal.
               </p>
               <p className="mt-3 text-xs leading-relaxed text-ink-400">
-                A duplicated ancestor is the one failure that silently corrupts a COI: two copies of
-                the same dog look unrelated, and the number comes out lower than the truth.
+                Duplicate ancestors throw off COI badly — two copies of the same dog look
+                unrelated, and the number comes out too low.
               </p>
             </CardContent>
           </Card>

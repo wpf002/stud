@@ -212,7 +212,7 @@ export function NewContractClient({
               label="Counterparty email"
               htmlFor="counterpartyEmail"
               required
-              hint="They need a Stud account — a signature has to be tied to an authenticated identity, not a typed name."
+              hint="They\u2019ll need a Stud account to sign."
             >
               <Input
                 id="counterpartyEmail"
@@ -246,7 +246,7 @@ export function NewContractClient({
           </div>
           <p className="text-2xs leading-relaxed text-ink-400">
             Naming both animals attaches their health testing to the document automatically, marked
-            verified or self-reported. Nobody retypes a test result into a contract.
+            verified or self-reported.
           </p>
         </CardContent>
       </Card>

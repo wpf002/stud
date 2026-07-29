@@ -29,7 +29,7 @@ export default async function ContractsPage() {
           <EmptyState
             icon={<FileSignature className="h-5 w-5" />}
             title="No contracts yet"
-            description="Start one from an accepted stud inquiry, or from a breeding. The health schedule attaches itself from the verified record — nobody re-types a test result."
+            description="Start one from an accepted stud inquiry or a breeding. Health testing attaches automatically from each dog\u2019s record."
             action={
               <Button asChild>
                 <Link href="/contracts/new">

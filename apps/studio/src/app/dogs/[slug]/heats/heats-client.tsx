@@ -167,7 +167,7 @@ export function HeatsClient({ initial, dogId }: { initial: HeatsResponse; dogId:
               <EmptyState
                 icon={<CalendarHeart className="h-5 w-5" />}
                 title="No cycles logged"
-                description="Log the first day of visible discharge. Two cycles and we can forecast her next one from her own interval rather than a breed average."
+                description="Log the first day of visible discharge. After two cycles, we can predict her next one from her own pattern."
               />
             ) : (
               <ul className="divide-y divide-bone-200">

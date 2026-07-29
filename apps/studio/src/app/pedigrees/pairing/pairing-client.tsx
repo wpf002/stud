@@ -131,7 +131,7 @@ export function PairingClient({
         <EmptyState
           icon={<GitBranch className="h-5 w-5" />}
           title="Pick two dogs and evaluate"
-          description="You will get the projected COI for the litter, every ancestor driving it, and an honest read on how much the number is worth given the pedigrees on file."
+          description="You\u2019ll get the litter\u2019s projected COI, the ancestors driving it, and how complete the pedigrees behind the number are."
         />
       ) : (
         <Result result={result} />

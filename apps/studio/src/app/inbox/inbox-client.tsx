@@ -178,9 +178,8 @@ function InquiryCard({
 
             {!summary?.verifiedCount && (
               <p className="mt-3 text-2xs leading-relaxed text-warning-fg">
-                Nothing about this bitch has been verified against a source. That is not a
-                judgement on the breeder — but it does mean none of the health claims in their
-                message can be checked from here.
+                None of this bitch&rsquo;s health testing has been verified yet, so the claims
+                in this message can&rsquo;t be checked from here.
               </p>
             )}
           </div>

@@ -249,7 +249,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
               <EmptyState
                 icon={<PawPrint className="h-5 w-5" />}
                 title="No offspring recorded"
-                description="Anything listing this dog as a sire or dam appears here. Over time this becomes the produce record — a track record rather than a résumé."
+                description="Litters and offspring that list this dog as a sire or dam will show up here."
               />
             ) : (
               <ul className="divide-y divide-bone-200">
