@@ -101,8 +101,8 @@ export function LitterClient({ initial }: { initial: LitterDetailResponse }) {
             <TabsList>
               <TabsTrigger value="puppies">Puppies ({litter.puppies.length})</TabsTrigger>
               <TabsTrigger value="growth">Growth</TabsTrigger>
-              <TabsTrigger value="care">Care schedule</TabsTrigger>
-              <TabsTrigger value="log">Whelping log</TabsTrigger>
+              <TabsTrigger value="care">Care Schedule</TabsTrigger>
+              <TabsTrigger value="log">Whelping Log</TabsTrigger>
               <TabsTrigger value="listing">Listing</TabsTrigger>
             </TabsList>
 

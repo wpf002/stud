@@ -196,14 +196,14 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {/* ── The parents ────────────────────────────────────────── */}
           <section className="space-y-4">
-            <h2 className="font-display text-2xl text-ink-900">Meet the parents</h2>
+            <h2 className="font-display text-2xl text-ink-900">Meet the Parents</h2>
             <ParentCard dog={dam} role="Dam" />
             <ParentCard dog={sire} role="Sire" />
           </section>
 
           {/* ── Genetics ───────────────────────────────────────────── */}
           <section className="space-y-3">
-            <h2 className="font-display text-2xl text-ink-900">Health &amp; genetics</h2>
+            <h2 className="font-display text-2xl text-ink-900">Health &amp; Genetics</h2>
 
             {geneticRisk.atRisk.length > 0 ? (
               <Alert tone="danger" icon={<AlertTriangle className="h-4 w-4" />}>
@@ -312,7 +312,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
           {puppies.length > 0 && (
             <section className="space-y-3">
               <h2 className="font-display text-2xl text-ink-900">
-                The puppies{' '}
+                The Puppies{' '}
                 <span className="font-sans text-md font-normal text-ink-400">
                   {available.length} of {puppies.length} available
                 </span>
@@ -370,7 +370,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {listing.includedInPrice && (
             <section>
-              <h2 className="font-display text-2xl text-ink-900">What comes with your puppy</h2>
+              <h2 className="font-display text-2xl text-ink-900">What Comes With Your Puppy</h2>
               <p className="mt-2 whitespace-pre-line text-md leading-relaxed text-ink-700">
                 {listing.includedInPrice}
               </p>
@@ -379,7 +379,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
           {listing.buyerRequirements && (
             <section>
-              <h2 className="font-display text-2xl text-ink-900">What the breeder asks</h2>
+              <h2 className="font-display text-2xl text-ink-900">What the Breeder Asks</h2>
               <p className="mt-2 whitespace-pre-line text-md leading-relaxed text-ink-700">
                 {listing.buyerRequirements}
               </p>
@@ -429,13 +429,13 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
           {listing.availability !== 'PAST' && (
             <Card className="border-brand-300">
               <CardContent className="pt-5">
-                <p className="font-display text-lg text-ink-900">Apply for a puppy</p>
+                <p className="font-display text-lg text-ink-900">Apply for a Puppy</p>
                 <p className="mt-1 text-xs leading-relaxed text-ink-600">
                   No payment is taken when you apply. Nothing is due until the breeder has read it
                   and accepted you.
                 </p>
                 <Button block className="mt-3" asChild>
-                  <Link href={`/puppies/${listing.slug}/apply`}>Start an application</Link>
+                  <Link href={`/puppies/${listing.slug}/apply`}>Start an Application</Link>
                 </Button>
               </CardContent>
             </Card>

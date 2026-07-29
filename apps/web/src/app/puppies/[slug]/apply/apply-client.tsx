@@ -282,7 +282,7 @@ export function ApplyClient({
           obligation to accept. You can withdraw at any point.
         </p>
         <Button type="submit" size="lg" loading={busy}>
-          <Send /> Send application
+          <Send /> Send Application
         </Button>
       </div>
     </form>

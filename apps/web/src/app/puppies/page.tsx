@@ -45,7 +45,7 @@ export default async function LittersPage({
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          Find your puppy
+          Find Your Puppy
         </h1>
         <p className="mt-2 text-md leading-relaxed text-ink-600">
           From breeders who health-test their dogs — every result checked with the registry.

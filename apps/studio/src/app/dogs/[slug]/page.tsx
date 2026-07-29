@@ -38,6 +38,7 @@ export default async function DogPage({ params }: { params: Promise<{ slug: stri
       <StudioPage
         title={dog.callName}
         description={dog.registeredName ?? dog.breed}
+        avatar={dog.media[0]?.thumbUrl ?? dog.media[0]?.url ?? null}
         actions={
           <>
             {dog.sex === 'FEMALE' && (

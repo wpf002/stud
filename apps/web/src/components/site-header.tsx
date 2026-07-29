@@ -9,9 +9,9 @@ import { Logo } from './logo';
 
 const NAV = [
   { href: '/puppies', label: 'Puppies' },
-  { href: '/studs', label: 'Stud dogs' },
+  { href: '/studs', label: 'Stud Dogs' },
   { href: '/breeders', label: 'Breeders' },
-  { href: '/verification', label: 'How verification works' },
+  { href: '/verification', label: 'How Verification Works' },
   { href: '/learn', label: 'Learn' },
 ];
 
@@ -63,14 +63,14 @@ export function SiteHeader() {
         <div className="ml-auto hidden items-center gap-2 lg:flex">
           <Button asChild variant="ghost" size="sm">
             <a href={process.env.NEXT_PUBLIC_STUDIO_URL ?? 'http://localhost:3001'}>
-              For breeders
+              For Breeders
             </a>
           </Button>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Sign in</Link>
+            <Link href="/login">Sign In</Link>
           </Button>
           <Button asChild size="sm">
-            <Link href="/signup">Create account</Link>
+            <Link href="/signup">Create Account</Link>
           </Button>
         </div>
 
@@ -99,10 +99,10 @@ export function SiteHeader() {
             ))}
             <div className="flex gap-2 pt-3">
               <Button asChild variant="outline" block size="sm">
-                <Link href="/login">Sign in</Link>
+                <Link href="/login">Sign In</Link>
               </Button>
               <Button asChild block size="sm">
-                <Link href="/signup">Create account</Link>
+                <Link href="/signup">Create Account</Link>
               </Button>
             </div>
           </nav>

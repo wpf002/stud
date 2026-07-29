@@ -20,7 +20,7 @@ export default async function ContractsPage() {
         actions={
           <Button size="sm" asChild>
             <Link href="/contracts/new">
-              <Plus /> New contract
+              <Plus /> New Contract
             </Link>
           </Button>
         }
@@ -33,7 +33,7 @@ export default async function ContractsPage() {
             action={
               <Button asChild>
                 <Link href="/contracts/new">
-                  <Plus /> New contract
+                  <Plus /> New Contract
                 </Link>
               </Button>
             }

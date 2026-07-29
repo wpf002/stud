@@ -38,10 +38,10 @@ export default async function InboxPage({
         <Tabs value={active}>
           <TabsList>
             <TabsTrigger value="studs" asChild>
-              <a href="?tab=studs">Stud inquiries{openStud > 0 ? ` (${openStud})` : ''}</a>
+              <a href="?tab=studs">Stud Inquiries{openStud > 0 ? ` (${openStud})` : ''}</a>
             </TabsTrigger>
             <TabsTrigger value="buyers" asChild>
-              <a href="?tab=buyers">Puppy enquiries{openBuyer > 0 ? ` (${openBuyer})` : ''}</a>
+              <a href="?tab=buyers">Puppy Enquiries{openBuyer > 0 ? ` (${openBuyer})` : ''}</a>
             </TabsTrigger>
           </TabsList>
 

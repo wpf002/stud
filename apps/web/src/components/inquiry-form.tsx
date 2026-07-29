@@ -89,7 +89,7 @@ export function InquiryForm({
   return (
     <Card>
       <CardContent className="pt-5">
-        <p className="font-display text-lg text-ink-900">Ask about this litter</p>
+        <p className="font-display text-lg text-ink-900">Ask About This Litter</p>
         <p className="mt-1 text-xs leading-relaxed text-ink-500">
           Goes straight to the breeder. No account needed.
         </p>
@@ -160,7 +160,7 @@ export function InquiryForm({
           </div>
 
           <Button type="submit" block loading={busy}>
-            <Send /> Send enquiry
+            <Send /> Send Enquiry
           </Button>
         </form>
       </CardContent>

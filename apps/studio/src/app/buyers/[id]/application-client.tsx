@@ -203,8 +203,7 @@ export function ApplicationClient({ initial }: { initial: ApplicationDetailRespo
             </ul>
             {/* Append-only, and said so. */}
             <p className="mt-3 border-t border-bone-200 pt-2 text-2xs leading-relaxed text-ink-400">
-              Every stage change is recorded and nothing is edited or removed. A buyer declined
-              after paying deserves a history that can be reconstructed, and so do you.
+              Every step is kept on record — nothing here can be edited or deleted.
             </p>
           </CardContent>
         </Card>

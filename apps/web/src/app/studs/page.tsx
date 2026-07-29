@@ -70,7 +70,7 @@ export default async function StudsPage({
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
-          Stud dogs
+          Stud Dogs
         </h1>
         <p className="mt-2 text-md leading-relaxed text-ink-600">
           Health tests and titles checked with the registry. Keep a female on Stud? Run a trial

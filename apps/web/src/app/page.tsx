@@ -65,11 +65,11 @@ function Hero() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link href="/puppies">
-                  Find a puppy <ArrowRight />
+                  Find a Puppy <ArrowRight />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/breeders">Meet the breeders</Link>
+                <Link href="/breeders">Meet the Breeders</Link>
               </Button>
             </div>
           </div>
@@ -136,25 +136,25 @@ function HowItWorks() {
     {
       icon: <FileSearch className="h-5 w-5" />,
       color: 'bg-brand-100 text-brand-700',
-      title: 'Browse real litters',
+      title: 'Browse Real Litters',
       body: 'Photos, prices, and both parents on every page.',
     },
     {
       icon: <ShieldCheck className="h-5 w-5" />,
       color: 'bg-clay-100 text-clay-600',
-      title: 'See checked health tests',
+      title: 'See Checked Health Tests',
       body: 'Hips, eyes, heart, DNA — verified with the registry, not typed in.',
     },
     {
       icon: <Stethoscope className="h-5 w-5" />,
       color: 'bg-brand-100 text-brand-700',
-      title: 'Apply, then pick up',
+      title: 'Apply, Then Pick Up',
       body: 'No payment until the breeder says yes. Contract and deposit handled here.',
     },
     {
       icon: <Heart className="h-5 w-5" />,
       color: 'bg-clay-100 text-clay-600',
-      title: 'Bring them home',
+      title: 'Bring Them Home',
       body: 'Their records come with them — pedigree, chip, vaccinations, the lot.',
     },
   ];
@@ -193,7 +193,7 @@ function WhyStrip() {
               quiet.
             </p>
             <Button asChild variant="secondary" size="lg" className="mt-6">
-              <Link href="/learn/how-verification-works">How the checking works</Link>
+              <Link href="/learn/how-verification-works">How the Checking Works</Link>
             </Button>
           </div>
 
@@ -241,7 +241,7 @@ function BreederBand() {
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_20rem]">
           <div className="p-8 lg:p-10">
             <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
-              For breeders
+              For Breeders
             </p>
             <h2 className="mt-2 font-display text-3xl leading-tight text-ink-900">
               Your program, with the paperwork on autopilot
@@ -252,7 +252,7 @@ function BreederBand() {
             </p>
             <Button asChild size="lg" className="mt-5">
               <a href={process.env.NEXT_PUBLIC_STUDIO_URL ?? 'http://localhost:3001'}>
-                Open the workspace <ArrowRight />
+                Open the Workspace <ArrowRight />
               </a>
             </Button>
           </div>

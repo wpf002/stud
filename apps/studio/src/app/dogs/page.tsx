@@ -28,12 +28,12 @@ export default async function DogsPage() {
           <>
             <Button variant="outline" size="sm" asChild>
               <Link href="/pedigrees/import">
-                <Upload /> Import pedigree
+                <Upload /> Import Pedigree
               </Link>
             </Button>
             <Button size="sm" asChild>
               <Link href="/dogs/new">
-                <Plus /> Add a dog
+                <Plus /> Add a Dog
               </Link>
             </Button>
           </>
@@ -47,10 +47,10 @@ export default async function DogsPage() {
             action={
               <div className="flex gap-2">
                 <Button asChild size="sm" variant="outline">
-                  <Link href="/pedigrees/import">Import a pedigree</Link>
+                  <Link href="/pedigrees/import">Import a Pedigree</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link href="/dogs/new">Add a dog</Link>
+                  <Link href="/dogs/new">Add a Dog</Link>
                 </Button>
               </div>
             }
@@ -71,9 +71,22 @@ function DogCard({ dog }: { dog: DogSummary }) {
   const reg = dog.registrations.find((r) => r.isPrimary) ?? dog.registrations[0];
   const stats = dog.pedigreeStats;
 
+  const photo = dog.media[0]?.thumbUrl ?? dog.media[0]?.url;
+
   return (
-    <Card interactive className="flex flex-col">
-      <Link href={`/dogs/${dog.slug}`} className="flex-1 p-4">
+    <Card interactive className="flex flex-col overflow-hidden">
+      <Link href={`/dogs/${dog.slug}`} className="flex-1">
+        {photo && (
+          <div className="relative aspect-[5/3] overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photo}
+              alt={dog.callName}
+              className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+            />
+          </div>
+        )}
+        <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="truncate font-display text-lg leading-tight text-ink-900">{dog.callName}</p>
@@ -111,6 +124,7 @@ function DogCard({ dog }: { dog: DogSummary }) {
             </p>
           </div>
         </div>
+        </div>
       </Link>
 
       <div className="border-t border-bone-200 bg-bone-100 px-4 py-2">
@@ -118,7 +132,7 @@ function DogCard({ dog }: { dog: DogSummary }) {
           href={`/dogs/${dog.slug}/pedigree`}
           className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-700 hover:text-brand-800"
         >
-          <GitBranch className="h-3.5 w-3.5" /> View pedigree
+          <GitBranch className="h-3.5 w-3.5" /> View Pedigree
         </Link>
       </div>
     </Card>

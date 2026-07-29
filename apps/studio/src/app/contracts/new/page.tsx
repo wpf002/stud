@@ -26,7 +26,7 @@ export default async function NewContractPage() {
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="New contract"
+        title="New Contract"
         description="Draft it here, freeze it on send, and both parties sign the same text."
         wide
         actions={

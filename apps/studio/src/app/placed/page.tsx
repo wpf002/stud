@@ -35,7 +35,7 @@ export default async function PlacedDogsPage() {
   return (
     <StudioShell kennelName="Blackwater Kennels" userName="Jordan Hale">
       <StudioPage
-        title="Dogs you bred"
+        title="Dogs You Bred"
         description="Where they went, and what their owners have chosen to tell you."
         wide
       >
@@ -133,9 +133,7 @@ export default async function PlacedDogsPage() {
             </ul>
 
             <p className="text-2xs leading-relaxed text-ink-400">
-              Owners share by default and can turn it off for anything they would rather keep
-              private. What you see here is what they chose to tell you — treat it as their account
-              of what happened, because that is what it is.
+              Owners choose what to share — this is what they wanted you to know.
             </p>
           </div>
         )}

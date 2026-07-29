@@ -15,7 +15,7 @@ interface LitterRow {
   expectedWhelpOn: string | null;
   whelpedOn: string | null;
   sire: DogRef;
-  dam: DogRef;
+  dam: DogRef & { media?: { url: string; thumbUrl: string | null }[] };
   puppies: { id: string; sex: string; status: string }[];
   milestones: LitterMilestonesDto | null;
 }
@@ -36,11 +36,22 @@ export default async function LittersPage() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {litters.map((l) => (
-              <Card key={l.id} interactive>
-                <Link href={`/litters/${l.id}`} className="block p-4">
+              <Card key={l.id} interactive className="overflow-hidden">
+                <Link href={`/litters/${l.id}`} className="block">
+                  {(l.dam.media?.[0]?.thumbUrl ?? l.dam.media?.[0]?.url) && (
+                    <div className="relative aspect-[5/2] overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={l.dam.media![0]!.thumbUrl ?? l.dam.media![0]!.url}
+                        alt={l.dam.callName}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-display text-lg leading-tight text-ink-900">
-                      {l.letter ? `${l.letter} litter` : (l.name ?? 'Litter')}
+                      {l.letter ? `${l.letter} Litter` : (l.name ?? 'Litter')}
                     </p>
                     <Badge tone={l.status === 'ON_THE_GROUND' ? 'brand' : 'neutral'} size="sm">
                       {l.status.replace(/_/g, ' ').toLowerCase()}
@@ -72,6 +83,7 @@ export default async function LittersPage() {
                   {l.whelpedOn && (
                     <p className="mt-2 text-2xs text-ink-400">Whelped {formatDate(l.whelpedOn)}</p>
                   )}
+                </div>
                 </Link>
               </Card>
             ))}

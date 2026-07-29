@@ -40,13 +40,13 @@ const PRIMARY: NavItem[] = [
   { href: '/breedings', label: 'Breedings', icon: CalendarHeart },
   { href: '/litters', label: 'Litters', icon: PawPrint },
   { href: '/buyers', label: 'Buyers', icon: Users },
-  { href: '/placed', label: 'Dogs you bred', icon: Heart },
+  { href: '/placed', label: 'Dogs You Bred', icon: Heart },
 ];
 
 const SECONDARY: NavItem[] = [
   { href: '/pedigrees', label: 'Pedigrees', icon: GitBranch },
   { href: '/verification', label: 'Verification', icon: ShieldCheck },
-  { href: '/studs', label: 'Stud directory', icon: Search },
+  { href: '/studs', label: 'Stud Directory', icon: Search },
   { href: '/contracts', label: 'Contracts', icon: FileSignature },
   { href: '/inbox', label: 'Inbox', icon: Inbox },
   { href: '/reports', label: 'Reports', icon: LineChart },
@@ -233,19 +233,32 @@ export function StudioPage({
   actions,
   children,
   wide,
+  avatar,
 }: {
   title: string;
   description?: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
   wide?: boolean;
+  /** A photo beside the title — a dog's face makes a page theirs. */
+  avatar?: string | null;
 }) {
   return (
     <div className={cn('mx-auto px-4 py-6 lg:px-8 lg:py-8', wide ? 'max-w-wide' : 'max-w-content')}>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl leading-tight tracking-tight text-ink-900">{title}</h1>
-          {description && <p className="mt-1 text-sm text-ink-500">{description}</p>}
+        <div className="flex items-center gap-4">
+          {avatar && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatar}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-2xl object-cover shadow-sm ring-1 ring-black/5"
+            />
+          )}
+          <div>
+            <h1 className="font-display text-2xl leading-tight tracking-tight text-ink-900">{title}</h1>
+            {description && <p className="mt-1 text-sm text-ink-500">{description}</p>}
+          </div>
         </div>
         {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
       </div>

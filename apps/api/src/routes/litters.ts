@@ -42,7 +42,12 @@ export default async function litterRoutes(app: FastifyInstance) {
       take: q.take,
       include: {
         sire: { select: { id: true, slug: true, callName: true, registeredName: true } },
-        dam: { select: { id: true, slug: true, callName: true, registeredName: true } },
+        dam: {
+          select: {
+            id: true, slug: true, callName: true, registeredName: true,
+            media: { where: { isPrimary: true }, take: 1 },
+          },
+        },
         puppies: { select: { id: true, sex: true, status: true } },
       },
     });
