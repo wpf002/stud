@@ -181,6 +181,9 @@ importers:
       '@stud/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@stud/pedigree':
+        specifier: workspace:*
+        version: link:../../packages/pedigree
       '@stud/ui':
         specifier: workspace:*
         version: link:../../packages/ui

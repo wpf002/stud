@@ -84,6 +84,9 @@ model User {
   studInquiries      StudInquiry[]
   litterInquiries    LitterInquiry[]
   puppyApplications  PuppyApplication[]
+  transfersFrom      OwnershipTransfer[]  @relation("TransferFrom")
+  transfersTo        OwnershipTransfer[]  @relation("TransferTo")
+  healthEvents       HealthEvent[]
   savedPairings      SavedPairing[]
   contractParties    ContractParty[]
   contractSignatures ContractSignature[]
@@ -254,9 +257,11 @@ model Dog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  kennel        Kennel?        @relation(fields: [kennelId], references: [id], onDelete: SetNull)
+  kennel        Kennel?             @relation(fields: [kennelId], references: [id], onDelete: SetNull)
   registrations Registration[]
   ownerships    DogOwnership[]
+  transfers     OwnershipTransfer[]
+  healthEvents  HealthEvent[]
   media         DogMedia[]
 
   // Ancestry self-relations. SetNull on delete so removing a dog leaves an
@@ -1518,6 +1523,7 @@ model Contract {
   schedule     PaymentSchedule?
   repeatClaims RepeatBreedingClaim[]
   application  PuppyApplication?
+  transfers    OwnershipTransfer[]
 
   @@index([kennelId, status])
   @@index([breedingId])
@@ -2100,4 +2106,140 @@ model PuppyHandover {
 
   @@index([collectedOn])
   @@map("puppy_handovers")
+}
+
+// ── Phase 8: owner portal and record transfer ───────────────────────────────
+
+enum TransferKind {
+  /// Breeder to first owner, at pickup.
+  PLACEMENT
+  /// Owner to owner, later in the dog's life.
+  REHOME
+  /// Back to the breeder under a take-back clause.
+  RETURN_TO_BREEDER
+  /// Co-ownership added or removed.
+  CO_OWNERSHIP_CHANGE
+}
+
+enum TransferStatus {
+  /// Proposed by the current owner, waiting on the recipient.
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+/**
+ * A change of ownership, as a record rather than an edit.
+ * `DogOwnership` says who owns a dog now. This says how that came to be — who
+ * handed it over, when, what went with it, and what the contract said about it.
+ * A dog's chain of custody is exactly the kind of thing that is obvious at the
+ * time and impossible to reconstruct three owners later.
+ */
+model OwnershipTransfer {
+  id    String @id @default(cuid())
+  dogId String
+
+  kind   TransferKind
+  status TransferStatus @default(PENDING)
+
+  fromUserId String?
+  /// Null until the recipient has an account. The email is what we act on.
+  toUserId   String?
+  toEmail    String
+  toName     String?
+
+  /// Set for a placement, linking back to the sale it came from.
+  applicationId String?
+  handoverId    String?
+
+  /// What the current owner says about the transfer.
+  reason String? @db.Text
+
+  /**
+   * The take-back clause, checked at the moment it matters.
+   * Recorded on the transfer rather than looked up later, so a dog rehomed in
+   * breach of its contract leaves a trace the breeder can actually find.
+   */
+  contractId             String?
+  contractRequiresReturn Boolean   @default(false)
+  breederNotifiedAt      DateTime?
+  breederAcknowledgedAt  DateTime?
+
+  proposedAt  DateTime  @default(now())
+  respondedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dog      Dog       @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  fromUser User?     @relation("TransferFrom", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUser   User?     @relation("TransferTo", fields: [toUserId], references: [id], onDelete: SetNull)
+  contract Contract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
+
+  @@index([dogId, proposedAt])
+  @@index([toEmail, status])
+  @@index([toUserId, status])
+  @@map("ownership_transfers")
+}
+
+enum HealthEventKind {
+  VET_VISIT
+  VACCINATION
+  ILLNESS
+  INJURY
+  SURGERY
+  MEDICATION
+  ALTERATION
+  WEIGHT
+  DEATH
+  OTHER
+}
+
+/**
+ * Something that happened to a dog, logged by whoever was there.
+ * Deliberately not a `VerifiedClaim`. An owner writing "diagnosed with hip
+ * dysplasia" is reporting, not proving, and invariant 5 says those never share
+ * a field. What makes this worth having anyway is that a breeder can see it:
+ * a health guarantee depends on the owner telling them, and a breeding program
+ * only improves if what happened to the puppies comes back.
+ */
+model HealthEvent {
+  id    String @id @default(cuid())
+  dogId String
+
+  kind       HealthEventKind
+  occurredOn DateTime
+  title      String
+  detail     String?         @db.Text
+
+  /// Free text. A diagnosis here is the owner's or their vet's word for it.
+  diagnosis   String?
+  vetName     String?
+  vetPhone    String?
+  documentUrl String?
+
+  weightGrams Int?
+
+  /**
+   * Whether the breeder may see this.
+   * Defaults to true, because a breeder who never hears what happened to their
+   * puppies cannot breed better ones. An owner can turn it off — this is their
+   * dog and their vet bills — and the default is stated rather than hidden.
+   */
+  sharedWithBreeder Boolean @default(true)
+
+  /// True once this is thought to bear on a contractual health guarantee.
+  guaranteeRelevant Boolean @default(false)
+
+  reportedByUserId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  dog        Dog   @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  reportedBy User? @relation(fields: [reportedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([dogId, occurredOn])
+  @@index([kind, occurredOn])
+  @@map("health_events")
 }

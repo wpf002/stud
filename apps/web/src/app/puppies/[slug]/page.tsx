@@ -18,6 +18,7 @@ import {
   formatDogAge,
   formatMoney,
 } from '@stud/ui';
+import { RELATIONSHIP_COPY } from '@stud/pedigree';
 import { InquiryForm } from '@/components/inquiry-form';
 import {
   AVAILABILITY_LABEL,
@@ -233,11 +234,20 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
 
                 {coi.relationship && coi.relationship !== 'UNRELATED' && (
                   <p className="mt-3 text-sm text-ink-700">
-                    These two are{' '}
+                    {/*
+                      RELATIONSHIP_COPY, not the raw enum. The classifier works
+                      from the relatedness COEFFICIENT, so HALF_SIBLINGS means
+                      "as related as half-siblings" — it does not mean the two
+                      dogs share a parent. Rendering the enum printed "these two
+                      are half siblings" on a public page about two dogs whose
+                      parents are four different animals, which is a false
+                      statement of fact about somebody's breeding program.
+                    */}
                     <span className="font-semibold">
-                      {coi.relationship.replace(/_/g, ' ').toLowerCase()}
-                    </span>
-                    .
+                      {RELATIONSHIP_COPY[coi.relationship as keyof typeof RELATIONSHIP_COPY] ??
+                        'Related'}
+                    </span>{' '}
+                    between the parents, from the shared ancestors below.
                   </p>
                 )}
 

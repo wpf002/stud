@@ -977,3 +977,38 @@ export interface ApplicationDetailResponse {
   readiness: { ready: boolean; blockers: string[]; warnings: string[] };
   isBreeder: boolean;
 }
+
+// ── Phase 8: placed dogs ────────────────────────────────────────────────────
+
+export interface PlacedHealthEvent {
+  id: string;
+  kind: string;
+  occurredOn: string;
+  title: string;
+  detail: string | null;
+  diagnosis: string | null;
+  vetName: string | null;
+  weightGrams: number | null;
+  guaranteeRelevant: boolean;
+}
+
+export interface PlacedDogDto {
+  id: string;
+  slug: string;
+  callName: string;
+  breed: string;
+  sex: 'MALE' | 'FEMALE';
+  dateOfBirth: string | null;
+  ownerships: { user: { displayName: string | null; name: string | null; email: string } }[];
+  healthEvents: PlacedHealthEvent[];
+  puppyRecord: { litter: { id: string; letter: string | null } } | null;
+}
+
+export interface PlacedDogsResponse {
+  dogs: PlacedDogDto[];
+  summary: {
+    placed: number;
+    withSharedEvents: number;
+    guaranteeRelevant: number;
+  };
+}

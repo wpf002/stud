@@ -714,3 +714,134 @@ to triage.
 **Consequence.** An application can link back to the enquiry it grew out of, so
 the thread is not lost. One live application per person per litter — a second
 is almost always somebody who thought the first did not send.
+
+## D52 — A puppy becomes a Dog at handover, automatically (Phase 8)
+
+**Decision.** Recording the handover mints a `Dog` row with the pedigree,
+microchip and parentage already attached, and a `DogOwnership` for the buyer.
+
+**Why.** The phase gate is that the record is complete when the buyer opens it
+— not complete once somebody remembers to press another button. Everything
+above Phase 1 speaks Dog, so a puppy that stayed a Puppy would be invisible to
+pedigrees, verification and the directory at exactly the point it starts to
+matter.
+
+**Consequence.** `transferPuppyToOwner` is idempotent, because handovers get
+recorded twice more often than you would think and the second one must not
+mint a second animal. It runs outside the handover transaction: a failure to
+create the dog record must not roll back a collection that physically
+happened.
+
+## D53 — The new dog is not attached to the breeder's kennel (Phase 8)
+
+**Decision.** `kennelId` is null on a placed dog.
+
+**Why.** It belongs to the owner. Leaving it on the kennel would put somebody
+else's dog in the breeder's list and, worse, on their public profile.
+
+**Consequence.** The breeder still reaches it through `Puppy.dogId`, which is
+how the placed-dogs view and the health guarantee both work.
+
+## D54 — The growth history stays on the puppy row (Phase 8)
+
+**Decision.** Weights are read through `Puppy.dogId` rather than copied onto
+the dog.
+
+**Why.** Copying would create a second source of truth for the same eight
+weeks, and the first correction to either would make them disagree.
+
+**Consequence.** One join, and the whelping-box chart on the owner's page is
+literally the breeder's data rather than a snapshot of it.
+
+## D55 — A contract is shown as dated obligations, not as a document (Phase 8)
+
+**Decision.** `deriveObligations` turns clause effects and variables into
+dated, party-attributed obligations. The portal renders those.
+
+**Why.** A puppy contract is read once at the kitchen table and filed. Six
+months later nobody remembers the spay deadline was tied to eighteen months
+rather than six, or that the health guarantee needed a vet visit in the first
+72 hours. A PDF nobody opens is not a term anybody meets.
+
+**Consequence.** Half the obligations belong to the **breeder** — the
+registration paperwork, the guarantee — and are labelled that way. An owner who
+can see what they are owed is an owner who can ask for it.
+
+## D56 — An unparseable duration produces no deadline (Phase 8)
+
+**Decision.** `parseWindowDays` handles hours, days, weeks and months, rounds
+up, and returns null on anything else. A null becomes an obligation with no
+date.
+
+**Why.** These come from a TEXT field a breeder typed, so this genuinely does
+read prose — confined to durations. Guessing would put a date in front of an
+owner that their contract does not support, which is worse than no date.
+
+**Consequence.** "Within 72 hours" works; "as soon as practicable" produces an
+obligation with no deadline, which is exactly what the contract says.
+
+## D57 — Stud states the take-back clause; it does not enforce it (Phase 8)
+
+**Decision.** `checkTransfer` returns `allowed: true` even when the contract
+requires the dog to go back to the breeder. It returns the term, the portal
+shows it at the moment of deciding, and the breeder is notified when the
+transfer is proposed rather than when it completes.
+
+**Why.** Stud cannot enforce a private contract between two other people, and
+refusing would push the whole thing off-platform where nobody can see it at
+all. A breeder who finds out a week after the dog left has lost the chance to
+take it back.
+
+**Consequence.** The transfer records `contractRequiresReturn` and
+`breederNotifiedAt`, so a dog rehomed outside its contract leaves a trace the
+breeder can actually find.
+
+## D58 — Ownership is ended, never deleted (Phase 8)
+
+**Decision.** `completeOwnershipTransfer` sets `endedAt` on the outgoing
+ownership and inserts a new one.
+
+**Why.** Who owned a dog and when is exactly the kind of thing that is obvious
+at the time and impossible to reconstruct three owners later. It is also the
+record that answers "was this dog ever returned to its breeder?".
+
+## D59 — Owner health events are shared with the breeder by default (Phase 8)
+
+**Decision.** `HealthEvent.sharedWithBreeder` defaults true, and the reason is
+given in the form rather than assumed.
+
+**Why.** A breeding program only improves if what happened to the puppies comes
+back to it, and a health guarantee depends on the owner telling the breeder
+anyway. An owner can turn it off for anything — it is their dog and their vet
+bills — and turning it off is one click, not buried in settings.
+
+**Consequence.** The breeder's view says plainly that what they see is the
+owner's account of what happened, because that is what it is. Nothing an owner
+writes can become a verified claim (invariant 5) — that still requires the
+Phase 2 engine checking it against the issuing source.
+
+## D60 — The relationship label describes a level, not a parentage (Phase 8)
+
+**Decision.** The public litter page renders `RELATIONSHIP_COPY`, not the raw
+`RelationshipKind` enum.
+
+**Why.** The classifier works from the relatedness *coefficient*. Two dogs with
+four different parents can be as related as half-siblings through a doubled-up
+grandparent — which is exactly what the seeded pairing is. Rendering the enum
+printed "these two are half siblings" on a public page, which is a false
+statement of fact about somebody's breeding program.
+
+**Consequence.** A test asserts that for a pair who provably share no parent,
+the copy for whatever band they land in describes a *level* of relatedness.
+
+## D61 — Next resolves workspace `.js` imports via extensionAlias (Phase 8)
+
+**Decision.** Both Next apps set `resolve.extensionAlias` mapping `.js` to
+`['.ts', '.tsx', '.js']`.
+
+**Why.** Workspace packages are TypeScript source importing with ESM `.js`
+extensions — `./graph.js` meaning `./graph.ts`. tsc understands that; webpack
+does not. `@stud/pedigree` had been in `transpilePackages` since Phase 0 but
+was never actually imported at runtime from a Next app, so the gap only
+surfaced when Phase 8 imported it — with typecheck passing and the build
+failing.

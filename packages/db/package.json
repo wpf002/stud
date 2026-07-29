@@ -11,7 +11,8 @@
     "./env": "./src/env.ts",
     "./verification": "./src/verification-service.ts",
     "./pedigree-loader": "./src/pedigree-loader.ts",
-    "./listings": "./src/listing-service.ts"
+    "./listings": "./src/listing-service.ts",
+    "./transfers": "./src/transfer-service.ts"
   },
   "scripts": {
     "generate": "prisma generate",

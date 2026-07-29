@@ -1,4 +1,5 @@
 import {
+  checkTransfer,
   draftFromTemplate,
   getClause,
   renderContract,
@@ -17,6 +18,7 @@ import {
   type DepositRefundTerm,
   type LedgerEntry,
 } from '@stud/payments';
+import { transferPuppyToOwner } from '@stud/db/transfers';
 import type { PrismaClient } from '@stud/db';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
@@ -775,6 +777,46 @@ export default async function applicationRoutes(app: FastifyInstance) {
       return created;
     });
 
+    /**
+     * The puppy becomes a dog, owned by the buyer.
+     *
+     * Done here rather than as a separate step a breeder has to remember,
+     * because the phase gate is that the record is already complete when the
+     * buyer opens it — not complete once somebody presses another button.
+     *
+     * Deliberately outside the transaction above: a failure to mint the dog
+     * record must not roll back a handover that physically happened. It is
+     * idempotent, so it can be retried.
+     */
+    let transfer: Awaited<ReturnType<typeof transferPuppyToOwner>> | null = null;
+    try {
+      transfer = await transferPuppyToOwner(app.db, {
+        puppyId: application.matchedPuppyId!,
+        ownerUserId: application.applicantUserId,
+        reason: 'purchase',
+      });
+      await app.db.ownershipTransfer.create({
+        data: {
+          dogId: transfer.dogId,
+          kind: 'PLACEMENT',
+          status: 'ACCEPTED',
+          fromUserId: user.id,
+          toUserId: application.applicantUserId,
+          toEmail: application.email,
+          toName: application.name,
+          applicationId: id,
+          handoverId: handover.id,
+          contractId: application.contractId,
+          contractRequiresReturn: requiresReturn(
+            application.contractId ? await loadClauses(app.db, application.contractId) : [],
+          ),
+          respondedAt: new Date(),
+        },
+      });
+    } catch (err) {
+      app.log.error({ err, applicationId: id }, 'handover recorded but the dog record was not created');
+    }
+
     await refreshListing(app.db, application.litterListingId);
     await audit(app.db, {
       actor: { id: user.id },
@@ -799,7 +841,7 @@ export default async function applicationRoutes(app: FastifyInstance) {
       return true;
     });
 
-    return { handover, readiness: { ...readiness, warnings: remaining } };
+    return { handover, readiness: { ...readiness, warnings: remaining }, transfer };
   });
 
   // ── The buyer's own view ────────────────────────────────────────────────
@@ -1001,6 +1043,11 @@ function examWindowDays(instances: ClauseInstance[]): number | null {
   const days = /(\d+)\s*day/i.exec(raw);
   if (days) return Number(days[1]);
   return null;
+}
+
+/** Does this contract oblige the dog to come back rather than be rehomed? */
+function requiresReturn(instances: ClauseInstance[]): boolean {
+  return checkTransfer({ instances, kind: 'REHOME' }).requiresReturnToBreeder;
 }
 
 async function loadClauses(db: PrismaClient, contractId: string): Promise<ClauseInstance[]> {

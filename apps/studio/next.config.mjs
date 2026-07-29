@@ -23,6 +23,19 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  /**
+   * Workspace packages are TypeScript source that imports with ESM `.js`
+   * extensions — `./graph.js` meaning `./graph.ts`. tsc understands that;
+   * webpack does not without being told, so a direct import of one of them
+   * fails to resolve at build time while typecheck passes.
+   */
+  webpack: (cfg) => {
+    cfg.resolve.extensionAlias = {
+      ...cfg.resolve.extensionAlias,
+      '.js': ['.ts', '.tsx', '.js'],
+    };
+    return cfg;
+  },
 };
 
 export default nextConfig;

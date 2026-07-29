@@ -242,7 +242,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **5** ✅ | Breeding transaction | Stud contract from template → signed → paid → litter-linked, in-app |
 | **6** ✅ | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
 | **7** ✅ | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
-| **8** | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
+| **8** ✅ | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
 | **9** | Trust, discovery & growth | Organic traffic is the primary channel; the verified tier converts measurably better |
 
 Phases 1–3 ship a product that is useful with **zero network effect** — a
@@ -473,3 +473,49 @@ written reason, and that reason goes into the append-only history.
 
 Readiness is shown from the moment a puppy is matched rather than on collection
 day, because a blocker you learn about at the door is one nobody can fix.
+
+
+---
+
+## The owner portal
+
+The gate: **a buyer opens their dog's record on pickup day and it is already
+complete.**
+
+Recording the handover mints the dog record. It arrives carrying the pedigree
+the breeder built, both parents' verified health, the growth curve from the
+whelping box, the microchip, the litter, the signed contract — and the owner
+has typed nothing. Everything above Phase 1 speaks Dog, so a puppy that stayed
+a Puppy would be invisible to pedigrees and verification at exactly the moment
+it starts to matter.
+
+**The contract becomes dated obligations.** A puppy contract is read once at
+the kitchen table and then filed; six months later nobody remembers the spay
+deadline was tied to eighteen months rather than six, or that the health
+guarantee needed a vet visit in the first 72 hours. So the clauses are derived
+into things with dates:
+
+| | |
+|---|---|
+| **Vet exam** | Within the window the contract names, from collection. The single most time-critical term in a puppy contract, and the one most often missed. |
+| **Spay/neuter** | Dated from birth, with the contract's own wording — and a note that waiting for skeletal maturity is a legitimate reason to talk to your vet. |
+| **Registration paperwork** | The **breeder's** obligation, labelled as theirs. An owner who can see what they are owed can ask for it. |
+| **Health guarantee** | Runs to a date, and says what it actually covers. |
+| **Take-back** | Never expires. Explained as the reason dogs from good programs stay out of shelters, not as a penalty clause. |
+
+**Rehoming states the term rather than blocking it.** Stud cannot enforce a
+private contract between two other people, and refusing would push the whole
+thing off-platform where nobody can see it. So the portal says what the
+contract asks at the moment somebody is deciding, notifies the breeder when the
+transfer is *proposed* rather than when it completes, and records both. An
+ownership is ended, never deleted — the chain of custody is the record that
+answers "was this dog ever returned to its breeder?".
+
+**What happened comes back.** Owners log vet visits and diagnoses, shared with
+the breeder by default with the reason given rather than assumed: a program
+only improves if it hears what it produced, and a health guarantee depends on
+being told anyway. An owner can turn it off for anything in one click.
+
+Nothing an owner writes becomes a verified claim. A logged result is *their
+account* of a test, and only a check against the issuing body can change that —
+which is invariant 5, applied to the person who now owns the dog.

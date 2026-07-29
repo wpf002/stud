@@ -15,3 +15,4 @@ export * from './clauses.js';
 export * from './render.js';
 export * from './templates.js';
 export * from './signature.js';
+export * from './obligations.js';

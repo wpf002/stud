@@ -14,6 +14,7 @@ import {
 } from '@stud/contracts';
 import { buildSchedule, captureToEscrow } from '@stud/payments';
 import { refreshListingCache } from './listing-service.js';
+import { transferPuppyToOwner } from './transfer-service.js';
 import { loadRootEnv } from './env.js';
 import argon2 from 'argon2';
 
@@ -1293,20 +1294,32 @@ async function main() {
         { collar: 'Fern', sex: 'FEMALE' },
       ];
       for (const [i, pup] of pastPups.entries()) {
-        await db.puppy.create({
+        const birthWeight = 400 + i * 8;
+        const created = await db.puppy.create({
           data: {
             litterId: pastLitter.id,
             birthOrder: i + 1,
             collarColor: pup.collar,
             sex: pup.sex,
             status: 'SOLD',
-            birthWeightGrams: 400 + i * 8,
+            birthWeightGrams: birthWeight,
             colorPattern: 'Liver roan',
             bornAt: pastWhelp,
             priceCents: 250_000,
             microchip: `98514100200000${i}`,
           },
         });
+        // Eight weeks of weights, so the record a new owner opens carries the
+        // growth curve from the whelping box rather than starting blank.
+        for (const day of [0, 3, 7, 14, 21, 28, 35, 42, 49, 56]) {
+          await db.puppyWeight.create({
+            data: {
+              puppyId: created.id,
+              recordedOn: new Date(pastWhelp.getTime() + day * DAY),
+              grams: Math.round(birthWeight * (1 + day * 0.16)),
+            },
+          });
+        }
       }
 
       // Published and archived. A placed litter stays up — it is the best
@@ -1341,10 +1354,121 @@ async function main() {
 
     if (pastListing && rustPuppy && (await db.puppyApplication.count({ where: { litterListingId: pastListing.id } })) === 0) {
       const collectedOn = new Date(pastWhelp.getTime() + 58 * DAY);
+      /**
+       * The signed sale contract.
+       *
+       * Without it the owner portal has nothing to derive obligations from,
+       * and the obligations are the point of the portal — a contract read once
+       * at the kitchen table, turned into dated things somebody will actually
+       * meet.
+       */
+      const saleDraft = draftFromTemplate('PUPPY_SALE', {
+        'parties.puppy_sale': {
+          agreementDate: at(70).toISOString().slice(0, 10),
+          breederName: 'Jordan Hale, Blackwater Kennels',
+          buyerName: 'Sam Ortiz',
+          puppyDescription: 'a female German Shorthaired Pointer puppy, rust collar',
+          dateOfBirth: pastWhelp.toISOString().slice(0, 10),
+          damName: "Blackwater's Juniper Wind",
+          sireName: "Blackwater's Ranger Of The Marsh",
+        },
+        'fee.purchase_price': {
+          priceTotal: 250_000,
+          depositAmount: 50_000,
+          balanceAmount: 200_000,
+          balanceTrigger: 'ON_PICKUP',
+          depositTerms: 'REFUNDABLE_UNTIL_PICK',
+        },
+        'health.puppy_guarantee': {
+          initialExamWindow: '72 hours',
+          guaranteePeriod: 'TWENTY_FOUR_MONTHS',
+          guaranteeRemedy: 'REPLACEMENT_PUPPY',
+        },
+        'ownership.puppy_registration': { registrationType: 'LIMITED', paperworkWindow: '14 days' },
+        'care.spay_neuter': {
+          alterationDeadline: 'eighteen months of age, or earlier on veterinary advice',
+          confirmationWindow: '30 days',
+        },
+        'care.return_to_breeder': { refundOnReturn: 'NO_REFUND' },
+        'general.governing_law': { jurisdiction: 'the State of Texas' },
+      })!;
+
+      const saleHealth: {
+        animal: 'SIRE' | 'DAM';
+        claimLabel: string;
+        result: string;
+        tier: 'VERIFIED' | 'REPORTED';
+        source?: string | null;
+      }[] = [];
+      for (const [animal, dogId] of [['SIRE', rangersId], ['DAM', junipersId]] as const) {
+        for (const c of await db.verifiedClaim.findMany({
+          where: { dogId, state: { in: ['VERIFIED', 'STALE'] } },
+          select: { claimType: true, markerName: true, rawResult: true, source: true },
+        })) {
+          saleHealth.push({
+            animal,
+            claimLabel: c.markerName || c.claimType,
+            result: c.rawResult ?? '—',
+            tier: 'VERIFIED',
+            source: c.source,
+          });
+        }
+      }
+
+      const saleTitle = 'Puppy sale agreement — Rust to Sam Ortiz';
+      const saleRendered = renderContract({ ...saleDraft, title: saleTitle, healthSchedule: saleHealth });
+
+      const saleContract = await db.contract.create({
+        data: {
+          kind: 'PUPPY_SALE',
+          status: 'SIGNED',
+          title: saleTitle,
+          sireId: rangersId,
+          damId: junipersId,
+          litterId: pastLitter.id,
+          clauses: saleDraft.instances as unknown as Prisma.InputJsonValue,
+          healthSchedule: saleHealth as unknown as Prisma.InputJsonValue,
+          renderedText: saleRendered.plainText,
+          contentHash: saleRendered.contentHash,
+          createdByUserId: breeder.id,
+          sentAt: at(72),
+          signedAt: at(70),
+          parties: {
+            create: [
+              { userId: breeder.id, role: 'SELLER', legalName: 'Jordan Hale', email: 'breeder@stud.dev' },
+              { userId: buyer.id, role: 'BUYER', legalName: 'Sam Ortiz', email: 'buyer@stud.dev' },
+            ],
+          },
+          signatures: {
+            create: [
+              {
+                userId: breeder.id,
+                legalName: 'Jordan Hale',
+                email: 'breeder@stud.dev',
+                typedName: 'Jordan Hale',
+                consentText: CONSENT_TEXT_V1,
+                documentHash: saleRendered.contentHash,
+                signedAt: at(71),
+              },
+              {
+                userId: buyer.id,
+                legalName: 'Sam Ortiz',
+                email: 'buyer@stud.dev',
+                typedName: 'Sam Ortiz',
+                consentText: CONSENT_TEXT_V1,
+                documentHash: saleRendered.contentHash,
+                signedAt: at(70),
+              },
+            ],
+          },
+        },
+      });
+
       const application = await db.puppyApplication.create({
         data: {
           litterListingId: pastListing.id,
           applicantUserId: buyer.id,
+          contractId: saleContract.id,
           stage: 'COMPLETED',
           name: 'Sam Ortiz',
           email: 'buyer@stud.dev',
@@ -1413,7 +1537,66 @@ async function main() {
           notes: 'Straightforward handover. They stayed an hour and met both parents.',
         },
       });
-      console.info('  ✓ a completed application — applied to collected, fully tracked');
+
+      /**
+       * The puppy becomes a dog the buyer owns — through the same function the
+       * API uses at handover, so the seeded state is exactly what the app
+       * produces rather than an approximation of it.
+       */
+      const placed = await transferPuppyToOwner(db, {
+        puppyId: rustPuppy.id,
+        ownerUserId: buyer.id,
+        callName: 'Juno',
+        registeredName: "Blackwater's Juniper Rising",
+        reason: 'purchase',
+      });
+      await db.ownershipTransfer.create({
+        data: {
+          dogId: placed.dogId,
+          kind: 'PLACEMENT',
+          status: 'ACCEPTED',
+          fromUserId: breeder.id,
+          toUserId: buyer.id,
+          toEmail: 'buyer@stud.dev',
+          toName: 'Sam Ortiz',
+          applicationId: application.id,
+          contractRequiresReturn: true,
+          respondedAt: collectedOn,
+        },
+      });
+
+      // What the owner has logged since. Shared with the breeder by default,
+      // which is how a breeding program finds out what it produced.
+      await db.healthEvent.createMany({
+        data: [
+          {
+            dogId: placed.dogId,
+            kind: 'VET_VISIT',
+            occurredOn: new Date(collectedOn.getTime() + 2 * DAY),
+            title: 'First vet check',
+            detail: 'Clean bill of health. Weight 6.1kg, heart and hips felt normal for her age.',
+            vetName: 'Blanco River Veterinary',
+            reportedByUserId: buyer.id,
+          },
+          {
+            dogId: placed.dogId,
+            kind: 'VACCINATION',
+            occurredOn: new Date(collectedOn.getTime() + 14 * DAY),
+            title: 'Second DHPP',
+            vetName: 'Blanco River Veterinary',
+            reportedByUserId: buyer.id,
+          },
+          {
+            dogId: placed.dogId,
+            kind: 'WEIGHT',
+            occurredOn: at(20),
+            title: 'Weighed at home',
+            weightGrams: 18_400,
+            reportedByUserId: buyer.id,
+          },
+        ],
+      });
+      console.info('  ✓ a completed application — applied to collected, with the dog record transferred');
     }
   }
 

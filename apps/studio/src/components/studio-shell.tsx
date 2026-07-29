@@ -5,6 +5,7 @@ import {
   Dog,
   FileSignature,
   GitBranch,
+  Heart,
   Home,
   Inbox,
   LineChart,
@@ -39,6 +40,7 @@ const PRIMARY: NavItem[] = [
   { href: '/breedings', label: 'Breedings', icon: CalendarHeart },
   { href: '/litters', label: 'Litters', icon: PawPrint },
   { href: '/buyers', label: 'Buyers', icon: Users },
+  { href: '/placed', label: 'Dogs you bred', icon: Heart },
 ];
 
 const SECONDARY: NavItem[] = [

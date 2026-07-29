@@ -13,6 +13,7 @@ import {
   projectedLitterCoi,
   rankSires,
   relatedness,
+  RELATIONSHIP_COPY,
 } from '../src/index.js';
 import {
   doubledFullSib,
@@ -385,5 +386,64 @@ describe('performance', () => {
     const elapsed = performance.now() - start;
     close(coi, 0);
     expect(elapsed).toBeLessThan(1500);
+  });
+});
+
+function node(id: string, sireId: string | null = null, damId: string | null = null) {
+  return { id, sireId, damId, name: id, sex: 'MALE' as const, breed: 'Test', birthYear: null };
+}
+
+describe('relationship labels', () => {
+  /**
+   * The classifier works from the relatedness COEFFICIENT, not from shared
+   * parents. Two dogs with four different parents can be as related as
+   * half-siblings through a doubled-up grandparent — and calling them "half
+   * siblings" on a public page is a false statement of fact about somebody's
+   * breeding program.
+   */
+  it('reports a half-sibling LEVEL for dogs who share no parent', () => {
+    // Teal appears as the sire of one and the maternal grandsire of the other,
+    // twice over, which lifts relatedness into the half-sibling band without
+    // either dog sharing a parent with the other.
+    const graph = buildGraph([
+      node('teal'),
+      node('thistle'),
+      node('reed'),
+      node('storm'),
+      node('wren', 'teal', 'thistle'),
+      node('juniper', 'teal', 'reed'),
+      node('ranger', 'storm', 'wren'),
+    ]);
+
+    const pairing = evaluatePairing(graph, 'ranger', 'juniper', { generations: 6 });
+    const ranger = graph.nodes.get('ranger')!;
+    const juniper = graph.nodes.get('juniper')!;
+
+    // They demonstrably do not share a parent.
+    expect([ranger.sireId, ranger.damId]).not.toContain(juniper.sireId);
+    expect([ranger.sireId, ranger.damId]).not.toContain(juniper.damId);
+
+    // Whatever band it lands in, the copy must describe a LEVEL of
+    // relatedness rather than assert a parentage the pedigree contradicts.
+    const copy = RELATIONSHIP_COPY[pairing.relationship];
+    expect(copy).toBeDefined();
+    if (pairing.relationship === 'HALF_SIBLINGS' || pairing.relationship === 'FULL_SIBLINGS') {
+      expect(copy).toMatch(/level/i);
+      expect(copy).not.toMatch(/^(Half|Full)-siblings$/);
+    }
+  });
+
+  it('has copy for every relationship it can return', () => {
+    for (const kind of [
+      'UNRELATED', 'DISTANT', 'COUSINS', 'HALF_SIBLINGS',
+      'FULL_SIBLINGS', 'PARENT_OFFSPRING', 'GRANDPARENT_GRANDOFFSPRING',
+    ] as const) {
+      expect(RELATIONSHIP_COPY[kind]).toBeTruthy();
+    }
+  });
+
+  it('still names a true parent-offspring pair directly', () => {
+    const graph = buildGraph([node('sire'), node('dam'), node('pup', 'sire', 'dam')]);
+    expect(evaluatePairing(graph, 'sire', 'pup').relationship).toBe('PARENT_OFFSPRING');
   });
 });
