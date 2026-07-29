@@ -1,5 +1,5 @@
 import { evaluatePairing } from '@stud/pedigree';
-import { assessPairingRisk, type GeneticClaimInput } from '@stud/verify';
+import { assessPairingRisk, summariseReviews, type GeneticClaimInput } from '@stud/verify';
 import type { PrismaClient, VerificationState } from '@stud/db';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -296,6 +296,99 @@ export default async function marketplaceRoutes(app: FastifyInstance) {
       take: 5000,
     });
     return { listings, kennels };
+  });
+
+  // ── Breeder directory ───────────────────────────────────────────────────
+  /**
+   * The public list of breeders.
+   *
+   * Ranked by verified evidence, the same product position as everywhere
+   * else: the programs that did the work come first, and there is no way to
+   * buy a higher slot because there is nothing else the ranking reads.
+   */
+  app.get('/breeders/directory', async (req) => {
+    const q = z
+      .object({
+        breed: z.string().max(120).optional(),
+        region: z.string().max(80).optional(),
+        search: z.string().max(120).optional(),
+        take: z.coerce.number().min(1).max(60).default(30),
+        skip: z.coerce.number().min(0).default(0),
+      })
+      .parse(req.query);
+
+    const kennels = await app.db.kennel.findMany({
+      where: {
+        isPublished: true,
+        ...(q.breed ? { breeds: { has: q.breed } } : {}),
+        ...(q.region ? { region: { equals: q.region, mode: 'insensitive' } } : {}),
+        ...(q.search
+          ? {
+              OR: [
+                { name: { contains: q.search, mode: 'insensitive' } },
+                { prefix: { contains: q.search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        dogs: {
+          where: { isPublished: true, supersededByDogId: null },
+          select: {
+            verificationSummary: { select: { verifiedCount: true, density: true, conflictedCount: true } },
+          },
+        },
+        reviews: {
+          where: { status: 'PUBLISHED' },
+          select: {
+            overall: true,
+            communication: true,
+            healthOfPuppy: true,
+            honestyAboutMatch: true,
+            supportAfterward: true,
+            daysAfterPlacement: true,
+          },
+        },
+      },
+      take: q.take,
+      skip: q.skip,
+    });
+
+    const rows = kennels.map((k) => {
+      const verified = k.dogs.reduce((t, d) => t + (d.verificationSummary?.verifiedCount ?? 0), 0);
+      const densities = k.dogs
+        .map((d) => d.verificationSummary?.density ?? 0)
+        .filter((n) => n > 0);
+      const openConflicts = k.dogs.reduce(
+        (t, d) => t + (d.verificationSummary?.conflictedCount ?? 0),
+        0,
+      );
+      const { dogs: _dogs, reviews, ...pub } = k;
+      return {
+        ...pub,
+        stats: {
+          dogCount: k.dogs.length,
+          verifiedClaimCount: verified,
+          averageDensity: densities.length
+            ? densities.reduce((a, b) => a + b, 0) / densities.length
+            : 0,
+          // Shown, not hidden. A directory that only surfaces the flattering
+          // number is a directory nobody should trust.
+          openConflicts,
+        },
+        reviewSummary: summariseReviews(reviews),
+      };
+    });
+
+    // Verified evidence first; the review count breaks ties. Never the star
+    // average — sorting on a mean of three reviews would reward tiny samples.
+    rows.sort(
+      (a, b) =>
+        b.stats.verifiedClaimCount - a.stats.verifiedClaimCount ||
+        b.reviewSummary.count - a.reviewSummary.count,
+    );
+
+    return { breeders: rows, total: await app.db.kennel.count({ where: { isPublished: true } }) };
   });
 
   // ── Public kennel profile ───────────────────────────────────────────────

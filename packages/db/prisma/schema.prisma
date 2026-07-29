@@ -87,6 +87,7 @@ model User {
   transfersFrom      OwnershipTransfer[]  @relation("TransferFrom")
   transfersTo        OwnershipTransfer[]  @relation("TransferTo")
   healthEvents       HealthEvent[]
+  reviews            BreederReview[]
   savedPairings      SavedPairing[]
   contractParties    ContractParty[]
   contractSignatures ContractSignature[]
@@ -180,6 +181,7 @@ model Kennel {
 
   memberships Membership[]
   dogs        Dog[]
+  reviews     BreederReview[]
 
   @@index([country, region])
   @@index([isPublished])
@@ -1524,6 +1526,7 @@ model Contract {
   repeatClaims RepeatBreedingClaim[]
   application  PuppyApplication?
   transfers    OwnershipTransfer[]
+  review       BreederReview?
 
   @@index([kennelId, status])
   @@index([breedingId])
@@ -1884,6 +1887,7 @@ model LitterListing {
   litter       Litter             @relation(fields: [litterId], references: [id], onDelete: Cascade)
   inquiries    LitterInquiry[]
   applications PuppyApplication[]
+  funnelEvents FunnelEvent[]
 
   @@index([availability, publishedAt])
   @@index([cachedBreed, availability])
@@ -2037,6 +2041,7 @@ model PuppyApplication {
   contract      Contract?          @relation(fields: [contractId], references: [id], onDelete: SetNull)
   events        ApplicationEvent[]
   pickup        PuppyHandover?
+  review        BreederReview?
 
   @@index([litterListingId, stage, submittedAt])
   @@index([applicantUserId, submittedAt])
@@ -2242,4 +2247,134 @@ model HealthEvent {
   @@index([dogId, occurredOn])
   @@index([kind, occurredOn])
   @@map("health_events")
+}
+
+// ── Phase 9: trust, discovery and growth ────────────────────────────────────
+
+enum ReviewStatus {
+  PUBLISHED
+  /// Hidden pending a moderation decision. Never deleted.
+  UNDER_REVIEW
+  REMOVED
+}
+
+/**
+ * A review of a breeder, by somebody who actually bought from them.
+ * ── The rule that makes it worth anything ─────────────────────────────────
+ * A review must reference a COMPLETED `PuppyApplication` or a SIGNED stud
+ * contract. There is no way to write one otherwise. Every other dog
+ * marketplace takes reviews from anyone with an email address, which is why
+ * nobody believes them.
+ * ── Why the dimensions ────────────────────────────────────────────────────
+ * A single star rating collapses "the puppy was healthy" and "they answered my
+ * texts" into one number that means neither. These four are the things buyers
+ * actually differ on, and a breeder who scores 5 on honesty and 3 on
+ * after-support is genuinely more useful to read than one who scores 4.
+ */
+model BreederReview {
+  id       String @id @default(cuid())
+  kennelId String
+
+  /// Exactly one of these is set, and one must be.
+  applicationId String? @unique
+  contractId    String? @unique
+
+  authorUserId String
+
+  status ReviewStatus @default(PUBLISHED)
+
+  /// 1–5 each. Overall is authored, not averaged — a buyer's summary judgement
+  /// is not the mean of four sub-scores and pretending otherwise loses signal.
+  overall           Int
+  communication     Int?
+  healthOfPuppy     Int?
+  honestyAboutMatch Int?
+  supportAfterward  Int?
+
+  title String?
+  body  String  @db.Text
+
+  /// Days between collection and this being written, frozen at write time.
+  /// A review left on pickup day measures excitement; one left at a year
+  /// measures the breeder. Shown to the reader rather than used to weight.
+  daysAfterPlacement Int?
+
+  /// The breeder gets exactly one reply, and cannot remove the review.
+  response    String?   @db.Text
+  respondedAt DateTime?
+
+  /// Set when somebody reports it. Moderation is a state, never a delete.
+  flaggedReason     String?
+  flaggedAt         DateTime?
+  moderatedByUserId String?
+  moderationNote    String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kennel      Kennel            @relation(fields: [kennelId], references: [id], onDelete: Cascade)
+  author      User              @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  application PuppyApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  contract    Contract?         @relation(fields: [contractId], references: [id], onDelete: SetNull)
+
+  @@index([kennelId, status, createdAt])
+  @@index([authorUserId])
+  @@map("breeder_reviews")
+}
+
+enum FunnelStep {
+  /// Appeared in a search result.
+  LISTING_IMPRESSION
+  /// The public litter page was opened.
+  LISTING_VIEW
+  /// The apply form was opened.
+  APPLY_STARTED
+  INQUIRY_SENT
+  APPLICATION_SUBMITTED
+  APPLICATION_APPROVED
+  DEPOSIT_PAID
+  PLACEMENT_COMPLETED
+}
+
+/**
+ * First-party funnel events.
+ * ── No third-party tracker ────────────────────────────────────────────────
+ * A platform whose entire argument is "we check things so you do not have to
+ * take somebody's word for it" does not then ship a page that reports every
+ * visitor to an ad network. There is no cookie here, no cross-site identifier
+ * and no profile — a row says a step happened on a listing, with the
+ * verification tier at that moment.
+ * ── Why the tier is snapshotted ───────────────────────────────────────────
+ * The phase gate is that the verified tier converts measurably better. You
+ * cannot answer that from today's verification counts: a litter that was
+ * unverified when 500 people scrolled past it and verified by the time three
+ * of them applied would score as a triumph for verification. The tier is
+ * frozen at the moment of the event, so the comparison is honest.
+ */
+model FunnelEvent {
+  id   String     @id @default(cuid())
+  step FunnelStep
+
+  litterListingId String?
+  kennelId        String?
+
+  /// The verification tier AT THIS MOMENT. Never recomputed.
+  verifiedParentClaims Int     @default(0)
+  parentDensity        Float   @default(0)
+  hadConflict          Boolean @default(false)
+
+  /// A rotating per-day hash, so a session can be counted once without a
+  /// stable identifier that follows anybody anywhere.
+  sessionHash String?
+  /// Where they came from, bucketed. Never a full referrer URL.
+  channel     String?
+
+  occurredAt DateTime @default(now())
+
+  litterListing LitterListing? @relation(fields: [litterListingId], references: [id], onDelete: SetNull)
+
+  @@index([step, occurredAt])
+  @@index([litterListingId, step])
+  @@index([occurredAt])
+  @@map("funnel_events")
 }

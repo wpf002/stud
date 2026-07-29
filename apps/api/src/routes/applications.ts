@@ -134,6 +134,7 @@ export default async function applicationRoutes(app: FastifyInstance) {
       return created;
     });
 
+    await recordFunnel(app.db, 'APPLICATION_SUBMITTED', listing.id);
     return reply.code(201).send({
       application: { id: application.id, stage: application.stage, submittedAt: application.submittedAt },
     });
@@ -301,6 +302,9 @@ export default async function applicationRoutes(app: FastifyInstance) {
       after: { stage: body.stage },
       ipAddress: req.ip,
     });
+    if (body.stage === 'APPROVED') {
+      await recordFunnel(app.db, 'APPLICATION_APPROVED', application.litterListingId);
+    }
     return { application: updated, refund };
   });
 
@@ -400,6 +404,7 @@ export default async function applicationRoutes(app: FastifyInstance) {
       after: { amountCents: depositCents, provider: provider.id },
       ipAddress: req.ip,
     });
+    await recordFunnel(app.db, 'DEPOSIT_PAID', application.litterListingId);
     return { charge, providerIsLive: provider.isLive, depositCents };
   });
 
@@ -834,6 +839,8 @@ export default async function applicationRoutes(app: FastifyInstance) {
      * went with the dog, so returning the pre-handover assessment tells a
      * breeder there is no microchip on file moments after they typed one in.
      */
+    await recordFunnel(app.db, 'PLACEMENT_COMPLETED', application.litterListingId);
+
     const remaining = readiness.warnings.filter((w) => {
       if (/microchip/i.test(w)) return !body.microchipNumber && !body.microchipRegistered;
       if (/vaccination/i.test(w)) return !body.vaccinationRecord;
@@ -1126,6 +1133,41 @@ async function writeLedger(db: PrismaClient, legs: LedgerEntry[]) {
       occurredAt: l.occurredAt,
     })),
   });
+}
+
+/**
+ * Record a server-side funnel step, with the verification tier frozen at this
+ * moment. Server-side because these transitions happen here — a client beacon
+ * for DEPOSIT_PAID would miss every deposit taken while a tab was closed.
+ * Fire-and-forget: measurement must never fail a payment.
+ */
+async function recordFunnel(
+  db: PrismaClient,
+  step: 'APPLICATION_SUBMITTED' | 'APPLICATION_APPROVED' | 'DEPOSIT_PAID' | 'PLACEMENT_COMPLETED',
+  litterListingId: string,
+) {
+  try {
+    const listing = await db.litterListing.findUnique({
+      where: { id: litterListingId },
+      select: {
+        cachedSireVerified: true,
+        cachedDamVerified: true,
+        cachedParentDensity: true,
+        litter: { select: { kennelId: true } },
+      },
+    });
+    await db.funnelEvent.create({
+      data: {
+        step,
+        litterListingId,
+        kennelId: listing?.litter.kennelId ?? null,
+        verifiedParentClaims: (listing?.cachedSireVerified ?? 0) + (listing?.cachedDamVerified ?? 0),
+        parentDensity: listing?.cachedParentDensity ?? 0,
+      },
+    });
+  } catch {
+    // Nothing. See above.
+  }
 }
 
 async function refreshListing(db: PrismaClient, litterListingId: string) {

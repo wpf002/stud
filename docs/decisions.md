@@ -845,3 +845,95 @@ does not. `@stud/pedigree` had been in `transpilePackages` since Phase 0 but
 was never actually imported at runtime from a Next app, so the gap only
 surfaced when Phase 8 imported it — with typecheck passing and the build
 failing.
+
+## D62 — A review requires a completed transaction (Phase 9)
+
+**Decision.** A `BreederReview` must reference a COMPLETED application or a
+signed non-puppy-sale contract the author was a party to. There is no other
+path and no override.
+
+**Why.** Every other dog marketplace takes reviews from anyone with an email
+address, which is precisely why nobody believes them. Fewer reviews, each one
+anchored to a transaction the platform witnessed, is the entire value.
+
+**Consequence.** The first exploit found in testing: a buyer whose application
+review was consumed could review the SAME purchase again through the sale
+contract the application created. Filtering on `application: null` was not
+enough — a deleted application orphans its contract and re-opens the door — so
+the rule is on `kind`: a PUPPY_SALE contract never grants a review.
+
+## D63 — The breeder gets one reply and no delete (Phase 9)
+
+**Decision.** One response per review, and moderation is a status change
+(`UNDER_REVIEW`, `REMOVED`) that never deletes the row.
+
+**Why.** A marketplace where the reviewed party can remove a review has no
+reviews, it has testimonials.
+
+## D64 — The overall score is authored, not averaged (Phase 9)
+
+**Decision.** `summariseReviews` averages what reviewers wrote as their
+overall; it never derives it from the four dimension scores. Small samples are
+labelled ("read them rather than the number"), and so is a review base with
+nothing written after the first year.
+
+**Why.** A buyer's summary judgement is not the mean of its parts, and "4.7★"
+over two reviews is the single most misleading number in the category. A
+review left on pickup day measures excitement; one left at three years
+measures the breeder — `daysAfterPlacement` is frozen at write time and shown.
+
+## D65 — First-party measurement, snapshotted tier, no identifier (Phase 9)
+
+**Decision.** Funnel events are first-party rows with the verification tier
+frozen at event time, a session hash that expires with the day, and a referrer
+bucketed client-side so the full URL never leaves the browser.
+
+**Why.** A platform whose whole argument is "we check things so you do not
+have to take somebody's word for it" does not ship a page that reports every
+visitor to an ad network. And the gate question — does verification convert? —
+cannot be answered from today's counts: a listing verified after the traffic
+came through would score as a triumph for verification. The tier at the moment
+of the event is the only honest comparison.
+
+**Consequence.** Server-side steps (submitted, approved, deposit, placement)
+are recorded where the transitions happen, fire-and-forget, because
+measurement must never fail a payment.
+
+## D66 — The lift metric can say no (Phase 9)
+
+**Decision.** `verificationLift` reports a negative result as plainly as a
+positive one, refuses to certify anything under 30 views in the smaller
+group, and never divides by a zero baseline.
+
+**Why.** This is the number most likely to be quoted in a pitch, which is
+exactly why it must not round a shrug up into a finding. A growth metric that
+can only move one way is not a measurement — and a company that cannot see a
+null result will build itself around one.
+
+**Consequence.** The seeded dashboard demonstrates it: a 12.9× lift flagged as
+"directionally interesting; not yet evidence", because the fully-verified
+cohort has 14 views. The dashboard is admin-only — a breeder seeing conversion
+by tier would learn to game the ranking rather than test their dogs.
+
+## D67 — The breeder directory ranks on evidence and shows conflicts (Phase 9)
+
+**Decision.** `/breeders/directory` sorts on verified claim count, ties broken
+by review count — never by star average — and each card shows open conflicts
+beside the verified total.
+
+**Why.** Sorting on a mean of three reviews rewards tiny samples. And a
+directory that surfaces only the flattering number is a directory nobody
+should trust; Cedar Run appears with "4 verified" and "1 open conflict" on the
+same line, which is the product position in one card.
+
+## D68 — The guides are code (Phase 9)
+
+**Decision.** `/learn` articles live in `apps/web/src/lib/guides.ts` and are
+statically prerendered.
+
+**Why.** The organic gate is won by answering what first-time buyers actually
+search — "what is limited registration", "what does OFA good mean" — and this
+platform can answer those better than anyone because the product is the
+answer. Nine phases in, a CMS is a dependency this repo does not need; a guide
+is code-reviewed like everything else and every guide ends at the product
+surface that makes its advice actionable.

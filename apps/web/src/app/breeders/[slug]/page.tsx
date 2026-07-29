@@ -11,6 +11,7 @@ import {
   formatDogAge,
   formatMoney,
 } from '@stud/ui';
+import { API_URL } from '@/lib/api';
 import { AVAILABILITY_LABEL, loadKennelPage } from '@/lib/marketplace';
 
 export async function generateMetadata({
@@ -33,12 +34,48 @@ export async function generateMetadata({
   };
 }
 
+interface ReviewRow {
+  id: string;
+  overall: number;
+  communication: number | null;
+  healthOfPuppy: number | null;
+  honestyAboutMatch: number | null;
+  supportAfterward: number | null;
+  title: string | null;
+  body: string;
+  daysAfterPlacement: number | null;
+  response: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+  author: { displayName: string | null; name: string | null };
+}
+
+interface ReviewsPayload {
+  reviews: ReviewRow[];
+  summary: {
+    count: number;
+    overall: number | null;
+    dimensions: Record<string, number | null>;
+    longTermCount: number;
+    note: string | null;
+  };
+}
+
+async function loadReviews(kennelId: string): Promise<ReviewsPayload | null> {
+  const res = await fetch(`${API_URL}/v1/kennels/${kennelId}/reviews`, {
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as ReviewsPayload;
+}
+
 export default async function KennelPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const data = await loadKennelPage(slug);
   if (!data) notFound();
 
   const { kennel, dogs, listings, stats } = data;
+  const reviewData = await loadReviews(kennel.id);
   const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
 
   return (
@@ -195,6 +232,94 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* ── Reviews ─────────────────────────────────────────────────── */}
+      <section className="mt-10 max-w-3xl">
+        <h2 className="font-display text-2xl text-ink-900">
+          Reviews{' '}
+          {reviewData && reviewData.summary.count > 0 && (
+            <span className="font-sans text-md font-normal text-ink-400">
+              {reviewData.summary.overall?.toFixed(1)} · {reviewData.summary.count} verified{' '}
+              {reviewData.summary.count === 1 ? 'purchase' : 'purchases'}
+            </span>
+          )}
+        </h2>
+        <p className="mt-1 text-sm leading-relaxed text-ink-500">
+          Only somebody who completed a purchase or a signed breeding through Stud can write one.
+          Fewer reviews than elsewhere — and worth reading, for the same reason.
+        </p>
+
+        {/* The honesty note from the scorer, shown verbatim. */}
+        {reviewData?.summary.note && (
+          <p className="mt-3 rounded-md bg-bone-200/60 px-3 py-2 text-xs leading-relaxed text-ink-600">
+            {reviewData.summary.note}
+          </p>
+        )}
+
+        {reviewData && reviewData.reviews.length > 0 && (
+          <ul className="mt-4 space-y-4">
+            {reviewData.reviews.map((r) => (
+              <li key={r.id} className="rounded-card border border-bone-300 bg-bone-50 p-5">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="font-display text-lg text-ink-900">
+                    {r.title ?? `${r.overall} out of 5`}
+                  </p>
+                  <p className="text-2xs text-ink-400">
+                    {r.author.name ?? r.author.displayName ?? 'Verified buyer'}
+                    {r.daysAfterPlacement != null &&
+                      ` · ${
+                        r.daysAfterPlacement >= 365
+                          ? `${Math.floor(r.daysAfterPlacement / 365)} year${
+                              r.daysAfterPlacement >= 730 ? 's' : ''
+                            } after pickup`
+                          : `${r.daysAfterPlacement} days after pickup`
+                      }`}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm text-clay-600" aria-label={`${r.overall} out of 5`}>
+                  {'★'.repeat(r.overall)}
+                  <span className="text-bone-400">{'★'.repeat(5 - r.overall)}</span>
+                </p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-700">
+                  {r.body}
+                </p>
+
+                {(r.communication ?? r.healthOfPuppy ?? r.honestyAboutMatch ?? r.supportAfterward) !=
+                  null && (
+                  <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-bone-200 pt-2 text-2xs text-ink-500">
+                    {(
+                      [
+                        ['Communication', r.communication],
+                        ['Health of puppy', r.healthOfPuppy],
+                        ['Honesty about the match', r.honestyAboutMatch],
+                        ['Support afterward', r.supportAfterward],
+                      ] as const
+                    ).map(([label, v]) =>
+                      v != null ? (
+                        <div key={label}>
+                          <dt className="inline">{label} </dt>
+                          <dd className="inline font-mono text-ink-700">{v}/5</dd>
+                        </div>
+                      ) : null,
+                    )}
+                  </dl>
+                )}
+
+                {r.response && (
+                  <div className="mt-3 border-l-2 border-brand-300 pl-3">
+                    <p className="text-2xs uppercase tracking-widest text-ink-400">
+                      {kennel.name} replied
+                    </p>
+                    <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                      {r.response}
+                    </p>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

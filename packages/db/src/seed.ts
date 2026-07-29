@@ -1678,6 +1678,88 @@ async function main() {
     console.info('  ✓ two live applications waiting in the pipeline');
   }
 
+  // ── Phase 9: trust and measurement ───────────────────────────────────────
+  //
+  // A verified-purchase review on the completed placement, with the breeder's
+  // one reply. And a funnel history whose numbers are deliberately imperfect —
+  // a demo where verification wins 10× on every metric teaches nobody to read
+  // the dashboard critically.
+  const completedApp = await db.puppyApplication.findFirst({
+    where: { stage: 'COMPLETED', email: 'buyer@stud.dev' },
+    select: { id: true, litterListingId: true },
+  });
+  if (completedApp && (await db.breederReview.count()) === 0) {
+    await db.breederReview.create({
+      data: {
+        kennelId: blackwater.id,
+        applicationId: completedApp.id,
+        authorUserId: buyer.id,
+        overall: 5,
+        communication: 5,
+        healthOfPuppy: 5,
+        honestyAboutMatch: 4,
+        supportAfterward: 5,
+        title: 'Exactly the dog they said she would be',
+        body: 'We were on the list before the litter was bred, and Jordan was straight with us the whole way — including about which puppy NOT to pick for our household, which is not something every breeder will do. Juno is everything the testing said her parents were. The one mark off honesty is that "moderate drive" undersold it; she is a lot of dog, in the best way. We knew her hip scores before we ever visited, which is why we drove three hours past a dozen closer litters.',
+        daysAfterPlacement: 54,
+        response:
+          'Thank you, Sam. "A lot of dog" is fair — Juniper puppies keep their engines. Standing offer: if rally ever loses its shine, she has a NAVHDA natural ability title in her and I will run her with you.',
+        respondedAt: at(40),
+      },
+    });
+    console.info('  ✓ a verified-purchase review, with the breeder\'s reply');
+  }
+
+  // The funnel. Verified listings convert better here — but not absurdly, and
+  // the sample is honest about its own size.
+  if ((await db.funnelEvent.count()) === 0) {
+    const listing = await db.litterListing.findFirst({
+      where: { slug: 'golden-retriever-marigold-x-atlas-a' },
+      select: { id: true, cachedSireVerified: true, cachedDamVerified: true, cachedParentDensity: true, litter: { select: { kennelId: true } } },
+    });
+    const rows: {
+      step: 'LISTING_IMPRESSION' | 'LISTING_VIEW' | 'APPLY_STARTED' | 'APPLICATION_SUBMITTED';
+      claims: number;
+      density: number;
+      n: number;
+      channel: string;
+      listingId?: string | null;
+      kennelId?: string | null;
+    }[] = [
+      // The verified litter: real traffic, decent conversion.
+      { step: 'LISTING_IMPRESSION', claims: 4, density: 0.75, n: 420, channel: 'organic', listingId: listing?.id, kennelId: listing?.litter.kennelId },
+      { step: 'LISTING_VIEW', claims: 4, density: 0.75, n: 150, channel: 'organic', listingId: listing?.id, kennelId: listing?.litter.kennelId },
+      { step: 'LISTING_VIEW', claims: 4, density: 0.75, n: 40, channel: 'direct', listingId: listing?.id, kennelId: listing?.litter.kennelId },
+      { step: 'LISTING_VIEW', claims: 4, density: 0.75, n: 25, channel: 'social', listingId: listing?.id, kennelId: listing?.litter.kennelId },
+      { step: 'APPLY_STARTED', claims: 4, density: 0.75, n: 18, channel: 'organic', listingId: listing?.id },
+      { step: 'APPLICATION_SUBMITTED', claims: 4, density: 0.75, n: 9, channel: 'organic', listingId: listing?.id },
+      // A hypothetical unverified cohort, for the baseline.
+      { step: 'LISTING_IMPRESSION', claims: 0, density: 0, n: 380, channel: 'organic' },
+      { step: 'LISTING_VIEW', claims: 0, density: 0, n: 90, channel: 'organic' },
+      { step: 'LISTING_VIEW', claims: 0, density: 0, n: 30, channel: 'social' },
+      { step: 'APPLY_STARTED', claims: 0, density: 0, n: 5, channel: 'organic' },
+      { step: 'APPLICATION_SUBMITTED', claims: 0, density: 0, n: 2, channel: 'organic' },
+      // A fully-panelled cohort with THIN traffic, so the dashboard's
+      // "not yet evidence" honesty has something to be honest about.
+      { step: 'LISTING_VIEW', claims: 12, density: 1, n: 14, channel: 'organic' },
+      { step: 'APPLICATION_SUBMITTED', claims: 12, density: 1, n: 3, channel: 'organic' },
+    ];
+    for (const r of rows) {
+      await db.funnelEvent.createMany({
+        data: Array.from({ length: r.n }, (_, i) => ({
+          step: r.step,
+          litterListingId: r.listingId ?? null,
+          kennelId: r.kennelId ?? null,
+          verifiedParentClaims: r.claims,
+          parentDensity: r.density,
+          channel: r.channel,
+          occurredAt: at(1 + ((i * 7) % 60)),
+        })),
+      });
+    }
+    console.info('  ✓ sixty days of funnel history, honest about its sample sizes');
+  }
+
   console.info(`\n✓ seed complete`);
   console.info(`  breeder@stud.dev · buyer@stud.dev · studowner@stud.dev · admin@stud.dev`);
   console.info(`  password: ${DEV_PASSWORD}`);

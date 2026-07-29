@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { GUIDES } from '@/lib/guides';
 import { loadPublicIndex } from '@/lib/marketplace';
 
 /**
@@ -17,6 +18,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${site}/`, changeFrequency: 'weekly', priority: 1 },
     { url: `${site}/puppies`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${site}/studs`, changeFrequency: 'daily', priority: 0.8 },
+    { url: `${site}/breeders`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${site}/learn`, changeFrequency: 'weekly', priority: 0.7 },
+    ...GUIDES.map((g) => ({
+      url: `${site}/learn/${g.slug}`,
+      lastModified: new Date(g.updated),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
     { url: `${site}/verification`, changeFrequency: 'monthly', priority: 0.6 },
   ];
 

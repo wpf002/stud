@@ -19,6 +19,7 @@ import {
   formatMoney,
 } from '@stud/ui';
 import { RELATIONSHIP_COPY } from '@stud/pedigree';
+import { FunnelBeacon } from '@/components/funnel-beacon';
 import { InquiryForm } from '@/components/inquiry-form';
 import {
   AVAILABILITY_LABEL,
@@ -86,6 +87,7 @@ export default async function LitterPublicPage({ params }: { params: Promise<{ s
   return (
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
       <JsonLd data={data} />
+      <FunnelBeacon step="LISTING_VIEW" slug={listing.slug} />
 
       <nav aria-label="Breadcrumb" className="mb-6 text-2xs text-ink-400">
         <Link href="/puppies" className="hover:text-brand-600">

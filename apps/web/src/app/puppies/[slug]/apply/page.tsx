@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { loadLitterPage } from '@/lib/marketplace';
+import { FunnelBeacon } from '@/components/funnel-beacon';
 import { ApplyClient } from './apply-client';
 
 export const dynamic = 'force-dynamic';
@@ -32,6 +33,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-10 lg:px-8">
+      <FunnelBeacon step="APPLY_STARTED" slug={listing.slug} />
       <Link
         href={`/puppies/${listing.slug}`}
         className="mb-6 inline-flex items-center gap-1.5 text-2xs text-ink-400 hover:text-brand-600"

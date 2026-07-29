@@ -27,3 +27,4 @@ export * from './adapters/performance.js';
 export * from './adapters/document.js';
 export * from './adapters/fixture.js';
 export { DEFAULT_HTTP_CONFIG, type HttpConfig } from './http.js';
+export * from './funnel.js';

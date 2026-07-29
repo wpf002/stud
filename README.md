@@ -243,7 +243,7 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **6** ✅ | Litter & puppy marketplace | A public litter page ranks, loads fast, shows verified parent data with zero re-entry |
 | **7** ✅ | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
 | **8** ✅ | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
-| **9** | Trust, discovery & growth | Organic traffic is the primary channel; the verified tier converts measurably better |
+| **9** ✅ | Trust, discovery & growth | Organic traffic is the primary channel; the verified tier converts measurably better |
 
 Phases 1–3 ship a product that is useful with **zero network effect** — a
 breeder with one dog gets value from the pedigree tool, verification and litter
@@ -519,3 +519,44 @@ being told anyway. An owner can turn it off for anything in one click.
 Nothing an owner writes becomes a verified claim. A logged result is *their
 account* of a test, and only a check against the issuing body can change that —
 which is invariant 5, applied to the person who now owns the dog.
+
+
+---
+
+## Trust and measurement
+
+The last gate is a measurement, not a feature: **organic is the primary
+channel, and the verified tier converts measurably better.** Phase 9 built the
+instruments and the honesty to read them.
+
+**Reviews are anchored to transactions.** A review requires a completed
+placement or a signed breeding through Stud — there is no other path and no
+override. The breeder gets exactly one reply and cannot delete anything;
+moderation is a status, never a removal. The overall score is what reviewers
+wrote, never the mean of the dimension scores, and a rating built on three
+reviews says so: *"read them rather than the number."* Each review carries how
+long after pickup it was written, because a review left on collection day
+measures excitement and one left at three years measures the breeder.
+
+**Measurement is first-party and honest by construction.** No third-party
+tracker — a platform whose whole argument is "we check things" does not report
+its visitors to an ad network. A funnel event is a row: the step, the
+verification tier *frozen at that moment*, a session hash that expires with
+the day, and a referrer bucketed in the browser so the full URL never leaves
+it. The tier snapshot is what makes the comparison honest — a listing verified
+after the traffic came through cannot retroactively claim the conversions.
+
+**The lift metric can say no.** `verificationLift` reports a negative result
+as plainly as a positive one, refuses to certify anything under 30 views in
+the smaller cohort, and never divides by a zero baseline. The seeded dashboard
+shows a 12.9× lift flagged *"directionally interesting; not yet evidence"* —
+because the fully-verified cohort has 14 views, and a growth metric that can
+only move one way is not a measurement.
+
+**Discovery ranks on evidence.** The breeder directory sorts on verified
+claims — there is no way to buy a higher slot because the ranking reads
+nothing money can change — and shows open conflicts beside verified counts on
+the same card. The `/learn` guides answer what first-time buyers actually
+search ("what is limited registration", "how to read health testing"), live in
+the repo as code, prerender statically, and each ends at the product surface
+that makes its advice actionable.
