@@ -211,21 +211,21 @@ function WhyStrip() {
               </div>
               <div>
                 <p className="font-display text-lg text-ink-900">Marigold</p>
-                <p className="text-2xs text-ink-400">Golden Retriever · mom</p>
+                <p className="text-2xs text-ink-400">Golden Retriever · Mom</p>
               </div>
             </div>
             <ul className="mt-4 space-y-2 text-sm">
-              {['Hips — OFA Good', 'Eyes — clear', 'Heart — normal'].map((label) => (
+              {['Hips — OFA Good', 'Eyes — Clear', 'Heart — Normal'].map((label) => (
                 <li key={label} className="flex items-center justify-between">
                   <span className="text-ink-700">{label}</span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2 py-0.5 text-2xs font-medium text-brand-700">
-                    <ShieldCheck className="h-3 w-3" /> checked
+                    <ShieldCheck className="h-3 w-3" /> Checked
                   </span>
                 </li>
               ))}
             </ul>
             <p className="mt-3 border-t border-bone-300 pt-2 text-2xs text-ink-400">
-              Verified with the issuing registry · updated this week
+              Verified with the issuing registry · Updated This Week
             </p>
           </div>
         </div>

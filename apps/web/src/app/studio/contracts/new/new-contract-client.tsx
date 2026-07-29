@@ -204,7 +204,7 @@ export function NewContractClient({
                 onChange={(e) => setMyRole(e.target.value as typeof myRole)}
               >
                 <option value="STUD_OWNER">I own the stud</option>
-                <option value="BITCH_OWNER">I own the bitch</option>
+                <option value="BITCH_OWNER">I own the dam</option>
                 <option value="CO_OWNER">Co-ownership</option>
               </Select>
             </Field>

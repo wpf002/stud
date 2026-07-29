@@ -250,9 +250,9 @@ export function VerificationEvidencePanel({
         <dl className="divide-y divide-bone-200 rounded-md border border-bone-200 bg-bone-100 text-sm">
           <Row label="Source" value={evidence.source} href={evidence.sourceUrl ?? undefined} />
           {evidence.result && <Row label="Result" value={evidence.result} mono />}
-          {evidence.identifier && <Row label="Matched on" value={evidence.identifier} mono />}
-          {tested && <Row label="Test date" value={tested} />}
-          {checked && <Row label="Last checked" value={checked} />}
+          {evidence.identifier && <Row label="Matched On" value={evidence.identifier} mono />}
+          {tested && <Row label="Test Date" value={tested} />}
+          {checked && <Row label="Last Checked" value={checked} />}
         </dl>
       )}
 

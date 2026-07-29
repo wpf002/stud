@@ -201,7 +201,7 @@ export default async function DashboardPage() {
                 <CardContent>
                   {upcomingHeats.length === 0 ? (
                     <p className="text-sm leading-relaxed text-ink-500">
-                      No predictions yet. Log the first day of two heats for a bitch and we can start
+                      No predictions yet. Log the first day of two heats for a dam and we can start
                       forecasting hers.
                     </p>
                   ) : (
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
                     </ul>
                   )}
                   <p className="mt-4 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
-                    The window is the answer, not the date. A bitch with two logged cycles gets a
+                    The window is the answer, not the date. A dam with two logged cycles gets a
                     wide one on purpose.
                   </p>
                 </CardContent>

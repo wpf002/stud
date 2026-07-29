@@ -63,7 +63,7 @@ export default async function MyDogsPage() {
                         <p className="text-sm text-ink-500">{d.registeredName}</p>
                       )}
                       <p className="mt-1 text-2xs uppercase tracking-widest text-ink-400">
-                        {d.breed} · {d.sex === 'MALE' ? 'Dog' : 'Bitch'} ·{' '}
+                        {d.breed} · {d.sex === 'MALE' ? 'Male' : 'Female'} ·{' '}
                         {formatDogAge(d.dateOfBirth)}
                       </p>
                     </div>

@@ -186,7 +186,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
                     label="Semen"
                     value={listing.semenTypes.length ? listing.semenTypes.map(titleCase).join(", ") : 'Natural'}
                   />
-                  <Row label="Ships" value={listing.shipsSemen ? 'yes' : 'no'} />
+                  <Row label="Ships" value={listing.shipsSemen ? 'Yes' : 'No'} />
                   {listing.travelRadiusMiles != null && (
                     <Row label="Travel" value={`${listing.travelRadiusMiles} mi`} />
                   )}
@@ -197,7 +197,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
                     What the owner requires
                   </p>
                   <ul className="mt-2 space-y-1 text-xs text-ink-600">
-                    {listing.requiresHealthTesting && <li>· Health testing on the bitch</li>}
+                    {listing.requiresHealthTesting && <li>· Health testing on the dam</li>}
                     {listing.requiresBrucellosis && <li>· Current brucellosis test</li>}
                     {listing.requiresContract && <li>· Signed stud contract</li>}
                   </ul>
@@ -227,7 +227,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
                 />
               </dl>
               <p className="mt-3 border-t border-bone-200 pt-3 text-2xs leading-relaxed text-ink-400">
-                A COI for a litter with your own bitch — not just his — is in the breeder workspace.
+                A COI for a litter with your own dam — not just his — is in the breeder workspace.
               </p>
             </CardContent>
           </Card>

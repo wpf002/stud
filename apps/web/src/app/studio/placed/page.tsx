@@ -73,7 +73,7 @@ export default async function PlacedDogsPage() {
                           <div>
                             <p className="font-display text-lg text-ink-900">{d.callName}</p>
                             <p className="mt-0.5 text-2xs uppercase tracking-widest text-ink-400">
-                              {d.sex === 'MALE' ? 'Dog' : 'Bitch'} · {formatDogAge(d.dateOfBirth)}
+                              {d.sex === 'MALE' ? 'Male' : 'Female'} · {formatDogAge(d.dateOfBirth)}
                               {d.puppyRecord?.litter.letter
                                 ? ` · ${d.puppyRecord.litter.letter} litter`
                                 : ''}

@@ -691,7 +691,7 @@ async function main() {
       temperament:
         'Biddable, high drive in the field, completely settled in the house. Good with children and other dogs.',
       requirements:
-        'OFA hips and elbows on the bitch, current brucellosis, and a signed stud contract. Happy to discuss co-ownership for the right home.',
+        'OFA hips and elbows on the dam, current brucellosis, and a signed stud contract. Happy to discuss co-ownership for the right home.',
     },
     {
       slug: 'lindqvists-jack-of-tulsa',
@@ -703,7 +703,7 @@ async function main() {
       temperament:
         'Big personality, very handler-focused. Not a kennel dog — he lives in the house and behaves like it.',
       requirements:
-        'I am not a breeder, so I lean on the bitch owner for the paperwork. Health testing required.',
+        'I am not a breeder, so I lean on the dam owner for the paperwork. Health testing required.',
     },
     {
       slug: 'cedar-run-atlas',
@@ -1196,7 +1196,7 @@ async function main() {
         depositCents: 50_000,
         priceNotes:
           'Show and performance prospects are at the top of the range. Every puppy in this litter is the same dog until eight weeks — the difference in price is structure at evaluation, not a difference in how they are raised.',
-        headline: 'Golden Retriever puppies, raised in the house',
+        headline: 'Golden Retriever Puppies',
         description:
           "Marigold's first litter. Both parents are OFA tested — you can read every result on this page, checked against the issuing source rather than typed in by us, including the one on Atlas that is currently showing a conflict we are working through with OFA.\n\nRaised in the house, on the Puppy Culture protocol, with a full ENS programme from day three. They meet the vacuum, the stairs, the crate and at least ten strangers before they leave.\n\nWe are not the cheapest Goldens in Texas and we are not trying to be.",
         includedInPrice:
@@ -1332,7 +1332,7 @@ async function main() {
           priceCentsFrom: 250_000,
           priceCentsTo: 250_000,
           depositCents: 50_000,
-          headline: 'German Shorthaired Pointers, out of our foundation bitch',
+          headline: 'German Shorthaired Pointers',
           description:
             "Juniper's first litter and one we were pleased with. All seven placed into hunting and companion homes, and we are still in touch with every one of them.\n\nBoth parents are OFA tested and NAVHDA titled, and every result on this page was checked against the issuing body rather than typed in by us.",
           includedInPrice:
@@ -1801,7 +1801,10 @@ async function main() {
 
   await db.litterListing.updateMany({
     where: { slug: 'golden-retriever-marigold-x-atlas-a' },
-    data: { photoUrls: [PHOTOS.goldenPupCollar, PHOTOS.goldenPupTulip, PHOTOS.goldenPupRed] },
+    data: {
+      photoUrls: [PHOTOS.goldenPupCollar, PHOTOS.goldenPupTulip, PHOTOS.goldenPupRed],
+      headline: 'Golden Retriever Puppies',
+    },
   });
   await db.litterListing.updateMany({
     where: { slug: 'german-shorthaired-pointer-juniper-x-ranger-a' },
@@ -1810,7 +1813,7 @@ async function main() {
       // Unconditional, like the photos above: the listing itself is only
       // created on a first run, so copy edits would never reach a database
       // that already has it.
-      headline: 'German Shorthaired Pointers, out of our foundation bitch',
+      headline: 'German Shorthaired Pointers',
     },
   });
 

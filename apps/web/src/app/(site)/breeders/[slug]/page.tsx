@@ -218,7 +218,7 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
                         {d.registeredName ?? d.callName}
                       </p>
                       <p className="mt-0.5 text-2xs uppercase tracking-widest text-ink-400">
-                        {d.sex === 'MALE' ? 'Dog' : 'Bitch'} · {formatDogAge(d.dateOfBirth)}
+                        {d.sex === 'MALE' ? 'Male' : 'Female'} · {formatDogAge(d.dateOfBirth)}
                       </p>
                     </div>
                     <PawPrint className="h-4 w-4 shrink-0 text-ink-300" />

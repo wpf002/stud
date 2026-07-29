@@ -106,10 +106,10 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
             <Field
               label="Match Against"
               htmlFor="damId"
-              hint="Pick a bitch and every stud is scored for the litter it would produce with her."
+              hint="Pick a dam and every stud is scored for the litter it would produce with her."
             >
               <Select id="damId" value={damId} onChange={(e) => setDamId(e.target.value)}>
-                <option value="">No Bitch Selected</option>
+                <option value="">No Dam Selected</option>
                 {dams.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.callName}
@@ -206,7 +206,7 @@ export function StudsClient({ dams }: { dams: DogSummary[] }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-ink-500">
             {results ? `${results.total} stud${results.total === 1 ? '' : 's'}` : 'Searching…'}
-            {damId && results?.total ? ' · scored against your bitch' : ''}
+            {damId && results?.total ? ' · scored against your dam' : ''}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -335,7 +335,7 @@ function StudCard({ stud, damId }: { stud: StudRow; damId: string | null }) {
               tone={
                 stud.projectedCoi == null ? undefined : stud.projectedCoi < 0.0625 ? 'good' : 'warn'
               }
-              sub="with your bitch"
+              sub="with your dam"
             />
           ) : (
             <Metric label="Titles" value={summary ? String(summary.verifiedTitleCount) : '—'} />
@@ -347,7 +347,7 @@ function StudCard({ stud, damId }: { stud: StudRow; damId: string | null }) {
           <p className="mt-3 flex items-center gap-2 rounded-md bg-danger-bg px-3 py-2 text-xs text-danger-fg">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             {atRisk} genetic marker{atRisk === 1 ? '' : 's'} would produce affected puppies with your
-            bitch.
+            dam.
           </p>
         )}
         {atRisk === 0 && (stud.geneticRisk?.unknown ?? 0) > 0 && (

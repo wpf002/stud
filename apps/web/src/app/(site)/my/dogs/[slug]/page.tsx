@@ -64,7 +64,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
 
       <header>
         <p className="text-2xs font-semibold uppercase tracking-widest text-clay-600">
-          {dog.breed} · {dog.sex === 'MALE' ? 'Dog' : 'Bitch'}
+          {dog.breed} · {dog.sex === 'MALE' ? 'Male' : 'Female'}
         </p>
         <h1 className="mt-2 font-display text-4xl leading-[1.1] tracking-tight text-ink-900">
           {dog.callName}

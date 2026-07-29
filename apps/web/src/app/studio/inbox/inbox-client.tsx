@@ -42,7 +42,7 @@ export function InboxClient({ initial }: { initial: StudInquiryDto[] }) {
       <EmptyState
         icon={<InboxIcon className="h-5 w-5" />}
         title="No inquiries"
-        description="When a breeder enquires about one of your studs, their bitch's verified health, her pedigree and the projected litter COI arrive with the message."
+        description="When a breeder enquires about one of your studs, their dam's verified health, her pedigree and the projected litter COI arrive with the message."
       />
     );
   }
@@ -115,7 +115,7 @@ function InquiryCard({
           <div className="mt-4 rounded-md border border-bone-300 bg-bone-100 p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="text-sm font-medium text-ink-800">
-                Proposed bitch:{' '}
+                Proposed dam:{' '}
                 <Link href={`/studio/dogs/${dam.slug}`} className="text-brand-700 hover:underline">
                   {dam.registeredName ?? dam.callName}
                 </Link>
@@ -167,7 +167,7 @@ function InquiryCard({
 
             {!summary?.verifiedCount && (
               <p className="mt-3 text-2xs leading-relaxed text-warning-fg">
-                None of this bitch&rsquo;s health testing has been verified yet, so the claims
+                None of this dam&rsquo;s health testing has been verified yet, so the claims
                 in this message can&rsquo;t be checked from here.
               </p>
             )}
@@ -176,7 +176,7 @@ function InquiryCard({
 
         {!dam && (
           <p className="mt-4 rounded-md bg-bone-100 px-3 py-2 text-xs text-ink-500">
-            No bitch attached — this is an exploratory enquiry, so there is nothing to evaluate yet.
+            No dam attached — this is an exploratory enquiry, so there is nothing to evaluate yet.
           </p>
         )}
 
