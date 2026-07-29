@@ -937,3 +937,17 @@ platform can answer those better than anyone because the product is the
 answer. Nine phases in, a CMS is a dependency this repo does not need; a guide
 is code-reviewed like everything else and every guide ends at the product
 surface that makes its advice actionable.
+
+## D69 — Dev and production builds use separate output directories
+
+**Decision.** `distDir` is `.next-dev` under `next dev` and `.next` under
+`next build` / `next start`, in both apps.
+
+**Why.** They defaulted to sharing `.next`, so every `pnpm build` clobbered
+the running dev server's chunks — which then failed every request with
+"Cannot find module './vendor-chunks/…'" until the directory was deleted and
+the server restarted. This bit three times during Phases 7–9.
+
+**Consequence.** `turbo.json` build outputs still point at `.next/**`
+(production only), `.next-dev` is gitignored and excluded from typecheck, and
+a production build can run while dev is serving without either noticing.

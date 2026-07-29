@@ -6,6 +6,16 @@ config({ path: new URL('../../.env', import.meta.url).pathname });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /**
+   * Dev and production builds get separate output directories.
+   *
+   * They defaulted to sharing `.next`, so every `pnpm build` clobbered the
+   * running dev server's chunks — which then failed every request with
+   * "Cannot find module './vendor-chunks/…'" until `.next` was deleted and
+   * the server restarted. `next build` runs with NODE_ENV=production and
+   * `next start` reads the same production dir, so both sides keep working.
+   */
+  distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   reactStrictMode: true,
   transpilePackages: ['@stud/ui', '@stud/pedigree', '@stud/db'],
   images: {
