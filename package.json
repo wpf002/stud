@@ -22,8 +22,8 @@
     "db:reset": "pnpm --filter @stud/db reset",
     "bootstrap": "bash scripts/bootstrap.sh",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
-    "build:api": "turbo run build --filter=@stud/api...",
-    "start:api": "pnpm --filter @stud/db migrate:deploy:ci && node apps/api/dist/server.js",
+    "build:api": "pnpm --filter @stud/db generate",
+    "start:api": "pnpm --filter @stud/db migrate:deploy:ci && pnpm --filter @stud/api exec tsx src/server.ts",
     "build:web": "turbo run build --filter=@stud/web...",
     "start:web": "pnpm --filter @stud/web start:prod"
   },

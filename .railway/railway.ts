@@ -22,6 +22,9 @@ export default defineRailway(() => {
     env: {
       NODE_ENV: "production",
       DATABASE_URL: db.env.DATABASE_URL,
+      // Prisma's schema also wants directUrl (for a pooled DATABASE_URL) —
+      // Railway's own Postgres isn't pooled, so both point at the same DB.
+      DIRECT_URL: db.env.DATABASE_URL,
       // A real session-signing secret, generated server-side — never a
       // value this script could compute or see.
       AUTH_SECRET: { generator: "secret(48)" },
