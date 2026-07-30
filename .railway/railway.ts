@@ -50,7 +50,16 @@ export default defineRailway(() => {
     env: {
       NODE_ENV: "production",
       NEXT_PUBLIC_API_URL: preserve(),
-      NEXT_PUBLIC_WEB_URL: preserve(),
+      // The origin used for canonicals, robots and the sitemap. A reference,
+      // not a literal, so Railway keeps it pointed at whatever domain
+      // actually serves this service — the hand-set NEXT_PUBLIC_WEB_URL it
+      // replaces went stale twice and silently advertised a dead host.
+      //
+      // It has to be a real service variable rather than reading
+      // RAILWAY_PUBLIC_DOMAIN directly in app code: that one is injected at
+      // runtime only, so statically prerendered pages baked their canonical
+      // as localhost. Declared variables are present at build time too.
+      SITE_URL: { value: "https://${{RAILWAY_PUBLIC_DOMAIN}}" },
     },
   });
 
