@@ -1,32 +1,51 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [".env", "packages/config/**"],
+  "globalDependencies": [
+    ".env",
+    "packages/config/**"
+  ],
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
     "DIRECT_URL",
     "AUTH_SECRET",
     "NEXT_PUBLIC_API_URL",
-    "NEXT_PUBLIC_WEB_URL"
+    "NEXT_PUBLIC_WEB_URL",
+    "SITE_URL",
+    "RAILWAY_PUBLIC_DOMAIN"
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
     },
     "clean": {
       "cache": false

@@ -50,14 +50,9 @@ export default defineRailway(() => {
     env: {
       NODE_ENV: "production",
       NEXT_PUBLIC_API_URL: preserve(),
-      // Build-time origin for canonicals on statically prerendered pages.
-      // Must be a LITERAL: a reference like "https://${{RAILWAY_PUBLIC_DOMAIN}}"
-      // resolves to nothing during a build, because that variable is injected
-      // at runtime only — which left every static canonical falling through to
-      // localhost. Anything rendered per request (robots, sitemap, dynamic
-      // pages) reads RAILWAY_PUBLIC_DOMAIN first and ignores this, so a domain
-      // change self-corrects there without a rebuild; only static pages need
-      // this value refreshed, and only on the next deploy.
+      // Optional override for a custom domain. Normally unused: app code
+      // reads RAILWAY_PUBLIC_DOMAIN first, which Railway maintains and which
+      // is present at build time as well as at runtime.
       SITE_URL: preserve(),
     },
   });
