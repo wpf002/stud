@@ -14,6 +14,7 @@ import {
 } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 import { AVAILABILITY_LABEL, loadKennelPage } from '@/lib/marketplace';
+import { siteUrl } from '@/lib/site-url';
 
 export async function generateMetadata({
   params,
@@ -77,7 +78,7 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
 
   const { kennel, dogs, listings, stats } = data;
   const reviewData = await loadReviews(kennel.id);
-  const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+  const site = siteUrl();
 
   return (
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">

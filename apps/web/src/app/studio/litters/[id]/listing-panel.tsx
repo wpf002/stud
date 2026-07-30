@@ -54,7 +54,6 @@ export function ListingPanel({
   const [saved, setSaved] = React.useState(false);
   const [availability, setAvailability] = React.useState(listing?.availability ?? 'NOT_LISTED');
 
-  const webUrl = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
   const isLive = Boolean(listing?.publishedAt) && listing?.availability !== 'NOT_LISTED';
 
   // The earliest a go-home date may be. Eight weeks, and the API refuses
@@ -132,7 +131,7 @@ export function ListingPanel({
             </div>
             {listing?.slug && isLive && (
               <Button variant="secondary" size="sm" asChild>
-                <a href={`${webUrl}/puppies/${listing.slug}`} target="_blank" rel="noreferrer">
+                <a href={`/puppies/${listing.slug}`} target="_blank" rel="noreferrer">
                   <Eye /> View Public Page <ExternalLink />
                 </a>
               </Button>

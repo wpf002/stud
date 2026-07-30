@@ -27,7 +27,13 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000',
-    NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000',
+    // NEXT_PUBLIC_WEB_URL is deliberately absent. Listing it here would pin
+    // this file's localhost fallback into the bundle whenever the variable
+    // is unset — which is the production case, since the site's origin now
+    // comes from RAILWAY_PUBLIC_DOMAIN. Note that omitting it does NOT make
+    // it a runtime read: Next inlines every NEXT_PUBLIC_* reference at build
+    // time regardless. That is precisely why lib/site-url.ts resolves the
+    // origin from bare (non-NEXT_PUBLIC_) variables instead.
   },
   /**
    * The browser only ever talks to this app's own origin for `/v1/*` — this

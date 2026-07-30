@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { TooltipProvider } from '@stud/ui';
 import { fontVars } from '@/lib/fonts';
 import './globals.css';
+import { siteUrl } from '@/lib/site-url';
 
 /**
  * The root shell — html, fonts, providers, nothing else.
@@ -12,7 +13,7 @@ import './globals.css';
  * the split has to happen here.
  */
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: 'Stud — verified breeding, from sire to sold',
     template: '%s · Stud',

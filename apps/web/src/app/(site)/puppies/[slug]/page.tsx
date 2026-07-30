@@ -13,6 +13,7 @@ import {
   type LitterPage,
   type PublicParent,
 } from '@/lib/marketplace';
+import { siteUrl } from '@/lib/site-url';
 
 /** Health results a buyer should expect to see on a parent, present or not. */
 const EXPECTED_CLAIMS = ['HIP', 'ELBOW', 'EYE_CAER', 'CARDIAC', 'THYROID'];
@@ -552,7 +553,7 @@ function ParentCard({ dog, role }: { dog: PublicParent; role: 'Sire' | 'Dam' }) 
 function JsonLd({ data }: { data: LitterPage }) {
   const { listing, sire, dam, kennel, puppies, coi } = data;
   const available = puppies.filter((p) => p.status === 'AVAILABLE');
-  const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+  const site = siteUrl();
 
   const healthProps = [sire, dam].flatMap((parent) =>
     parent.verifiedClaims

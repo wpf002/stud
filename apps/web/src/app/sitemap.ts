@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { GUIDES } from '@/lib/guides';
 import { loadPublicIndex } from '@/lib/marketplace';
+import { siteUrl } from '@/lib/site-url';
 
 /**
  * The sitemap.
@@ -19,7 +20,7 @@ import { loadPublicIndex } from '@/lib/marketplace';
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+  const site = siteUrl();
   const index = await loadPublicIndex();
 
   const staticRoutes: MetadataRoute.Sitemap = [

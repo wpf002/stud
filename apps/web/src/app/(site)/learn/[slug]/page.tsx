@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { GUIDES, GUIDES_BY_SLUG } from '@/lib/guides';
+import { siteUrl } from '@/lib/site-url';
 
 /** Static: the guides are code, so the pages can be fully prerendered. */
 export function generateStaticParams() {
@@ -36,7 +37,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const guide = GUIDES_BY_SLUG.get(slug);
   if (!guide) notFound();
 
-  const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+  const site = siteUrl();
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-10 lg:px-8">

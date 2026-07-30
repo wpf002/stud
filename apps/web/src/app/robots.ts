@@ -1,7 +1,16 @@
 import type { MetadataRoute } from 'next';
+import { siteUrl } from '@/lib/site-url';
+
+/**
+ * Rendered per request so the origin is read at runtime. Prerendered, it
+ * would freeze whatever the domain was at build time — the drift this file
+ * was a victim of. It is a handful of bytes; rendering it per hit costs
+ * nothing.
+ */
+export const dynamic = 'force-dynamic';
 
 export default function robots(): MetadataRoute.Robots {
-  const site = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+  const site = siteUrl();
   return {
     rules: [
       {
