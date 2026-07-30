@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function DashboardPage() {
   const data = await serverApiSafe<DashboardResponse>('/dashboard');
-  const kennelName = data?.kennels[0]?.name ?? 'Your kennel';
+  const kennelName = data?.kennels[0]?.name ?? 'Your Kennel';
 
   if (!data) {
     return (

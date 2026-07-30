@@ -13,15 +13,22 @@ export class ApiError extends Error {
 }
 
 /**
- * Thin fetch wrapper. Cookies are always sent — the API is the session
- * authority, the Next.js layer holds no auth state of its own.
+ * Thin fetch wrapper, for client components only. Cookies are always sent —
+ * the API is the session authority, the Next.js layer holds no auth state of
+ * its own.
+ *
+ * Calls a same-origin relative path, proxied to the API by the rewrite in
+ * next.config.mjs, rather than API_URL directly. Web and api are separate
+ * hosts in production, so a direct cross-origin call would have the session
+ * cookie scoped to the API's host only — invisible to every server-rendered
+ * page afterward, which is exactly the bug this fixes.
  */
 export async function api<T = unknown>(
   path: string,
   init: RequestInit & { json?: unknown } = {},
 ): Promise<T> {
   const { json, headers, ...rest } = init;
-  const res = await fetch(`${API_URL}/v1${path}`, {
+  const res = await fetch(`/v1${path}`, {
     ...rest,
     credentials: 'include',
     headers: {

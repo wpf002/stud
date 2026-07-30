@@ -29,6 +29,26 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000',
     NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000',
   },
+  /**
+   * The browser only ever talks to this app's own origin for `/v1/*` — this
+   * proxies it through to the API server-side.
+   *
+   * Deployed, web and api are separate hosts (different services, each on
+   * its own *.up.railway.app subdomain — different registrable "sites" as
+   * far as a browser is concerned). A cookie the API sets is scoped to the
+   * API's own host, so a direct cross-origin browser call is the ONLY way
+   * it's ever visible to the browser at all — and a server-rendered page's
+   * own request to the API never carries it either, since that cookie was
+   * never sent to THIS origin in the first place. Routing browser calls
+   * through this same-origin path means the Set-Cookie the browser actually
+   * sees comes from this host, so it rides along on every later page load
+   * here too — which is what server components forwarding the incoming
+   * cookie jar (serverApi, my/applications) depend on.
+   */
+  async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+    return [{ source: '/v1/:path*', destination: `${apiUrl}/v1/:path*` }];
+  },
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },

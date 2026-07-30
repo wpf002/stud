@@ -62,7 +62,7 @@ const MOBILE_TABS: NavItem[] = [
 
 export function StudioShell({
   children,
-  kennelName = 'Your kennel',
+  kennelName = 'Your Kennel',
   userName,
   userAvatar,
 }: {
