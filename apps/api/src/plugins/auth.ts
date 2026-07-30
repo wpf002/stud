@@ -126,7 +126,14 @@ export default fp(async function authPlugin(app: FastifyInstance) {
     reply.setCookie(SESSION_COOKIE, token, {
       path: '/',
       httpOnly: true,
-      sameSite: 'lax',
+      // web and api are on different *.up.railway.app hosts in production —
+      // separate registrable sites as far as the browser is concerned — so a
+      // Lax cookie set by api never comes back on the cross-site fetch calls
+      // web makes to it. None (with Secure, required alongside it) is the
+      // only setting that survives that. Locally, web and api share the
+      // "localhost" site regardless of port, so Lax already works there and
+      // None would need Secure — which local http doesn't have.
+      sameSite: isProd ? 'none' : 'lax',
       secure: isProd,
       domain: env.COOKIE_DOMAIN,
       expires: expiresAt,
