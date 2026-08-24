@@ -4,13 +4,28 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Badge, Card, EmptyState, formatCoi, formatMoney, titleCase } from '@stud/ui';
 import { API_URL } from '@/lib/api';
+import { Pagination, pageFrom } from '@/components/pagination';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Stud dogs with verified health testing',
-  description:
-    'Find a stud whose hips, elbows, eyes and DNA panel were checked against the issuing registry — not typed into a listing. Filter by verified results, fee and distance.',
-  alternates: { canonical: '/studs' },
-};
+const DESCRIPTION =
+  'Find a stud whose hips, elbows, eyes and DNA panel were checked against the issuing registry — not typed into a listing. Filter by verified results, fee and distance.';
+
+/** Paginated pages canonicalise to themselves — see the note on /puppies. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const page = pageFrom((await searchParams).page);
+  return {
+    title: page > 1 ? `Stud dogs with verified health testing — page ${page}` : 'Stud dogs with verified health testing',
+    description: DESCRIPTION,
+    alternates: { canonical: page > 1 ? `/studs?page=${page}` : '/studs' },
+  };
+}
+
+/** Matches the stud API's own default page size. */
+const PAGE_SIZE = 24;
 
 /**
  * The public stud directory.
@@ -63,8 +78,22 @@ export default async function StudsPage({
     const v = sp[key];
     if (typeof v === 'string' && v) qs.set(key, v);
   }
+  const filterParams = Object.fromEntries(qs);
+  const page = pageFrom(sp.page);
+  qs.set('take', String(PAGE_SIZE));
+  qs.set('skip', String((page - 1) * PAGE_SIZE));
+
   const data = await loadStuds(qs.toString());
   const studs = data?.studs ?? [];
+  const total = data?.total ?? 0;
+
+  // See /puppies: a page past the end redirects rather than rendering empty.
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (total > 0 && page > lastPage) {
+    const q = new URLSearchParams(filterParams);
+    q.set('page', String(lastPage));
+    redirect(`/studs?${q.toString()}`);
+  }
 
   return (
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
@@ -167,6 +196,14 @@ export default async function StudsPage({
           })}
         </ul>
       )}
+
+      <Pagination
+        basePath="/studs"
+        params={filterParams}
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+      />
     </div>
   );
 }

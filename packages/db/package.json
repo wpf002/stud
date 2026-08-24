@@ -24,7 +24,8 @@
     "reset": "dotenv -e ../../.env -- prisma migrate reset --force",
     "typecheck": "tsc --noEmit",
     "build": "prisma generate",
-    "migrate:deploy:ci": "prisma migrate deploy"
+    "migrate:deploy:ci": "prisma migrate deploy",
+    "import:test-data": "tsx src/import-test-data.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

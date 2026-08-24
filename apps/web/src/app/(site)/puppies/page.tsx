@@ -10,14 +10,33 @@ import {
   formatMoney,
 } from '@stud/ui';
 import { LitterFilters } from '@/components/litter-filters';
+import { Pagination, pageFrom } from '@/components/pagination';
 import { AVAILABILITY_LABEL, browseLitters, type BrowseRow } from '@/lib/marketplace';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Puppies from verified breeders',
-  description:
-    'Browse litters where the parents’ health testing, titles and pedigree have been checked against the issuing source — not typed in by the seller. Filter by verified hips, elbows, eyes and heart.',
-  alternates: { canonical: '/puppies' },
-};
+const DESCRIPTION =
+  'Browse litters where the parents’ health testing, titles and pedigree have been checked against the issuing source — not typed in by the seller. Filter by verified hips, elbows, eyes and heart.';
+
+/**
+ * Page 2 canonicalises to itself, not to /puppies. Pointing every page at the
+ * first one tells a crawler the rest are duplicates, which is how paginated
+ * results drop out of an index.
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const page = pageFrom((await searchParams).page);
+  return {
+    title: page > 1 ? `Puppies from verified breeders — page ${page}` : 'Puppies from verified breeders',
+    description: DESCRIPTION,
+    alternates: { canonical: page > 1 ? `/puppies?page=${page}` : '/puppies' },
+  };
+}
+
+/** Matches the browse API's own default page size. */
+const PAGE_SIZE = 24;
 
 /** Filters the API understands, passed straight through. */
 const PASSTHROUGH = [
@@ -37,8 +56,23 @@ export default async function LittersPage({
     if (typeof v === 'string' && v !== '') qs.set(key, v);
   }
 
+  const filterParams = Object.fromEntries(qs);
+  const page = pageFrom(sp.page);
+  qs.set('take', String(PAGE_SIZE));
+  qs.set('skip', String((page - 1) * PAGE_SIZE));
+
   const data = await browseLitters(qs.toString());
   const listings = data?.listings ?? [];
+  const total = data?.total ?? 0;
+
+  // A page past the end is a dead URL, not an empty result. Send it to the
+  // last real page rather than rendering "Page 99 of 4" with nothing on it.
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (total > 0 && page > lastPage) {
+    const q = new URLSearchParams(filterParams);
+    q.set('page', String(lastPage));
+    redirect(`/puppies?${q.toString()}`);
+  }
 
   return (
     <div className="mx-auto max-w-content px-5 py-10 lg:px-8">
@@ -57,7 +91,7 @@ export default async function LittersPage({
         <div>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm text-ink-500">
-              {listings.length} of {data?.total ?? 0} published {(data?.total ?? 0) === 1 ? 'litter' : 'litters'}
+              {listings.length} of {total} published {total === 1 ? 'litter' : 'litters'}
             </p>
           </div>
 
@@ -83,6 +117,14 @@ export default async function LittersPage({
               ))}
             </ul>
           )}
+
+          <Pagination
+            basePath="/puppies"
+            params={filterParams}
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+          />
         </div>
       </div>
     </div>

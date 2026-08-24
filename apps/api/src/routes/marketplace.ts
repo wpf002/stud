@@ -1,6 +1,6 @@
 import { evaluatePairing } from '@stud/pedigree';
 import { assessPairingRisk, summariseReviews, type GeneticClaimInput } from '@stud/verify';
-import type { PrismaClient, VerificationState } from '@stud/db';
+import type { Prisma, PrismaClient, VerificationState } from '@stud/db';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { audit } from '../lib/audit.js';
@@ -93,8 +93,12 @@ export default async function marketplaceRoutes(app: FastifyInstance) {
         ? boundingBox(q.lat, q.lon, q.withinMiles)
         : null;
 
-    const listings = await app.db.litterListing.findMany({
-      where: {
+    // One where clause, used for both the page of results and the count.
+    // These were separate expressions and the count ignored every filter,
+    // so a filtered view reported the unfiltered total. That was a cosmetic
+    // label until pagination started dividing by it — then it offered pages
+    // of results that do not exist.
+    const where: Prisma.LitterListingWhereInput = {
         publishedAt: { not: null },
         availability: q.availability ? q.availability : { in: [...PUBLIC_AVAILABILITY] },
         ...(q.breed ? { cachedBreed: { equals: q.breed, mode: 'insensitive' } } : {}),
@@ -129,7 +133,10 @@ export default async function marketplaceRoutes(app: FastifyInstance) {
               },
             }
           : {}),
-      },
+    };
+
+    const listings = await app.db.litterListing.findMany({
+      where,
       include: {
         litter: {
           select: {
@@ -178,9 +185,7 @@ export default async function marketplaceRoutes(app: FastifyInstance) {
     }));
 
     const sorted = sortListings(withDistance, q.sort);
-    const total = await app.db.litterListing.count({
-      where: { publishedAt: { not: null }, availability: { in: [...PUBLIC_AVAILABILITY] } },
-    });
+    const total = await app.db.litterListing.count({ where });
 
     return {
       listings: sorted,
