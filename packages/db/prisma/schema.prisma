@@ -82,6 +82,7 @@ model User {
   documentsReviewed  DocumentSubmission[] @relation("DocumentReviewer")
   documentsSubmitted DocumentSubmission[] @relation("DocumentSubmitter")
   studInquiries      StudInquiry[]
+  studBookings       StudBooking[]  @relation("BookingRequester")
   litterInquiries    LitterInquiry[]
   puppyApplications  PuppyApplication[]
   transfersFrom      OwnershipTransfer[]  @relation("TransferFrom")
@@ -304,6 +305,7 @@ model Dog {
   // Phase 4 — stud directory
   studListing       StudListing?
   inquiriesAsDam    StudInquiry[]  @relation("InquiryDam")
+  bookingsAsDam     StudBooking[]  @relation("BookingDam")
   contractsAsSire   Contract[]     @relation("ContractSire")
   contractsAsDam    Contract[]     @relation("ContractDam")
   savedPairingsSire SavedPairing[] @relation("SavedPairingSire")
@@ -1345,6 +1347,12 @@ model StudListing {
   requiresBrucellosis   Boolean @default(true)
 
   /// Denormalised for search. Recomputed, never authored.
+  /// The furthest future end date across accepted bookings, or null when the
+  /// stud is open. DERIVED from StudBooking by recomputeBookedThrough() — never
+  /// edited by hand, because an availability flag someone has to remember to
+  /// update is one forgotten edit away from advertising a stud that is taken.
+  bookedThrough DateTime?
+
   cachedVerifiedCount Int    @default(0)
   cachedCoi           Float?
   cachedDensity       Float  @default(0)
@@ -1355,10 +1363,73 @@ model StudListing {
 
   dog       Dog           @relation(fields: [dogId], references: [id], onDelete: Cascade)
   inquiries StudInquiry[]
+  bookings  StudBooking[]
 
   @@index([availability, studFeeCents])
   @@index([publishedAt])
   @@map("stud_listings")
+}
+
+/// A booked mating window on a stud.
+///
+/// Separate from StudInquiry on purpose. An inquiry is a question and may be
+/// exploratory — its dam is optional. A booking is a commitment with dates and
+/// money attached, and the two have different lifecycles; folding them together
+/// would mean every exploratory message carried half a payment record.
+model StudBooking {
+  id            String  @id @default(cuid())
+  studListingId String
+  /// The inquiry this grew out of, when it grew out of one.
+  inquiryId     String? @unique
+
+  /// Required here, unlike on an inquiry: you cannot book a mating without
+  /// naming the female it is for.
+  damId             String
+  requestedByUserId String
+  fromKennelId      String?
+
+  /// The season window, not a slot. The fertile days inside it are found by
+  /// progesterone, so the exact date is settled within the window, not booked.
+  windowStart DateTime @db.Date
+  windowEnd   DateTime @db.Date
+
+  status StudBookingStatus @default(REQUESTED)
+  method BreedingMethod?
+  message String?           @db.Text
+
+  /// Charged on acceptance, not on request — a stud owner who has not agreed
+  /// has nothing to be paid for.
+  depositCents    Int?
+  depositPaidAt   DateTime?
+  depositChargeId String?
+
+  respondedAt   DateTime?
+  declineReason String?   @db.Text
+  cancelledAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studListing StudListing  @relation(fields: [studListingId], references: [id], onDelete: Cascade)
+  inquiry     StudInquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  dam         Dog          @relation("BookingDam", fields: [damId], references: [id], onDelete: Cascade)
+  requestedBy User         @relation("BookingRequester", fields: [requestedByUserId], references: [id], onDelete: Cascade)
+
+  /// Accepted windows are what block a listing, so they are the ones queried.
+  @@index([studListingId, status, windowStart])
+  @@index([requestedByUserId, createdAt])
+  @@map("stud_bookings")
+}
+
+enum StudBookingStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+  /// Pulled by the dam owner before a decision.
+  WITHDRAWN
+  /// Called off by either side after acceptance.
+  CANCELLED
+  COMPLETED
 }
 
 enum InquiryStatus {
@@ -1404,8 +1475,9 @@ model StudInquiry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  studListing StudListing @relation(fields: [studListingId], references: [id], onDelete: Cascade)
-  dam         Dog?        @relation("InquiryDam", fields: [damId], references: [id], onDelete: SetNull)
+  studListing StudListing  @relation(fields: [studListingId], references: [id], onDelete: Cascade)
+  dam         Dog?         @relation("InquiryDam", fields: [damId], references: [id], onDelete: SetNull)
+  booking     StudBooking?
   fromUser    User        @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
 
   @@index([studListingId, status, createdAt])

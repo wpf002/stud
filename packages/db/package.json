@@ -12,7 +12,8 @@
     "./verification": "./src/verification-service.ts",
     "./pedigree-loader": "./src/pedigree-loader.ts",
     "./listings": "./src/listing-service.ts",
-    "./transfers": "./src/transfer-service.ts"
+    "./transfers": "./src/transfer-service.ts",
+    "./bookings": "./src/booking-service.ts"
   },
   "scripts": {
     "generate": "prisma generate",
