@@ -33,6 +33,18 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
+  // ── Node scripts (.mjs) ──────────────────────────────────────────────────
+  // Plain ESM run directly by node, so they need Node globals; the block below
+  // only covers .ts/.tsx.
+  {
+    files: ['scripts/**/*.mjs', '**/*.config.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.es2022 },
+    },
+  },
+
   // ── Everything TypeScript ────────────────────────────────────────────────
   {
     files: ['**/*.{ts,tsx}'],

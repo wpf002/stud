@@ -23,6 +23,8 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: '**.amazonaws.com' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      // Breed photos in the seeded dataset — see docs/photo-credits.md.
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
     ],
   },
   env: {

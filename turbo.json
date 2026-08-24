@@ -12,7 +12,11 @@
     "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_WEB_URL",
     "SITE_URL",
-    "RAILWAY_PUBLIC_DOMAIN"
+    "RAILWAY_PUBLIC_DOMAIN",
+    "WEB_PORT",
+    "PORT",
+    "HOST",
+    "CORS_ORIGINS"
   ],
   "tasks": {
     "build": {

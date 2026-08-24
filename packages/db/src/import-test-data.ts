@@ -34,7 +34,17 @@ import { loadRootEnv } from './env.js';
 loadRootEnv();
 const db = new PrismaClient();
 
-const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'test-data.json');
+const HERE = dirname(fileURLToPath(import.meta.url));
+const FIXTURE = join(HERE, '..', 'fixtures', 'test-data.json');
+const PHOTOS = join(HERE, '..', 'fixtures', 'breed-photos.json');
+
+interface BreedPhoto {
+  wiki: string;
+  url: string;
+  file: string;
+  license: string;
+  artist: string;
+}
 
 interface BreederRow {
   breederId: string; businessName: string; contactName: string; city: string; state: string;
@@ -126,6 +136,19 @@ const TITLE_CLAIM = 'TITLE_AWARD';
 
 async function main() {
   const fx = JSON.parse(readFileSync(FIXTURE, 'utf8')) as Fixture;
+  const photos = JSON.parse(readFileSync(PHOTOS, 'utf8')) as Record<string, BreedPhoto>;
+
+  /**
+   * Attribution travels with the image. Most of these are CC BY-SA, which
+   * requires credit wherever the photo is shown — storing it on the record
+   * rather than in a doc nobody opens is the only version that survives.
+   */
+  const creditFor = (breed: string) => {
+    const p = photos[breed];
+    if (!p) return null;
+    const who = p.artist || 'Unknown';
+    return `${breed}. Photo: ${who}${p.license ? ` (${p.license})` : ''}, via Wikimedia Commons.`;
+  };
   console.info('→ importing test dataset');
 
   // ── Kennels ───────────────────────────────────────────────────────────────
@@ -192,8 +215,19 @@ async function main() {
       select: { id: true },
     });
     dogIdBySourceId.set(d.dogId, dog.id);
+
+    const photo = photos[d.breed];
+    if (photo) {
+      const existing = await db.dogMedia.findFirst({
+        where: { dogId: dog.id, isPrimary: true },
+        select: { id: true },
+      });
+      const data = { url: photo.url, caption: creditFor(d.breed) };
+      if (existing) await db.dogMedia.update({ where: { id: existing.id }, data });
+      else await db.dogMedia.create({ data: { dogId: dog.id, isPrimary: true, position: 0, ...data } });
+    }
   }
-  console.info(`  ✓ ${dogIdBySourceId.size} dogs`);
+  console.info(`  ✓ ${dogIdBySourceId.size} dogs (+ breed photos)`);
 
   // ── Titles ────────────────────────────────────────────────────────────────
   // Already filtered to the breed's own discipline by the converter.
@@ -316,7 +350,10 @@ async function main() {
 
     await db.litterListing.upsert({
       where: { litterId: litter.id },
-      update: { availability: AVAILABILITY[l.status] ?? 'NOT_LISTED' },
+      update: {
+        availability: AVAILABILITY[l.status] ?? 'NOT_LISTED',
+        photoUrls: photos[l.breed] ? [photos[l.breed]!.url] : [],
+      },
       create: {
         litterId: litter.id,
         slug: slugify(`${l.breed}-${l.litterId}`),
@@ -325,6 +362,10 @@ async function main() {
         priceCentsTo: cents(l.pricePerPuppy),
         goHomeFrom,
         headline: `${l.breed} puppies`,
+        photoUrls: photos[l.breed] ? [photos[l.breed]!.url] : [],
+        // The listing has no field for a photo credit, so it rides in the
+        // description, which is where a buyer actually sees the litter.
+        description: creditFor(l.breed),
         cachedBreed: l.breed,
         cachedAvailablePups: l.puppiesAvailable ?? 0,
         cachedTotalPups: l.puppiesTotal ?? 0,
