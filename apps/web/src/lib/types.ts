@@ -1012,3 +1012,19 @@ export interface PlacedDogsResponse {
     guaranteeRelevant: number;
   };
 }
+
+/** A stud booking as the studio screens read it. */
+export interface StudBookingDto {
+  id: string;
+  status: 'REQUESTED' | 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN' | 'CANCELLED' | 'COMPLETED';
+  windowStart: string;
+  windowEnd: string;
+  method: string | null;
+  message: string | null;
+  depositCents: number | null;
+  depositPaidAt: string | null;
+  declineReason: string | null;
+  dam: { id?: string; slug: string; callName: string; breed?: string };
+  requestedBy?: { id: string; name: string | null; displayName: string | null; email: string };
+  studListing: { id?: string; studFeeCents: number | null; dog: { slug: string; callName: string; breed?: string } };
+}

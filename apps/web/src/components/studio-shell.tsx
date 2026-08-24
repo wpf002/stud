@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  CalendarCheck,
   CalendarHeart,
   Dog,
   FileSignature,
@@ -38,6 +39,7 @@ const PRIMARY: NavItem[] = [
   { href: '/studio', label: 'Dashboard', icon: Home },
   { href: '/studio/dogs', label: 'Dogs', icon: Dog },
   { href: '/studio/breedings', label: 'Breedings', icon: CalendarHeart },
+  { href: '/studio/bookings', label: 'Bookings', icon: CalendarCheck },
   { href: '/studio/litters', label: 'Litters', icon: PawPrint },
   { href: '/studio/buyers', label: 'Buyers', icon: Users },
   { href: '/studio/placed', label: 'Dogs You Bred', icon: Heart },
