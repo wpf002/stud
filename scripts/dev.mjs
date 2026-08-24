@@ -21,7 +21,7 @@
  */
 import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -72,6 +72,13 @@ const webUrl = `http://localhost:${webPort}`;
 const apiUrl = `http://localhost:${apiPort}`;
 console.info(`\n  web  ${webUrl}\n  api  ${apiUrl}\n`);
 
+/**
+ * Record what was started and where. Without this the only way to stop the
+ * stack is a pattern kill, and `pkill -f "next dev"` is not repo-specific — it
+ * will happily take out another project's dev server that happens to match.
+ */
+const STATE = join(ROOT, '.dev-state.json');
+
 const child = spawn('pnpm', ['exec', 'turbo', 'run', 'dev', '--parallel'], {
   cwd: ROOT,
   stdio: 'inherit',
@@ -87,7 +94,25 @@ const child = spawn('pnpm', ['exec', 'turbo', 'run', 'dev', '--parallel'], {
   },
 });
 
-const stop = (sig) => () => child.kill(sig);
+writeFileSync(
+  STATE,
+  JSON.stringify({ pid: process.pid, webPort, apiPort, webUrl, apiUrl, startedAt: new Date().toISOString() }, null, 2),
+);
+const clearState = () => {
+  try {
+    rmSync(STATE);
+  } catch {
+    /* already gone */
+  }
+};
+
+const stop = (sig) => () => {
+  clearState();
+  child.kill(sig);
+};
 process.on('SIGINT', stop('SIGINT'));
 process.on('SIGTERM', stop('SIGTERM'));
-child.on('exit', (code) => process.exit(code ?? 0));
+child.on('exit', (code) => {
+  clearState();
+  process.exit(code ?? 0);
+});
