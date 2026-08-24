@@ -32,6 +32,23 @@ Per source, not in aggregate. Turning on OFA says nothing about AKC.
 6. **A kill switch that works.** `VERIFY_LIVE_SOURCES=false` must stop all
    outbound traffic within one deploy. Test it before going live, not after.
 
+## Breed health requirements (authored, not fetched)
+
+`packages/verify/src/breed-requirements.ts` says which tests each breed is
+expected to have, and drives the "not submitted" list on every profile. It
+replaced a flat five-test list shared by all breeds, which asked a Yorkshire
+Terrier for elbows and never asked a Cavalier about its heart.
+
+**It is authored from general knowledge, not scraped from OFA.** Live access to
+OFA/CHIC is gated by the checklist above and none of those boxes are ticked, so
+taking the lists from the source is not available yet. Every entry therefore
+carries `reviewed: false` and a link to that breed's own CHIC page, and the UI
+words the list as tests that are commonly expected rather than citing CHIC.
+
+Before this is relied on in anger, someone should walk the table against OFA's
+published CHIC requirements and flip `reviewed` per breed. A wrong entry here
+does not fail loudly — it quietly tells a buyer the wrong thing is missing.
+
 ## Source register
 
 | Source | Claims | Keyed on | Freshness | Live? | ToU reviewed |

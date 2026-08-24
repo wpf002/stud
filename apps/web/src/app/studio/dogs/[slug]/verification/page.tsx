@@ -32,7 +32,7 @@ export default async function DogVerificationPage({
           </Button>
         }
       >
-        <VerifyClient initial={data} dogId={data.dog.id} />
+        <VerifyClient initial={data} dogId={data.dog.id} breed={data.dog.breed} />
       </StudioPage>
     </StudioShell>
   );

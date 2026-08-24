@@ -17,7 +17,7 @@ const nextConfig = {
    */
   distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   reactStrictMode: true,
-  transpilePackages: ['@stud/ui', '@stud/pedigree', '@stud/db'],
+  transpilePackages: ['@stud/ui', '@stud/pedigree', '@stud/db', '@stud/verify'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },

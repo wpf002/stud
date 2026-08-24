@@ -135,6 +135,9 @@ importers:
       '@stud/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@stud/verify':
+        specifier: workspace:*
+        version: link:../../packages/verify
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1

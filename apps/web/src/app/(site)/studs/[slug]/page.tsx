@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, ClaimPanel, VerificationDensity, formatCoi, formatDate, formatDateOnly, formatDogAge, formatMoney, titleCase } from '@stud/ui';
+import { expectedClaims } from '@stud/verify';
 import { API_URL } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -96,7 +97,7 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
               <ClaimPanel
                 verified={dog.verifiedClaims}
                 reported={dog.reportedClaims}
-                expected={['HIP', 'ELBOW', 'EYE_CAER', 'CARDIAC', 'THYROID']}
+                expected={expectedClaims(dog.breed)}
               />
             </CardContent>
           </Card>

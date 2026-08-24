@@ -25,11 +25,11 @@ import {
   VerificationDensity,
   formatDateTime,
 } from '@stud/ui';
+import { expectedClaims } from '@stud/verify';
 import { api, ApiError } from '@/lib/api';
 import type { VerificationResponse } from '@/lib/types';
 
 /** Claims we expect on a well-tested sporting dog, so absence is visible. */
-const EXPECTED_BY_DEFAULT = ['HIP', 'ELBOW', 'EYE_CAER', 'CARDIAC', 'THYROID'];
 
 const REPORTABLE = [
   { value: 'HIP', label: 'Hips' },
@@ -44,7 +44,16 @@ const REPORTABLE = [
   { value: 'TITLE_HUNT_TEST', label: 'Hunt Test Title' },
 ];
 
-export function VerifyClient({ initial, dogId }: { initial: VerificationResponse; dogId: string }) {
+export function VerifyClient({
+  initial,
+  dogId,
+  breed,
+}: {
+  initial: VerificationResponse;
+  dogId: string;
+  /** Drives which tests show as expected — they differ by breed. */
+  breed: string;
+}) {
   const router = useRouter();
   const [data, setData] = React.useState(initial);
   const [busy, setBusy] = React.useState(false);
@@ -102,7 +111,7 @@ export function VerifyClient({ initial, dogId }: { initial: VerificationResponse
             <ClaimPanel
               verified={data.verified}
               reported={data.reported}
-              expected={EXPECTED_BY_DEFAULT}
+              expected={expectedClaims(breed)}
             />
           </CardContent>
         </Card>

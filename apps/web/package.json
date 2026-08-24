@@ -18,7 +18,8 @@
     "react-dom": "^19.0.0",
     "zod": "^3.24.1",
     "dotenv": "^16.4.7",
-    "@stud/pedigree": "workspace:*"
+    "@stud/pedigree": "workspace:*",
+    "@stud/verify": "workspace:*"
   },
   "devDependencies": {
     "@stud/config": "workspace:*",

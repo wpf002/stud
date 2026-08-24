@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Alert, Badge, Button, Card, CardContent, CardHeader, CardTitle, ClaimPanel, VerificationDensity, cn, formatCoi, formatDate, formatDogAge, formatMoney, titleCase } from '@stud/ui';
 import { RELATIONSHIP_COPY } from '@stud/pedigree';
+import { expectedClaims } from '@stud/verify';
 import { FunnelBeacon } from '@/components/funnel-beacon';
 import { InquiryForm } from '@/components/inquiry-form';
 import {
@@ -16,7 +17,6 @@ import {
 import { siteUrl } from '@/lib/site-url';
 
 /** Health results a buyer should expect to see on a parent, present or not. */
-const EXPECTED_CLAIMS = ['HIP', 'ELBOW', 'EYE_CAER', 'CARDIAC', 'THYROID'];
 
 export async function generateMetadata({
   params,
@@ -519,7 +519,7 @@ function ParentCard({ dog, role }: { dog: PublicParent; role: 'Sire' | 'Dam' }) 
         <ClaimPanel
           verified={dog.verifiedClaims}
           reported={dog.reportedClaims}
-          expected={EXPECTED_CLAIMS}
+          expected={expectedClaims(dog.breed)}
         />
         {(dog.sire || dog.damRel) && (
           <p className="mt-4 border-t border-bone-200 pt-3 text-2xs text-ink-400">

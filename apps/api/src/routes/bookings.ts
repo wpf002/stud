@@ -7,6 +7,7 @@
  * bookings after every change, which is what keeps the public listing honest.
  */
 import { createProvider } from '@stud/payments';
+import { assessBrucellosis } from '@stud/verify';
 import {
   BookingError,
   acceptBooking,
@@ -129,7 +130,13 @@ export default async function bookingRoutes(app: FastifyInstance) {
 
   app.post('/studs/bookings/:id/accept', async (req) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
-    const body = z.object({ depositCents: z.coerce.number().int().min(0).optional() }).parse(req.body ?? {});
+    const body = z
+      .object({
+        depositCents: z.coerce.number().int().min(0).optional(),
+        /** Accept anyway, with the brucellosis evidence as it stands. */
+        overrideBrucellosis: z.coerce.boolean().optional(),
+      })
+      .parse(req.body ?? {});
     await assertStudOwner(req, id);
 
     const booking = await app.db.studBooking.findUnique({
@@ -137,10 +144,41 @@ export default async function bookingRoutes(app: FastifyInstance) {
       select: {
         id: true,
         requestedByUserId: true,
-        studListing: { select: { studFeeCents: true, dog: { select: { callName: true } } } },
+        windowStart: true,
+        damId: true,
+        studListing: {
+          select: { studFeeCents: true, dog: { select: { id: true, callName: true } } },
+        },
       },
     });
     if (!booking) throw notFound('Booking not found');
+
+    /**
+     * Brucellosis has to be current on BOTH sides within about 30 days of the
+     * mating. It is checked here rather than at request time because it is
+     * judged against the window being booked, and because a test taken between
+     * asking and answering should count. Overridable, deliberately: the stud
+     * owner may have a certificate we have not seen, and this is a warning
+     * about evidence, not a claim about the dog.
+     */
+    if (!body.overrideBrucellosis) {
+      const stale: string[] = [];
+      for (const [label, dogId] of [
+        ['the dam', booking.damId],
+        ['your stud', booking.studListing.dog.id],
+      ] as const) {
+        const claim = await app.db.verifiedClaim.findFirst({
+          where: { dogId, claimType: 'BRUCELLOSIS' },
+          orderBy: { testedAt: 'desc' },
+          select: { testedAt: true, outcome: true },
+        });
+        const verdict = assessBrucellosis(claim, booking.windowStart);
+        if (verdict.blocks) stale.push(`${label}: ${verdict.reason}`);
+      }
+      if (stale.length > 0) {
+        throw conflict(stale.join(' '), { code: 'BRUCELLOSIS', overridable: true });
+      }
+    }
 
     // A deposit is taken on acceptance, not on request — until the owner has
     // agreed there is nothing to pay for.

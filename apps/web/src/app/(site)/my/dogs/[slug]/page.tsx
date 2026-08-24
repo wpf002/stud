@@ -15,6 +15,7 @@ import { notFound } from 'next/navigation';
 import { Alert, Badge, Card, CardContent, CardHeader, CardTitle, ClaimPanel, EmptyState, Stat, VerificationDensity, cn, formatCoi, formatDate, formatDogAge, formatWeight, titleCase } from '@stud/ui';
 import { EventLogger } from '@/components/event-logger';
 import { ownerGet, type Obligation, type OwnedDogResponse, type ParentSummary } from '@/lib/owner';
+import { expectedClaims } from '@stud/verify';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const EXPECTED_CLAIMS = ['HIP', 'ELBOW', 'EYE_CAER', 'CARDIAC', 'THYROID'];
 
 export default async function OwnedDogPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -141,8 +141,8 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
                 The same records the breeder holds, checked against the bodies that issued them.
                 These do not change hands with the dog — they stay live.
               </p>
-              {dog.damRel && <ParentCard dog={dog.damRel} role="Dam" />}
-              {dog.sire && <ParentCard dog={dog.sire} role="Sire" />}
+              {dog.damRel && <ParentCard dog={dog.damRel} breed={dog.breed} role="Dam" />}
+              {dog.sire && <ParentCard dog={dog.sire} breed={dog.breed} role="Sire" />}
             </section>
           )}
 
@@ -162,7 +162,7 @@ export default async function OwnedDogPage({ params }: { params: Promise<{ slug:
                   <ClaimPanel
                     verified={dog.verifiedClaims}
                     reported={dog.reportedClaims}
-                    expected={EXPECTED_CLAIMS}
+                    expected={expectedClaims(dog.breed)}
                   />
                 )}
               </CardContent>
@@ -446,7 +446,7 @@ function ObligationCard({ obligation: o }: { obligation: Obligation }) {
   );
 }
 
-function ParentCard({ dog, role }: { dog: ParentSummary; role: 'Sire' | 'Dam' }) {
+function ParentCard({ dog, role, breed }: { dog: ParentSummary; role: 'Sire' | 'Dam'; breed: string }) {
   return (
     <Card>
       <CardHeader>
@@ -462,7 +462,7 @@ function ParentCard({ dog, role }: { dog: ParentSummary; role: 'Sire' | 'Dam' })
         <ClaimPanel
           verified={dog.verifiedClaims}
           reported={dog.reportedClaims}
-          expected={EXPECTED_CLAIMS}
+          expected={expectedClaims(breed)}
         />
       </CardContent>
     </Card>

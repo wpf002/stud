@@ -20,6 +20,8 @@ export * from './types.js';
 export * from './normalize.js';
 export * from './state-machine.js';
 export * from './pairing-risk.js';
+export * from './breed-requirements.js';
+export * from './brucellosis.js';
 export * from './engine.js';
 export * from './adapters/ofa.js';
 export * from './adapters/registry.js';
