@@ -2,7 +2,7 @@ import { MapPin, PawPrint, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, ClaimPanel, VerificationDensity, formatCoi, formatDate, formatDogAge, formatMoney, titleCase } from '@stud/ui';
+import { Card, CardContent, CardHeader, CardTitle, ClaimPanel, VerificationDensity, formatCoi, formatDate, formatDateOnly, formatDogAge, formatMoney, titleCase } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -21,7 +21,7 @@ interface StudProfile {
     damRel: { slug: string; callName: string; registeredName: string | null } | null;
   };
   listing: {
-    studFeeCents: number | null; availability: string; semenTypes: string[]; shipsSemen: boolean;
+    studFeeCents: number | null; availability: string; bookedThrough: string | null; semenTypes: string[]; shipsSemen: boolean;
     pickOfLitter: boolean; feeNotes: string | null; requirements: string | null;
     travelRadiusMiles: number | null; requiresHealthTesting: boolean;
     requiresContract: boolean; requiresBrucellosis: boolean;
@@ -181,7 +181,14 @@ export default async function StudProfilePage({ params }: { params: Promise<{ sl
                 {listing.feeNotes && <p className="mt-2 text-xs text-ink-500">{listing.feeNotes}</p>}
 
                 <dl className="mt-4 space-y-2 border-t border-bone-200 pt-3 text-sm">
-                  <Row label="Availability" value={titleCase(listing.availability)} />
+                  <Row
+                    label="Availability"
+                    value={
+                      listing.availability === 'BOOKED' && listing.bookedThrough
+                        ? `Booked through ${formatDateOnly(listing.bookedThrough)}`
+                        : titleCase(listing.availability)
+                    }
+                  />
                   <Row
                     label="Semen"
                     value={listing.semenTypes.length ? listing.semenTypes.map(titleCase).join(", ") : 'Natural'}

@@ -19,6 +19,7 @@ import applicationRoutes from './routes/applications.js';
 import ownerRoutes from './routes/owner.js';
 import trustRoutes from './routes/trust.js';
 import studRoutes from './routes/studs.js';
+import bookingRoutes from './routes/bookings.js';
 import dogRoutes from './routes/dogs.js';
 import kennelRoutes from './routes/kennels.js';
 import pedigreeRoutes from './routes/pedigree.js';
@@ -86,6 +87,7 @@ export async function buildServer() {
       await api.register(litterRoutes);
       await api.register(dashboardRoutes);
       await api.register(studRoutes);
+      await api.register(bookingRoutes);
       await api.register(contractRoutes);
       await api.register(marketplaceRoutes);
       await api.register(applicationRoutes);

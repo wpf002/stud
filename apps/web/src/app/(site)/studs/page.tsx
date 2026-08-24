@@ -2,7 +2,7 @@ import { MapPin, PawPrint, ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Badge, Card, EmptyState, formatCoi, formatMoney, titleCase } from '@stud/ui';
+import { Badge, Card, EmptyState, formatCoi, formatDateOnly, formatMoney, titleCase } from '@stud/ui';
 import { API_URL } from '@/lib/api';
 import { Pagination, pageFrom } from '@/components/pagination';
 import { redirect } from 'next/navigation';
@@ -38,6 +38,7 @@ const PAGE_SIZE = 24;
 interface StudRow {
   id: string;
   availability: string;
+  bookedThrough: string | null;
   studFeeCents: number | null;
   shipsSemen: boolean;
   semenTypes: string[];
@@ -162,7 +163,9 @@ export default async function StudsPage({
                           tone={s.availability === 'AVAILABLE' ? 'brand' : 'neutral'}
                           size="sm"
                         >
-                          {titleCase(s.availability)}
+                          {s.availability === 'BOOKED' && s.bookedThrough
+                            ? `Booked to ${formatDateOnly(s.bookedThrough)}`
+                            : titleCase(s.availability)}
                         </Badge>
                       </div>
                     </div>

@@ -25,6 +25,31 @@ export function formatDate(
   return date.toLocaleDateString('en-US', opts);
 }
 
+/**
+ * A calendar date with no time in it — a booking window, a whelp date, a go-home
+ * date. Rendered in UTC deliberately.
+ *
+ * Prisma returns a `@db.Date` column as midnight UTC. Formatting that with the
+ * viewer's local timezone moves it backwards a day for anyone west of
+ * Greenwich, so a stud accepted through the 7th advertised itself as booked
+ * through the 6th — and the 7th looked free.
+ */
+export function formatDateOnly(
+  d: Date | string | null | undefined,
+  style: 'short' | 'medium' | 'long' = 'medium',
+): string {
+  if (!d) return '—';
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (Number.isNaN(date.getTime())) return '—';
+  const opts: Intl.DateTimeFormatOptions =
+    style === 'short'
+      ? { month: 'numeric', day: 'numeric', year: '2-digit' }
+      : style === 'long'
+        ? { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
+        : { month: 'short', day: 'numeric', year: 'numeric' };
+  return date.toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' });
+}
+
 export function formatDateTime(d: Date | string | null | undefined): string {
   if (!d) return '—';
   const date = typeof d === 'string' ? new Date(d) : d;
