@@ -245,8 +245,8 @@ adapter implements the same contract, so CI exercises every layer for real.
 | **7** ✅ | Buyer pipeline & payments | Application → approval → deposit → balance → pickup, fully tracked |
 | **8** ✅ | Owner portal & record transfer | A buyer opens their dog's record on pickup day and it's already complete |
 | **9** ✅ | Trust, discovery & growth | Organic traffic is the primary channel; the verified tier converts measurably better |
-| **10** | Seed at realistic scale | `/puppies` and `/studs` filter and paginate against ~280 dogs, and no dog carries a title its breed does not compete for |
-| **11** | Booking & availability | A dam owner requests a five-day window, the stud owner accepts, a deposit is taken, and the listing reads "booked through" with no manual status edit |
+| **10** ✅ | Seed at realistic scale | `/puppies` and `/studs` filter and paginate against ~280 dogs, and no dog carries a title its breed does not compete for |
+| **11** ✅ | Booking & availability | A dam owner requests a five-day window, the stud owner accepts, a deposit is taken, and the listing reads "booked through" with no manual status edit |
 | **12** | Structured credentials & breed-aware health | A GSP shows its own CHIC expectations while a Poodle shows a different set; a 45-day-old brucellosis test blocks a booking |
 | **13** | Stripe Connect | Test mode: a held deposit refunds with no payout, and a second transfers to a connected account on completion |
 
