@@ -172,6 +172,15 @@ model Kennel {
   longitude  Float?
 
   /// Primary breeds this program works in. Denormalised for search.
+  /// Breeder-level programme credentials — AKC Breeder of Merit, AKC Bred with
+  /// H.E.A.R.T. These belong to the kennel, not to any one dog, which is why
+  /// they are not VerifiedClaims: every claim in that table hangs off a dogId.
+  ///
+  /// Self-reported. Live AKC lookups are gated by docs/verification-sources.md,
+  /// so the UI labels these as stated by the breeder rather than checked —
+  /// same split the dog claims already make between verified and reported.
+  credentials String[] @default([])
+
   breeds String[] @default([])
 
   foundedYear Int?

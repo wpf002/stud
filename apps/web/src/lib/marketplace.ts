@@ -201,7 +201,12 @@ export function loadPublicIndex() {
 }
 
 export interface KennelPage {
-  kennel: PublicKennel & { tagline: string | null; breeds: string[]; isPublished: boolean };
+  kennel: PublicKennel & {
+    tagline: string | null;
+    breeds: string[];
+    isPublished: boolean;
+    credentials: string[];
+  };
   dogs: {
     id: string;
     slug: string;

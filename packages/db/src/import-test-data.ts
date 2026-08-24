@@ -29,6 +29,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PrismaClient, type Prisma } from '@prisma/client';
+import { titleClaimType } from '@stud/verify';
 import { loadRootEnv } from './env.js';
 
 loadRootEnv();
@@ -131,8 +132,14 @@ const CATEGORY: Record<string, Prisma.VerifiedClaimCreateInput['category']> = {
   BRUCELLOSIS: 'HEALTH',
 };
 
-/** Titles are performance/conformation records, not health results. */
-const TITLE_CLAIM = 'TITLE_AWARD';
+/**
+ * Titles are stored under their DISCIPLINE, with the code kept as the marker.
+ *
+ * They were all going in as TITLE_AWARD, which made them invisible to the
+ * stud directory's title filter — that filter keys on claim type, so a buyer
+ * asking for a hunting title matched nothing. The discipline is the filterable
+ * part; "SH" is what is on the certificate and stays as the marker.
+ */
 
 async function main() {
   const fx = JSON.parse(readFileSync(FIXTURE, 'utf8')) as Fixture;
@@ -161,7 +168,13 @@ async function main() {
     const slug = slugify(`${b.breederId}-${b.businessName}`);
     const k = await db.kennel.upsert({
       where: { slug },
-      update: { name: b.businessName, city: b.city, region: b.state, breeds: [b.primaryBreed] },
+      update: {
+        name: b.businessName,
+        city: b.city,
+        region: b.state,
+        breeds: [b.primaryBreed],
+        credentials: b.credential ? [b.credential] : [],
+      },
       create: {
         slug,
         name: b.businessName,
@@ -170,7 +183,8 @@ async function main() {
         breeds: [b.primaryBreed],
         foundedYear: b.yearsInBusiness ? new Date().getFullYear() - b.yearsInBusiness : null,
         isPublished: true,
-        about: b.credential ? `${b.credential}. Registered with ${b.registries.join(', ')}.` : null,
+        credentials: b.credential ? [b.credential] : [],
+        about: b.registries.length ? `Registered with ${b.registries.join(', ')}.` : null,
       },
       select: { id: true },
     });
@@ -236,11 +250,12 @@ async function main() {
     const dogId = dogIdBySourceId.get(d.dogId);
     if (!dogId) continue;
     for (const title of d.titles) {
+      const claimType = titleClaimType(title);
       await db.verifiedClaim.upsert({
         where: {
           dogId_claimType_markerName_source: {
             dogId,
-            claimType: TITLE_CLAIM,
+            claimType,
             markerName: title,
             source: 'FIXTURE',
           },
@@ -248,7 +263,7 @@ async function main() {
         update: {},
         create: {
           dogId,
-          claimType: TITLE_CLAIM,
+          claimType,
           markerName: title,
           category: 'TITLE',
           state: 'VERIFIED',
@@ -261,7 +276,24 @@ async function main() {
       titles += 1;
     }
   }
-  console.info(`  ✓ ${titles} titles (breed-appropriate only)`);
+  /**
+   * Clear titles left under the old catch-all type.
+   *
+   * These used to be stored as TITLE_AWARD. The upsert above keys on claim
+   * type, so moving a title to its discipline creates a new row rather than
+   * updating the old one — leaving both, which double-counts every title on
+   * the dog's verified total. Only FIXTURE rows whose code the vocabulary now
+   * places elsewhere are removed; a genuinely unrecognised code still lands on
+   * TITLE_AWARD and is left alone.
+   */
+  const relocated = [...new Set(fx.dogs.flatMap((d) => d.titles))].filter(
+    (code) => titleClaimType(code) !== 'TITLE_AWARD',
+  );
+  const { count: cleared } = await db.verifiedClaim.deleteMany({
+    where: { claimType: 'TITLE_AWARD', source: 'FIXTURE', markerName: { in: relocated } },
+  });
+
+  console.info(`  ✓ ${titles} titles (breed-appropriate only)${cleared ? `, ${cleared} moved off the old catch-all type` : ''}`);
 
   // ── Health tests ──────────────────────────────────────────────────────────
   let claims = 0;

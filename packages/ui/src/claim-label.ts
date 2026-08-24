@@ -15,7 +15,8 @@ const CLAIM_LABELS: Record<string, string> = {
   TITLE_CONFORMATION: 'Conformation', TITLE_FIELD: 'Field Trial', TITLE_HUNT_TEST: 'Hunt Test',
   TITLE_OBEDIENCE: 'Obedience', TITLE_RALLY: 'Rally', TITLE_AGILITY: 'Agility',
   TITLE_TRACKING: 'Tracking', TITLE_HERDING: 'Herding', TITLE_WORKING: 'Working',
-  TITLE_SERVICE: 'Service', TITLE_TEMPERAMENT: 'Temperament',
+  TITLE_SERVICE: 'Service', TITLE_TEMPERAMENT: 'Good Citizen',
+  TITLE_THERAPY: 'Therapy', TITLE_AWARD: 'Title',
   NAVHDA_NA: 'NAVHDA Natural Ability', NAVHDA_UT: 'NAVHDA Utility',
   NAVHDA_INVITATIONAL: 'NAVHDA Invitational',
 };

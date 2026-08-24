@@ -126,6 +126,23 @@ export default async function KennelPage({ params }: { params: Promise<{ slug: s
           {kennel.name}
         </h1>
         {kennel.tagline && <p className="mt-2 text-md text-ink-600">{kennel.tagline}</p>}
+
+        {/*
+          Breeder-level programme credentials. Marked as stated rather than
+          shown as a checkmark: AKC lookups are not live, so this is the
+          breeder's word — the same line the dog claims draw between verified
+          and reported.
+        */}
+        {kennel.credentials.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {kennel.credentials.map((c) => (
+              <Badge key={c} tone="neutral" size="sm">
+                {c}
+              </Badge>
+            ))}
+            <span className="text-2xs text-ink-400">Stated by the breeder, not checked</span>
+          </div>
+        )}
         <p className="mt-2 flex flex-wrap items-center gap-x-3 text-ink-500">
           {kennel.city && (
             <span className="flex items-center gap-1">

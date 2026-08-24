@@ -4,6 +4,7 @@ import { AlertTriangle, Bookmark, MapPin, Search, ShieldCheck, SlidersHorizontal
 import Link from 'next/link';
 import * as React from 'react';
 import { Alert, Badge, Button, Card, CardContent, Checkbox, EmptyState, Field, Input, Select, cn, formatCoi, formatDistance, formatDogAge, formatMoney, titleCase } from '@stud/ui';
+import { TITLE_DISCIPLINES } from '@stud/verify';
 import { api, ApiError } from '@/lib/api';
 import type { DogSummary, StudSearchResponse, StudRow } from '@/lib/types';
 
@@ -15,12 +16,11 @@ const HEALTH_FILTERS = [
   { value: 'THYROID', label: 'Thyroid' },
 ];
 
-const TITLE_FILTERS = [
-  { value: 'TITLE_HUNT_TEST', label: 'Hunt Test' },
-  { value: 'TITLE_FIELD', label: 'Field Trial' },
-  { value: 'TITLE_CONFORMATION', label: 'Conformation' },
-  { value: 'NAVHDA_UT', label: 'NAVHDA UT' },
-];
+/** Every discipline the vocabulary knows, so a filter exists for each. */
+const TITLE_FILTERS: { value: string; label: string }[] = TITLE_DISCIPLINES.map((d) => ({
+  value: d.claimType,
+  label: d.label,
+}));
 
 /**
  * The stud directory.
