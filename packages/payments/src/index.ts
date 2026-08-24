@@ -14,4 +14,5 @@
 export * from './ledger.js';
 export * from './schedule.js';
 export * from './provider.js';
+export * from './stripe-connect.js';
 export * from './pipeline.js';

@@ -23,6 +23,8 @@
 
 import { type Cents } from './ledger.js';
 
+import { StripeConnectProvider } from './stripe-connect.js';
+
 export type PaymentMethodKind = 'CARD' | 'ACH' | 'MANUAL';
 
 export interface ChargeRequest {
@@ -199,6 +201,19 @@ export class MockProvider implements PaymentProvider {
  */
 export function createProvider(name: string, opts: { now?: () => Date } = {}): PaymentProvider {
   if (name === 'mock') return new MockProvider(opts.now);
+
+  /**
+   * Stripe Connect, test mode only, and only when a test key is present.
+   *
+   * Selecting it is two deliberate acts — setting PAYMENTS_PROVIDER and
+   * supplying STRIPE_SECRET_KEY — and fromKey() refuses a live key outright,
+   * so this cannot become a live rail by configuration alone. The written
+   * approval that docs/payments-diligence.md requires still does not exist.
+   */
+  if (name === 'stripe-connect') {
+    return StripeConnectProvider.fromKey(process.env.STRIPE_SECRET_KEY ?? '', opts);
+  }
+
   throw new PaymentError(
     `Payment provider "${name}" is not implemented. Live animal sales are a high-risk vertical and no processor may be enabled until the diligence in docs/payments-diligence.md is complete and a written approval for this vertical is on file.`,
     'NOT_CONFIGURED',

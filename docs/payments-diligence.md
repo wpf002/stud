@@ -3,9 +3,45 @@
 **Status:** open. Phase 0 diligence item, ships in Phase 7.
 **Owner:** unassigned.
 
-> Do not write a line of Phase 7 payment code until a processor has given
-> **written** approval for this vertical. `PAYMENTS_PROVIDER=mock` is the only
-> supported value until then.
+> No processor may move real money for this vertical until a processor has
+> given **written** approval. `PAYMENTS_PROVIDER=mock` remains the default and
+> is the only value that runs by itself.
+
+## What exists now (Phase 13, test mode only)
+
+`packages/payments/src/stripe-connect.ts` implements Connect using separate
+charges and transfers: the platform collects onto its own balance and holds,
+then transfers to the breeder's connected account once the condition is met.
+Refunding while the money is still platform-side needs no clawback, because
+nothing has been paid out.
+
+It is a rehearsal of the flow, not a payment rail, and three things keep it
+that way:
+
+- `StripeConnectProvider.fromKey()` **refuses a live key** — `sk_live_` throws.
+  The check is on the key rather than on a mode flag, because a flag can be set
+  wrongly and `sk_live_` cannot be misread.
+- `isLive` is `false` and is not configurable.
+- Selecting it takes two deliberate acts: `PAYMENTS_PROVIDER=stripe-connect`
+  **and** a `STRIPE_SECRET_KEY`. Neither alone does anything.
+
+Verified against a recorded fake transport rather than a live Stripe test
+account — no key was handled. The assertions are on the call *sequence*, since
+that is what the pattern is about: a held deposit refunds with
+`/v1/payment_intents` then `/v1/refunds` and **no** `/v1/transfers`, and a
+completed one goes `/v1/payment_intents` then `/v1/transfers` to `acct_…`.
+
+Still outstanding before real money moves, on top of the checklist below:
+
+1. Written processor approval for live animal sales. Nothing else matters
+   without it.
+2. Legal advice on holding funds. Stripe permits holding against a clear
+   condition and a commitment to release, and explicitly advises against
+   holding arbitrarily. Deposits here sit 8–16 weeks against a live animal.
+3. A run against a real Stripe test account, including a declined card and a
+   connected account whose verification is incomplete.
+4. Client-side payment collection. `charge()` currently uses the test card
+   token; a real integration collects a payment method from the buyer.
 
 ## Why this is a blocker, not a formality
 

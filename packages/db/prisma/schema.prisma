@@ -172,6 +172,16 @@ model Kennel {
   longitude  Float?
 
   /// Primary breeds this program works in. Denormalised for search.
+  /// Stripe Connect. A breeder cannot be paid until they have completed
+  /// Stripe's own onboarding — identity verification and a bank account — so
+  /// this is a real state to track, not a boolean somebody sets.
+  ///
+  /// payoutsEnabled is Stripe's answer, not ours: an account can exist and
+  /// still be unable to receive money while verification is outstanding.
+  stripeAccountId  String?
+  payoutsEnabled   Boolean   @default(false)
+  stripeCheckedAt  DateTime?
+
   /// Breeder-level programme credentials — AKC Breeder of Merit, AKC Bred with
   /// H.E.A.R.T. These belong to the kennel, not to any one dog, which is why
   /// they are not VerifiedClaims: every claim in that table hangs off a dogId.
